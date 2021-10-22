@@ -22,12 +22,14 @@
 #define COLOR_RED CP_Color_Create(255, 0, 0, 255)
 #define COLOR_GREEN CP_Color_Create(0, 255, 0, 255)
 #define COLOR_BLUE CP_Color_Create(0, 0, 255, 255)
-#define COLOR_WHATEVER CP_Color_Create(25, 20, 100, 255)
+//#define COLOR_WHATEVER CP_Color_Create(25, 20, 100, 255)
 
+/*
 #define Grid_One 0
 #define Grid_Two 1
 int reference_grid;
 int render_grid;
+*/
 
 #define X 0
 #define Y 1
@@ -53,8 +55,8 @@ float gBlockPositionX;
 float gBlockPositionY;
 float gEnemyPositionX;
 float gEnemyPositionY;
-float gMinionPositionX;
-float gMinionPositionY;
+//float gMinionPositionX;
+//float gMinionPositionY;
 
 int minion_count;
 
@@ -94,7 +96,7 @@ void game_init(void)
     CP_Graphics_ClearBackground(COLOR_GREY);
 
     Block_Size = (float)CP_System_GetWindowWidth() / MAP_GRID_COLS;
-    Enemy_Size = Block_Size * 0.5f;
+    Enemy_Size = Block_Size * 0.5f; //probably need to be changed depending on what enemy
     CP_Settings_StrokeWeight(0.6f);
 
     
@@ -121,7 +123,7 @@ void render_bg() {
         for (int col = 0; col < MAP_GRID_COLS; ++col) {
             gBlockPositionX = Block_Size * (float)row;
             gBlockPositionY = Block_Size * (float)col;
-            CP_Settings_Fill(gGrids[row][col] == BLOCK_EMPTY
+            CP_Settings_Fill(gGrids[row][col] == BLOCK_EMPTY //ternary operator
                 ? COLOR_GREY
                 : gGrids[row][col] == BLOCK_END //add something to include text to show that this is the end point
                 ? COLOR_BLACK
@@ -131,7 +133,7 @@ void render_bg() {
                 ? COLOR_GREEN
                 : gGrids[row][col] == BLOCK_INVISIBLE
                 ? COLOR_GREY
-                : COLOR_GREY);
+                : COLOR_GREY); //BLOCK_ENEMY
             CP_Graphics_DrawRect(gBlockPositionX, gBlockPositionY, Block_Size, Block_Size);
 
         }
@@ -140,11 +142,11 @@ void render_bg() {
 
 void render_enemy() {
     for (int row = 0; row < MAP_GRID_ROWS; ++row) {
-        for (int col = 0; col < MAP_GRID_COLS; ++col) {
+        for (int col = 0; col < MAP_GRID_COLS; ++col) { //when changed all the enemy things to array, you'll need a for loop to go through each array
             if (gGrids[row][col] == BLOCK_ENEMY) {
                 CP_Settings_Fill(COLOR_RED); 
                 CP_Settings_RectMode(CP_POSITION_CENTER);
-                gEnemyPositionX = (Block_Size * (float)row) + Enemy_Size;
+                gEnemyPositionX = (Block_Size * (float)row) + Enemy_Size; //all the current gPostionX etc. need to be changed into arrays
                 gEnemyPositionY = (Block_Size * (float)col) + Enemy_Size;
                 CP_Graphics_DrawRect(gEnemyPositionX, gEnemyPositionY, Enemy_Size, Enemy_Size);
             }
@@ -160,8 +162,6 @@ void render_minion() {
             if (gGrids[row][col] == BLOCK_SPAWN) {
                 float SpawnX = (Block_Size * (float)row) + Enemy_Size; //using enemy size cause lazy
                 float SpawnY = (Block_Size * (float)col) + Enemy_Size; //makes it spawn in the middle
-                gMinionPositionX = SpawnX;
-                gMinionPositionY = SpawnY;
                 decide_direction(minion_count, SpawnX, SpawnY);
                 CP_Settings_Fill(COLOR_BLUE);
                 if (minion_count < 7) {
