@@ -70,6 +70,7 @@ float pInitialX, pInitialY;
 float pDistX, pDistY;
 
 int minion_count;
+int enemy_count;
 
 void render_background(void);
 void render_enemy(void);
@@ -126,7 +127,20 @@ void game_update(void) {
     fire_projectile();
     check_distance();
     move_projectile();
-    
+
+    //TEMPORARY FOR PROTOTYPE DEMO ONLY. TEMPORARY FOR PROTOTYPE DEMO ONLY. TEMPORARY FOR PROTOTYPE DEMO ONLY
+    if (CP_Input_KeyTriggered(KEY_4)) {
+        if (gGrids[1][2] == BLOCK_ENEMY) {
+            gGrids[1][2] = BLOCK_EMPTY;
+            --enemy_count;
+        }
+        else if (gGrids[1][2] == BLOCK_EMPTY) {
+            gGrids[1][2] = BLOCK_ENEMY;
+            ++enemy_count;
+        }
+    }
+    //TEMPORARY FOR PROTOTYPE DEMO ONLY. TEMPORARY FOR PROTOTYPE DEMO ONLY. TEMPORARY FOR PROTOTYPE DEMO ONLY
+
     if (CP_Input_KeyTriggered(KEY_1)) { //KEY1 for minionA
         if (minion_count < 7) {
             gMinion[minion_count][MINION_TYPE] = MINION_A;
@@ -221,9 +235,9 @@ void move_projectile()
     for (int i = 0; i < 5; i++)
     {
         //CP_Graphics_DrawRect(gProjectile[0][X], gProjectile[0][Y], Enemy_Size * 0.5f, Enemy_Size * 0.2f);
-        if (minion_count > 0)
+        if (minion_count > 0 && enemy_count > 0)
         {
-            CP_Graphics_DrawLine(gProjectile[0][X], gProjectile[0][Y], gMinion[0][X], gMinion[0][Y]);
+            CP_Graphics_DrawLine(gProjectile[0][X], gProjectile[0][Y], gMinion[5][X], gMinion[5][Y]);
 
         }
         if (pDistX > 0 && pDistY > 0)
@@ -273,7 +287,7 @@ void current_minion() {
 
 void move_minion() {
     float minion_speed, move_left, move_right, move_up, move_down;
-    minion_speed = 4.0f; //should probably declare it in global
+    minion_speed = 6.0f; //should probably declare it in global
     for (int i = 0; i < minion_count; i++) {
         move_left = gMinion[i][X] - minion_speed;
         move_right = gMinion[i][X] + minion_speed;
@@ -460,7 +474,7 @@ void level_1() {
     gGrids[3][3] = BLOCK_PRESENT;
     gGrids[4][3] = BLOCK_PRESENT;
     gGrids[4][2] = BLOCK_END;
-    gGrids[1][2] = BLOCK_ENEMY;
+    //gGrids[1][2] = BLOCK_ENEMY;
     gGrids[4][4] = BLOCK_SPAWN;
 }
 
