@@ -173,7 +173,6 @@ void render_minion() {
                     minion_count = 7;
                 }
                 ++minion_count;
-                printf("%d", minion_count);
             }
         }
     }
@@ -181,7 +180,7 @@ void render_minion() {
 
 void move_minion() {
     float minion_speed, move_left, move_right, move_up, move_down;
-    minion_speed = 4.0f; //should probably declare it in global
+    minion_speed = 4.0f; //should probably declare it in global, make array for new minion types
     for (int i = 0; i < minion_count; i++) {
         move_left = gMinion[i][X] - minion_speed;
         move_right = gMinion[i][X] + minion_speed;
