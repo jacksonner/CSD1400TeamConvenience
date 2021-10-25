@@ -71,7 +71,7 @@ float pDistX, pDistY;
 
 int minion_count;
 
-void render_bg(void);
+void render_background(void);
 void render_enemy(void);
 void level_1(void);
 void render_minion(void);
@@ -121,12 +121,11 @@ void game_init(void)
 
 void game_update(void) {
     level_1(); //probably add something for like choose level which will then toggle between the levels before rendering
-    render_bg();
+    render_background();
     render_enemy();
     fire_projectile();
     check_distance();
     move_projectile();
-    if (CP_Input_KeyTriggered(KEY_ANY)) { //any button clicked
     
     if (CP_Input_KeyTriggered(KEY_1)) { //KEY1 for minionA
         if (minion_count < 7) {
@@ -136,7 +135,6 @@ void game_update(void) {
         }
     }
     
-
     else if (CP_Input_KeyTriggered(KEY_2)) { //KEY2 for minionB
         if (minion_count < 7) {
             gMinion[minion_count][MINION_TYPE] = MINION_B;
@@ -155,13 +153,11 @@ void game_update(void) {
         }
     
   if (minion_count > 0) {
-      
         move_minion();  
-
     } 
 }
 
-void render_bg() {
+void render_background() {
     for (int row = 0; row < MAP_GRID_ROWS; ++row) {
         for (int col = 0; col < MAP_GRID_COLS; ++col) {
             gBlockPositionX = Block_Size * (float)row;
@@ -178,8 +174,6 @@ void render_bg() {
                 ? COLOR_GREY
                 : COLOR_GREY); //BLOCK_ENEMY
             CP_Graphics_DrawRect(gBlockPositionX, gBlockPositionY, Block_Size, Block_Size);
-
-
         }
     }
 }
@@ -328,7 +322,6 @@ void check_minion_type() {
         else if (gMinion[i][MINION_TYPE] == MINION_C) {
             CP_Settings_Fill(COLOR_GREEN);
         }
-
         CP_Graphics_DrawCircle(gMinion[i][X], gMinion[i][Y], Enemy_Size);
     }
 }
