@@ -33,10 +33,19 @@ int render_grid;
 
 #define X 0
 #define Y 1
+#define MINION_TYPE 2
+#define MINION_HP 3
+#define MINION_SPEED 4
+#define MINION_ATTACK 5
 #define MINION_MAX 7
-float gMinion[MINION_MAX][2]; //array to keep track of minions
+float gMinion[MINION_MAX][6]; //array to keep track of minions
 float travel_dist[MINION_MAX]; //array to keep track of dist travelled so it'll all be set distances
 float gProjectile[3][2];
+
+#define MINION_A 0
+#define MINION_B 1
+#define MINION_C 2
+
 
 #define STOP 0
 #define LEFT 1
@@ -67,6 +76,7 @@ void render_enemy(void);
 void level_1(void);
 void render_minion(void);
 void move_minion(void);
+void check_minion_type(void);
 
 void fire_projectile(void);
 void check_distance(void);
@@ -85,7 +95,7 @@ void game_init(void)
     /* Set every grids' block to empty -- empty map*/
     for (int row = 0; row < MAP_GRID_ROWS; ++row) {
         for (int col = 0; col < MAP_GRID_COLS; ++col) {
-            gGrids[row][col] = BLOCK_EMPTY;      
+            gGrids[row][col] = BLOCK_EMPTY;
         }
     }
 
@@ -106,7 +116,7 @@ void game_init(void)
     Enemy_Size = Block_Size * 0.5f; //probably need to be changed depending on what enemy
     CP_Settings_StrokeWeight(0.6f);
 
-    
+
 }
 
 void game_update(void) {
@@ -117,18 +127,38 @@ void game_update(void) {
     check_distance();
     move_projectile();
     if (CP_Input_KeyTriggered(KEY_ANY)) { //any button clicked
+    
+    if (CP_Input_KeyTriggered(KEY_1)) { //KEY1 for minionA
         if (minion_count < 7) {
+            gMinion[minion_count][MINION_TYPE] = MINION_A;
+            render_minion();
+        
+        }
+    }
+    
+
+    else if (CP_Input_KeyTriggered(KEY_2)) { //KEY2 for minionB
+        if (minion_count < 7) {
+            gMinion[minion_count][MINION_TYPE] = MINION_B;
             render_minion();
         }
+    }
+
+    else if (CP_Input_KeyTriggered(KEY_3)) { //KEY3 for minionC
+        if (minion_count < 7) {
+            gMinion[minion_count][MINION_TYPE] = MINION_C;
+            render_minion();
+        }
+    }
+      
         else { //nothing happens, ideally text will let you know you have too many minions out
         }
-    }        
-    if (minion_count > 0) {
-        move_minion();
-    }
-    //printf("%f, %f\n", gMinion[0][X], gMinion[0][Y]); //Track 1st minion position
-    //printf("%f, %f\n", gProjectile[0][X], gProjectile[0][Y]);
-    printf("%f, %f\n", pDistX, pDistY);
+    
+  if (minion_count > 0) {
+      
+        move_minion();  
+
+    } 
 }
 
 void render_bg() {
@@ -149,6 +179,7 @@ void render_bg() {
                 : COLOR_GREY); //BLOCK_ENEMY
             CP_Graphics_DrawRect(gBlockPositionX, gBlockPositionY, Block_Size, Block_Size);
 
+
         }
     }
 }
@@ -157,7 +188,7 @@ void render_enemy() {
     for (int row = 0; row < MAP_GRID_ROWS; ++row) {
         for (int col = 0; col < MAP_GRID_COLS; ++col) { //when changed all the enemy things to array, you'll need a for loop to go through each array
             if (gGrids[row][col] == BLOCK_ENEMY) {
-                CP_Settings_Fill(COLOR_RED); 
+                CP_Settings_Fill(COLOR_RED);
                 CP_Settings_RectMode(CP_POSITION_CENTER);
                 gEnemyPositionX = (Block_Size * (float)row) + Enemy_Size; //all the current gPostionX etc. need to be changed into arrays
                 gEnemyPositionY = (Block_Size * (float)col) + Enemy_Size;
@@ -217,8 +248,8 @@ void render_minion() {
             if (gGrids[row][col] == BLOCK_SPAWN) {
                 float SpawnX = (Block_Size * (float)row) + Enemy_Size; //using enemy size cause lazy
                 float SpawnY = (Block_Size * (float)col) + Enemy_Size; //makes it spawn in the middle
-                decide_direction(minion_count, SpawnX, SpawnY);
-                CP_Settings_Fill(COLOR_BLUE);
+                decide_direction(minion_count, SpawnX, SpawnY);        
+                CP_Settings_Fill(COLOR_BLUE);              
                 if (minion_count < 7) {
                     gMinion[minion_count][X] = SpawnX;
                     gMinion[minion_count][Y] = SpawnY;
@@ -228,14 +259,27 @@ void render_minion() {
                     minion_count = 7;
                 }
                 ++minion_count;
+                printf("%d", minion_count);
             }
         }
     }
 }
 
+void current_minion() {
+    for (int i = 0; i < minion_count; i++) {
+        if (gMinion[i][MINION_TYPE] == MINION_A) {
+            CP_Settings_Fill(COLOR_BLUE);
+        }
+        else if (gMinion[i][MINION_TYPE] == MINION_B) {
+            CP_Settings_Fill(COLOR_RED);
+        }
+    }
+}
+
+
 void move_minion() {
     float minion_speed, move_left, move_right, move_up, move_down;
-    minion_speed = 4.0f; //should probably declare it in global, make array for new minion types
+    minion_speed = 4.0f; //should probably declare it in global
     for (int i = 0; i < minion_count; i++) {
         move_left = gMinion[i][X] - minion_speed;
         move_right = gMinion[i][X] + minion_speed;
@@ -266,10 +310,30 @@ void move_minion() {
             gMinion[i][Y] = gMinion[i][Y];
             decide_direction(i, gMinion[i][X], gMinion[i][Y]);
         }
-        CP_Settings_Fill(COLOR_BLUE);
+    
+      
+        CP_Graphics_DrawCircle(gMinion[i][X], gMinion[i][Y], Enemy_Size);
+    }
+    check_minion_type();
+}
+
+void check_minion_type() {
+    for (int i = 0; i < minion_count; i++) {
+        if (gMinion[i][MINION_TYPE] == MINION_A) {
+            CP_Settings_Fill(COLOR_BLUE);
+        }
+        else if (gMinion[i][MINION_TYPE] == MINION_B) {
+            CP_Settings_Fill(COLOR_RED);
+        }
+        else if (gMinion[i][MINION_TYPE] == MINION_C) {
+            CP_Settings_Fill(COLOR_GREEN);
+        }
+
         CP_Graphics_DrawCircle(gMinion[i][X], gMinion[i][Y], Enemy_Size);
     }
 }
+
+
 
 int decide_direction(int i, float x_coordinate, float y_coordinate) {
     float x = x_coordinate / Block_Size;
@@ -316,17 +380,17 @@ int decide_direction(int i, float x_coordinate, float y_coordinate) {
     else if (Current_Direction[i] == STOP) { //2
         Current_Direction[i] = Past_Direction[i];
     }
-    
+
     return Current_Direction[i];
 }
 
-int check_up (int i, int row, int col) {
+int check_up(int i, int row, int col) {
     int surrounding_x, surrounding_y;
     if ((surrounding_x = row) >= 0 && (surrounding_y = col - 1) >= 0) {
         if (gGrids[surrounding_x][surrounding_y] == BLOCK_EMPTY
             || gGrids[surrounding_x][surrounding_y] == BLOCK_END) {   //UP have no block
             Current_Direction[i] = UP;
-        } 
+        }
         else {
             Current_Direction[i] = STOP;
         }
@@ -371,7 +435,7 @@ int check_left(int i, int row, int col) {
     return Current_Direction[i];
 }
 
-int check_right (int i, int row, int col) {
+int check_right(int i, int row, int col) {
     int surrounding_x, surrounding_y;
     if ((surrounding_x = row + 1) < MAP_GRID_ROWS && (surrounding_y = col) >= 0) {
         if (gGrids[surrounding_x][surrounding_y] == BLOCK_EMPTY
@@ -381,10 +445,10 @@ int check_right (int i, int row, int col) {
         else {
             Current_Direction[i] = STOP;
         }
-    }   
+    }
     else {
         Current_Direction[i] = STOP;
-        
+
     }
     return Current_Direction[i];
 }
