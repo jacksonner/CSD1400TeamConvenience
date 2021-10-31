@@ -47,16 +47,17 @@ float array_Collaborative_DiffusionMap[MAP_GRID_ROWS][MAP_GRID_COLS][2];
 #define MINION_COST 8
 #define MINION_SIZE 9
 #define MINION_DIRECTION 10
+#define MINION_HEAL 11
 /*can add a MINION_COLOUR too maybe?*/
 #define MINION_MAX 7 //Maximum number of minions in the game at any one time
 int array_MinionStats[MINION_MAX][11];
 
 /*Types of Minions*/
 #define SPAM_MINION 0 //weak everything, but low cost
-#define WARRIOR_MINION 1 
+#define WARRIOR_MINION 1 //decent health, decent attack
 #define TANK_MINION 2 //tanky but low attack
-#define WIZARD_MINION 3 
-#define HEALER_MINION 4
+#define WIZARD_MINION 3 //low health, high attack
+#define HEALER_MINION 4 //decent health, no attack, heal other minions
 #define A_MINION 5 //TBC - YC
 #define B_MINION 6 //TBC - YC
 
@@ -78,15 +79,16 @@ int array_MinionStats[MINION_MAX][11];
 #define ENEMY_SIZE 7
 #define ENEMY_RANGE 8
 #define ENEMY_MAX 10 //How many enemies can we have at one time? 
+#define ENEMY_HEAL 11
 int array_EnemyStats[ENEMY_MAX][9];
 
 /*Types of Enemies*/
-#define GUARD_ENEMY 0
-#define A_ENEMY 1 //TBC
-#define B_ENEMY 2 //TBC
-#define HEALING_TOWER 3
+#define GUARD_ENEMY 0 //block minions
+#define DAMAGE_ENEMY 1 // shorter range than tower
+#define SLOW_ENEMY 2 //slow down minion
+#define HEALING_TOWER 3 //heal enemies
 #define RANGED_TOWER 4
-#define A_TOWER 5 //TBC
+#define BASE 5 //TBC
 #define B_TOWER 6 //TBC
 
 /**/
@@ -430,12 +432,48 @@ void move_minion() {
 void assign_minion_stats() {
     /*TEST CASE - PLEASE CHANGE AND ADD*/
     if (array_MinionStats[minion_count][MINION_TYPE] == SPAM_MINION) {
-        array_MinionStats[minion_count][MINION_HP] = 500;
-        array_MinionStats[minion_count][MINION_MOVEMENT_SPEED] = 4;
+        array_MinionStats[minion_count][MINION_HP] = 50;
+        array_MinionStats[minion_count][MINION_MOVEMENT_SPEED] = 8;
+        array_MinionStats[minion_count][MINION_ATTACK] = 10;
+        array_MinionStats[minion_count][MINION_ATTACK_SPEED] = 2;
+        array_MinionStats[minion_count][MINION_WEIGHT] = 1;
+        array_MinionStats[minion_count][MINION_COST] = 1;
+        array_MinionStats[minion_count][MINION_SIZE] = 100;
+    }
+    if (array_MinionStats[minion_count][MINION_TYPE] == WARRIOR_MINION) {
+        array_MinionStats[minion_count][MINION_HP] = 130;
+        array_MinionStats[minion_count][MINION_MOVEMENT_SPEED] = 6;
+        array_MinionStats[minion_count][MINION_ATTACK] = 30;
+        array_MinionStats[minion_count][MINION_ATTACK_SPEED] = 2;
+        array_MinionStats[minion_count][MINION_WEIGHT] = 3;
+        array_MinionStats[minion_count][MINION_COST] = 3;
+        array_MinionStats[minion_count][MINION_SIZE] = 100;
+    }
+    if (array_MinionStats[minion_count][MINION_TYPE] == TANK_MINION) {
+        array_MinionStats[minion_count][MINION_HP] = 240;
+        array_MinionStats[minion_count][MINION_MOVEMENT_SPEED] = 3;
         array_MinionStats[minion_count][MINION_ATTACK] = 20;
         array_MinionStats[minion_count][MINION_ATTACK_SPEED] = 2;
+        array_MinionStats[minion_count][MINION_WEIGHT] = 8;
+        array_MinionStats[minion_count][MINION_COST] = 5;
+        array_MinionStats[minion_count][MINION_SIZE] = 100;
+    }
+    if (array_MinionStats[minion_count][MINION_TYPE] == WIZARD_MINION) {
+        array_MinionStats[minion_count][MINION_HP] = 80;
+        array_MinionStats[minion_count][MINION_MOVEMENT_SPEED] = 5;
+        array_MinionStats[minion_count][MINION_ATTACK] = 40;
+        array_MinionStats[minion_count][MINION_ATTACK_SPEED] = 2;
         array_MinionStats[minion_count][MINION_WEIGHT] = 2;
-        array_MinionStats[minion_count][MINION_COST] = 10;
+        array_MinionStats[minion_count][MINION_COST] = 4;
+        array_MinionStats[minion_count][MINION_SIZE] = 100;
+    }
+    if (array_MinionStats[minion_count][MINION_TYPE] == HEALER_MINION) {
+        array_MinionStats[minion_count][MINION_HP] = 120;
+        array_MinionStats[minion_count][MINION_MOVEMENT_SPEED] = 5;
+        array_MinionStats[minion_count][MINION_HEAL] = 20;
+        array_MinionStats[minion_count][MINION_ATTACK_SPEED] = 2;
+        array_MinionStats[minion_count][MINION_WEIGHT] = 2;
+        array_MinionStats[minion_count][MINION_COST] = 5;
         array_MinionStats[minion_count][MINION_SIZE] = 100;
     }
     /*
@@ -455,9 +493,54 @@ void assign_enemy_stats() {
     for (int i = 0; i < ENEMY_MAX; i++) {
         if (array_EnemyStats[i][ENEMY_TYPE] == GUARD_ENEMY) {
             CP_Settings_Fill(COLOR_RED);
-            array_EnemyStats[i][ENEMY_HP] = 300;
-            array_EnemyStats[i][ENEMY_ATTACK] = 50;
+            array_EnemyStats[i][ENEMY_HP] = 150;
+            array_EnemyStats[i][ENEMY_ATTACK] = 0;
             array_EnemyStats[i][ENEMY_ATTACK_SPEED] = 2; //idk how attack_speed works yet
+            array_EnemyStats[i][ENEMY_BLOCK] = 2;
+            array_EnemyStats[i][ENEMY_SIZE] = BLOCK_SIZE / 2;
+            array_EnemyStats[i][ENEMY_RANGE] = 1;
+        }
+        if (array_EnemyStats[i][ENEMY_TYPE] == DAMAGE_ENEMY) {
+            CP_Settings_Fill(COLOR_RED);
+            array_EnemyStats[i][ENEMY_HP] = 100;
+            array_EnemyStats[i][ENEMY_ATTACK] = 30;
+            array_EnemyStats[i][ENEMY_ATTACK_SPEED] = 2; 
+            array_EnemyStats[i][ENEMY_BLOCK] = 2;
+            array_EnemyStats[i][ENEMY_SIZE] = BLOCK_SIZE / 2;
+            array_EnemyStats[i][ENEMY_RANGE] = 2;
+        }
+        if (array_EnemyStats[i][ENEMY_TYPE] == SLOW_ENEMY) {
+            CP_Settings_Fill(COLOR_RED);
+            array_EnemyStats[i][ENEMY_HP] = 120;
+            array_EnemyStats[i][ENEMY_ATTACK] = 20;
+            array_EnemyStats[i][ENEMY_ATTACK_SPEED] = 2;
+            array_EnemyStats[i][ENEMY_BLOCK] = 2;
+            array_EnemyStats[i][ENEMY_SIZE] = BLOCK_SIZE / 2;
+            array_EnemyStats[i][ENEMY_RANGE] = 1;
+        }
+        if (array_EnemyStats[i][ENEMY_TYPE] == HEALING_TOWER) {
+            CP_Settings_Fill(COLOR_RED);
+            array_EnemyStats[i][ENEMY_HP] = 120;
+            array_EnemyStats[i][ENEMY_HEAL] = 20;
+            array_EnemyStats[i][ENEMY_ATTACK_SPEED] = 2;
+            array_EnemyStats[i][ENEMY_BLOCK] = 2;
+            array_EnemyStats[i][ENEMY_SIZE] = BLOCK_SIZE / 2;
+            array_EnemyStats[i][ENEMY_RANGE] = 2;
+        }
+        if (array_EnemyStats[i][ENEMY_TYPE] == RANGED_TOWER) {
+            CP_Settings_Fill(COLOR_RED);
+            array_EnemyStats[i][ENEMY_HP] = 150;
+            array_EnemyStats[i][ENEMY_ATTACK] = 20;
+            array_EnemyStats[i][ENEMY_ATTACK_SPEED] = 3;
+            array_EnemyStats[i][ENEMY_BLOCK] = 2;
+            array_EnemyStats[i][ENEMY_SIZE] = BLOCK_SIZE / 2;
+            array_EnemyStats[i][ENEMY_RANGE] = 4;
+        }
+        if (array_EnemyStats[i][ENEMY_TYPE] == BASE) {
+            CP_Settings_Fill(COLOR_RED);
+            array_EnemyStats[i][ENEMY_HP] = 250;
+            array_EnemyStats[i][ENEMY_ATTACK] = 0;
+            array_EnemyStats[i][ENEMY_ATTACK_SPEED] = 3;
             array_EnemyStats[i][ENEMY_BLOCK] = 2;
             array_EnemyStats[i][ENEMY_SIZE] = BLOCK_SIZE / 2;
             array_EnemyStats[i][ENEMY_RANGE] = 1;
