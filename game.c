@@ -470,7 +470,7 @@ void assign_minion_stats() {
     if (array_MinionStats[minion_count][MINION_TYPE] == HEALER_MINION) {
         array_MinionStats[minion_count][MINION_HP] = 120;
         array_MinionStats[minion_count][MINION_MOVEMENT_SPEED] = 5;
-        array_MinionStats[minion_count][MINION_HEAL] = 20;
+        array_MinionStats[minion_count][MINION_ATTACK] = 0;
         array_MinionStats[minion_count][MINION_ATTACK_SPEED] = 2;
         array_MinionStats[minion_count][MINION_WEIGHT] = 2;
         array_MinionStats[minion_count][MINION_COST] = 5;
@@ -521,7 +521,7 @@ void assign_enemy_stats() {
         if (array_EnemyStats[i][ENEMY_TYPE] == HEALING_TOWER) {
             CP_Settings_Fill(COLOR_RED);
             array_EnemyStats[i][ENEMY_HP] = 120;
-            array_EnemyStats[i][ENEMY_HEAL] = 20;
+            array_EnemyStats[i][ENEMY_ATTACK] = 0;
             array_EnemyStats[i][ENEMY_ATTACK_SPEED] = 2;
             array_EnemyStats[i][ENEMY_BLOCK] = 2;
             array_EnemyStats[i][ENEMY_SIZE] = BLOCK_SIZE / 2;
