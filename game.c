@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "cprocessing.h"
 
+
 #define MAP_GRID_COLS 5
 #define MAP_GRID_ROWS 5
 
@@ -68,6 +69,20 @@ float gMinionPositionX;
 float gMinionPositionY;
 float pInitialX, pInitialY;
 float pDistX, pDistY;
+float pNewDistX, pNewDistY;
+int t_time = 0;
+char buffer[60];
+int level_timer = 60;
+float test;
+float elapsed_timer;
+
+
+
+float pX;
+float pY;
+float gPauseButtonTextPositionX, gPauseButtonTextPositionY;
+float gTimerPositionX, gTimerPositionY, gTimerButtonTextPositionX, gTimerButtonTextPositionY;
+
 
 int minion_count;
 
@@ -80,7 +95,9 @@ void check_minion_type(void);
 
 void fire_projectile(void);
 void check_distance(void);
-void move_projectile(void);
+void create_projectile(float enemyStartX, float enemyStartY);
+void render_basic_projectile(float pX, float pY);
+void move_projectile(int l_time);
 
 int decide_direction(int i, float x_coordinate, float y_coordinate);
 int check_up(int i, int row, int col);
@@ -88,10 +105,31 @@ int check_down(int i, int row, int col);
 int check_left(int i, int row, int col);
 int check_right(int i, int row, int col);
 
+void start_timer(void);
+
+CP_Color text_color;
+
+float currentElapsedTime;
+static float totalElapsedTime;
+
 /* Feel free to declare your own variables here */
 
 void game_init(void)
 {
+    CP_Font_Set(CP_Font_GetDefault());
+
+    gPauseButtonTextPositionX = 10.f;
+    gPauseButtonTextPositionY = 10.f;
+
+    gTimerPositionX = gPauseButtonTextPositionX + 40.f;
+    gTimerPositionY = 10.f;
+    gTimerButtonTextPositionX = gTimerPositionX + 5.f;
+    gTimerButtonTextPositionY = gTimerPositionY + 20.f;
+
+
+
+    text_color = CP_Color_Create(0, 0, 0, 255);
+
     /* Set every grids' block to empty -- empty map*/
     for (int row = 0; row < MAP_GRID_ROWS; ++row) {
         for (int col = 0; col < MAP_GRID_COLS; ++col) {
@@ -116,49 +154,134 @@ void game_init(void)
     Enemy_Size = Block_Size * 0.5f; //probably need to be changed depending on what enemy
     CP_Settings_StrokeWeight(0.6f);
 
+    /* set framerate to 2 fps (slow)*/
+    CP_System_SetFrameRate(60.0f);
+
+
+    /* get dt, time elapsed from last frame*/
+    currentElapsedTime = CP_System_GetDt();
+
+    /*updating total elapsed time*/
+    totalElapsedTime = 0;
+    totalElapsedTime += currentElapsedTime;
+
+    
 
 }
 
 void game_update(void) {
-    level_1(); //probably add something for like choose level which will then toggle between the levels before rendering
-    render_bg();
-    render_enemy();
-    fire_projectile();
-    check_distance();
-    move_projectile();
-    if (CP_Input_KeyTriggered(KEY_ANY)) { //any button clicked
     
-    if (CP_Input_KeyTriggered(KEY_1)) { //KEY1 for minionA
-        if (minion_count < 7) {
-            gMinion[minion_count][MINION_TYPE] = MINION_A;
-            render_minion();
+    float pauseButtonLimitX = gPauseButtonTextPositionX + 50.f;
+    float pauseButtonLimitY = gPauseButtonTextPositionY + 50.f;
+
+    if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
+    {
+        if (((CP_Input_GetMouseX() >= gPauseButtonTextPositionX) && (CP_Input_GetMouseX() <= pauseButtonLimitX)) &&
+            ((CP_Input_GetMouseY() >= gPauseButtonTextPositionY) && (CP_Input_GetMouseY() <= pauseButtonLimitY)))
+        {
+            gIsPaused = !gIsPaused;
+        }
+    }
+    if (gIsPaused == TRUE)
+    {
+        level_1();
+        render_bg();
+        render_enemy();
+        for (int i = 0; i < 3; i++)
+        {
+            render_basic_projectile(gProjectile[1][X], gProjectile[1][Y]);
+        }
+        for (int i = 0; i < minion_count; i++)
+        {
+            check_minion_type();
+            CP_Graphics_DrawCircle(gMinion[i][X], gMinion[i][Y], Enemy_Size);
+
+        }
         
-        }
     }
-    
+    else {
+        level_1(); //probably add something for like choose level which will then toggle between the levels before rendering
+        render_bg();
+        render_enemy();
+        fire_projectile();
+        check_distance();
+        
 
-    else if (CP_Input_KeyTriggered(KEY_2)) { //KEY2 for minionB
-        if (minion_count < 7) {
-            gMinion[minion_count][MINION_TYPE] = MINION_B;
-            render_minion();
+        if (minion_count > 0)
+        {
+            create_projectile(gEnemyPositionX, gEnemyPositionY);
+            
+            if (gProjectile[1][X] > gMinion[0][X])
+            {
+                
+            }
+            else
+            {
+                move_projectile(t_time);
+                render_basic_projectile(gProjectile[1][X], gProjectile[1][Y]);
+                t_time = t_time + 1;
+                test = CP_System_GetDt();
+                start_timer();
+                snprintf(buffer, sizeof(buffer), "%d", (60 - (int)elapsed_timer));
+            }
+            
+            printf("Min : %f, %f\n", gMinion[0][X], gMinion[0][Y]);
+            printf("pX: %f, %f\n", gProjectile[1][X], gProjectile[1][Y]);
+            
         }
-    }
 
-    else if (CP_Input_KeyTriggered(KEY_3)) { //KEY3 for minionC
-        if (minion_count < 7) {
-            gMinion[minion_count][MINION_TYPE] = MINION_C;
-            render_minion();
+
+        if (CP_Input_KeyTriggered(KEY_1)) { //KEY1 for minionA
+            if (minion_count < 7) {
+                gMinion[minion_count][MINION_TYPE] = MINION_A;
+                render_minion();
+
+            }
         }
-    }
-      
+        else if (CP_Input_KeyTriggered(KEY_2)) { //KEY2 for minionB
+            if (minion_count < 7) {
+                gMinion[minion_count][MINION_TYPE] = MINION_B;
+                render_minion();
+            }
+        }
+        else if (CP_Input_KeyTriggered(KEY_3)) { //KEY3 for minionC
+            if (minion_count < 7) {
+                gMinion[minion_count][MINION_TYPE] = MINION_C;
+                render_minion();
+            }
+        }
+        /*else if (CP_Input_KeyTriggered(KEY_RIGHT)) { //Key to move projectile
+
+            t_time = t_time + 1;
+        }*/
+
         else { //nothing happens, ideally text will let you know you have too many minions out
         }
-    
-  if (minion_count > 0) {
-      
-        move_minion();  
 
-    } 
+        if (minion_count > 0) {
+
+            move_minion();
+
+        }
+        
+    }
+    CP_Settings_Fill(COLOR_WHITE);
+    CP_Graphics_DrawRect(gPauseButtonTextPositionX, gPauseButtonTextPositionY, 30.f, 30.f);
+    CP_Graphics_DrawRect(gTimerPositionX, gTimerPositionY, 50.f, 30.f);
+    CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
+    
+    //t = clock();
+    //snprintf(buffer, sizeof(buffer), "%d", (level_timer - (t/(CLOCKS_PER_SEC))));
+    CP_Font_DrawText(buffer, gTimerButtonTextPositionX, gTimerButtonTextPositionY);
+    
+}
+
+
+
+
+void start_timer()
+{
+    elapsed_timer += test;
 }
 
 void render_bg() {
@@ -192,6 +315,8 @@ void render_enemy() {
                 CP_Settings_RectMode(CP_POSITION_CENTER);
                 gEnemyPositionX = (Block_Size * (float)row) + Enemy_Size; //all the current gPostionX etc. need to be changed into arrays
                 gEnemyPositionY = (Block_Size * (float)col) + Enemy_Size;
+                pNewDistX = (Block_Size * (float)(row+1)) + Enemy_Size;
+                pNewDistY = (Block_Size * (float)(col)) + Enemy_Size;
                 CP_Graphics_DrawRect(gEnemyPositionX, gEnemyPositionY, Enemy_Size, Enemy_Size);
             }
         }
@@ -218,29 +343,31 @@ void check_distance()
 {
     pDistX = gMinion[0][X] - gProjectile[0][X];
     pDistY = gMinion[0][Y] - gProjectile[0][Y];
-
-
-}
-
-void move_projectile()
-{
-    for (int i = 0; i < 5; i++)
-    {
-        //CP_Graphics_DrawRect(gProjectile[0][X], gProjectile[0][Y], Enemy_Size * 0.5f, Enemy_Size * 0.2f);
-        if (minion_count > 0)
-        {
-            CP_Graphics_DrawLine(gProjectile[0][X], gProjectile[0][Y], gMinion[0][X], gMinion[0][Y]);
-
-        }
-        if (pDistX > 0 && pDistY > 0)
-            {
-                gProjectile[0][X] = gProjectile[0][X] + (pDistX/5);
-                gProjectile[0][Y] = gProjectile[0][Y] + (pDistY/5);
-            }
-    }
     
 
 }
+
+
+void create_projectile(float enemyStartX, float enemyStartY)
+{
+    gProjectile[1][X] = enemyStartX;
+    gProjectile[1][Y] = enemyStartY;
+}
+void move_projectile(int l_time)
+{ 
+    float vectorX = gMinion[0][X];
+    float vectorY = gMinion[0][Y];
+    
+    gProjectile[1][X] = gProjectile[1][X] + (l_time * ((vectorX- gProjectile[1][X])/30));
+    gProjectile[1][Y] = gProjectile[1][Y] + (l_time * ((vectorY- gProjectile[1][Y]) /30));
+}
+void render_basic_projectile(float prX, float prY)
+{
+    CP_Graphics_DrawRect(prX, prY, (Enemy_Size * 0.4f), (Enemy_Size * 0.2f));
+}
+
+
+
 
 void render_minion() {
     for (int row = 0; row < MAP_GRID_ROWS; ++row) {
