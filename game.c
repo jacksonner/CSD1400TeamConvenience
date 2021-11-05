@@ -34,6 +34,7 @@ float array_Collaborative_DiffusionMap[MAP_GRID_ROWS][MAP_GRID_COLS][2];
 #define COLOR_RED CP_Color_Create(255, 0, 0, 255)
 #define COLOR_GREEN CP_Color_Create(0, 255, 0, 255)
 #define COLOR_BLUE CP_Color_Create(0, 0, 255, 255)
+#define TEXT_COLOR CP_Color_Create(0, 0, 0, 255) //Text colour is just black though...?
 
 /*Minion Stats*/
 #define X 0 //x-coordinates
@@ -112,6 +113,23 @@ void level_1(void);
 //void level_6(void);
 int current_level;
 
+/*Timer and Pause button*/
+int t_time;
+char buffer[60];
+int level_timer = 60;
+float test;
+float elapsed_timer;
+float gPauseButtonTextPositionX, gPauseButtonTextPositionY;
+float gTimerPositionX, gTimerPositionY, gTimerButtonTextPositionX, gTimerButtonTextPositionY;
+float currentElapsedTime;
+static float totalElapsedTime;
+float pauseButtonLimitX, pauseButtonLimitY;
+float pauseButtonLimitX, pauseButtonLimitY;
+int gIsPaused;
+void start_timer(void);
+void initialise_pause_and_timer_button(void);
+void draw_timer_and_pause_button(void);
+
 /*Variables*/
 int BlockPositionX;
 int BlockPositionY;
@@ -142,44 +160,74 @@ void move_projectile(void);
 */
 
 void game_init(void) {
-    minion_count = 0;
+    /*Setting the FrameRate to 60fps*/
+    CP_System_SetFrameRate(60.0f);
+
+    /*Initialising variables for Fullscreen etc.*/
     CP_System_Fullscreen();
     update_variables_and_make_screen_nice(); 
-    /*initialise to main_menu*/
+
+    /*Initialise to main_menu -> NEED TO REMOVE BELOW when MAIN MENU IS CREATED*/
+    minion_count = 0;
     reset_map_and_minions();
     initialise_level();
-    
+    gIsPaused = FALSE;
 
+    initialise_pause_and_timer_button();
+
+    /* get dt, time elapsed from last frame*/
+    currentElapsedTime = CP_System_GetDt();
+
+    /*updating total elapsed time*/
+    totalElapsedTime = 0;
+    totalElapsedTime += currentElapsedTime;
 }
 
 void game_update(void) {
     gameplay_screen();
+    draw_timer_and_pause_button();
     render_enemy();
+    if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
+    {
+        if (((CP_Input_GetMouseX() >= gPauseButtonTextPositionX) && (CP_Input_GetMouseX() <= pauseButtonLimitX)) &&
+            ((CP_Input_GetMouseY() >= gPauseButtonTextPositionY) && (CP_Input_GetMouseY() <= pauseButtonLimitY)))
+        {
+            gIsPaused = !gIsPaused;
+            assign_minion_color();
+        }
+    }
+    if (gIsPaused == TRUE) {
+        for (int i = 0; i < minion_count; i++) {
+            array_MinionStats[minion_count][MINION_TYPE] = array_MinionStats[i][MINION_TYPE];
+            assign_minion_color();
+            CP_Graphics_DrawCircle((float)array_MinionStats[i][X], (float)array_MinionStats[i][Y], (float)array_MinionStats[i][MINION_SIZE]);
+        }
+    }
+    
+    else if (gIsPaused == FALSE) {
+        if (CP_Input_KeyTriggered(KEY_1)) {
+            array_MinionStats[minion_count][MINION_TYPE] = SPAM_MINION; //just a test thing lol
+            assign_minion_stats(); //maybe can throw this function call in render_minion
+            render_minion();
+        }
+        if (CP_Input_KeyTriggered(KEY_2)) {
+            array_MinionStats[minion_count][MINION_TYPE] = WARRIOR_MINION;
+            assign_minion_stats();
+            render_minion();
+        }
+        if (CP_Input_KeyTriggered(KEY_3)) {
+            array_MinionStats[minion_count][MINION_TYPE] = TANK_MINION;
+            assign_minion_stats();
+            render_minion();
+        }
 
-    if (CP_Input_KeyTriggered(KEY_1)) {
-        array_MinionStats[minion_count][MINION_TYPE] = SPAM_MINION; //just a test thing lol
-        assign_minion_stats(); //maybe can throw this function call in render_minion
-        render_minion();   
-    }
-    if (CP_Input_KeyTriggered(KEY_2)) {
-        array_MinionStats[minion_count][MINION_TYPE] = WARRIOR_MINION;
-        assign_minion_stats();
-        render_minion();
-    }
-    if (CP_Input_KeyTriggered(KEY_3)) {
-        array_MinionStats[minion_count][MINION_TYPE] = TANK_MINION;
-        assign_minion_stats();
-        render_minion();
-    }
-   
-    if (minion_count > 0) {
-        move_minion();
-    }
-    //render_background();
-    /*For Testing*/
-    if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
-        
-    }
+        if (minion_count > 0) {
+            move_minion();
+            test = CP_System_GetDt();
+            start_timer();
+            snprintf(buffer, sizeof(buffer), "%d", (60 - (int)elapsed_timer));
+        }
+    } 
 }
 
 void game_exit(void) {
@@ -221,6 +269,31 @@ void reset_map_and_minions(void) {
     level_has_been_reset = TRUE;
 }
 
+void initialise_pause_and_timer_button(void) {
+    
+    gPauseButtonTextPositionX = 10.f;
+    gPauseButtonTextPositionY = 10.f;
+    gTimerPositionX = gPauseButtonTextPositionX + 40.f;
+    gTimerPositionY = 10.f;
+    gTimerButtonTextPositionX = gTimerPositionX + 5.f;
+    gTimerButtonTextPositionY = gTimerPositionY + 20.f;
+    pauseButtonLimitX = gPauseButtonTextPositionX + 100.f;
+    pauseButtonLimitY = gPauseButtonTextPositionY + 50.f;
+}
+
+void draw_timer_and_pause_button(void) {
+    CP_Font_Set(CP_Font_GetDefault());
+    CP_Settings_Fill(COLOR_WHITE);
+    CP_Graphics_DrawRect(gPauseButtonTextPositionX, gPauseButtonTextPositionY, 30.f, 30.f);
+    CP_Graphics_DrawRect(gTimerPositionX, gTimerPositionY, 50.f, 30.f);
+    CP_Settings_Fill(COLOR_BLACK);
+    CP_Font_DrawText(buffer, gTimerButtonTextPositionX, gTimerButtonTextPositionY);
+}
+
+void start_timer(void) {
+    elapsed_timer += test;
+}
+
 void gameplay_screen() {
     //initialise_level();
     render_background();
@@ -241,6 +314,7 @@ void gameplay_screen() {
         CP_Graphics_DrawRect((float)minion_boxX, (float)minion_boxY, (float)minion_buttons_width, (float)minion_buttons_height);
     }
     CP_Settings_RectMode(CP_POSITION_CORNER);
+
 }
 
 void initialise_level() {
