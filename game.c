@@ -244,13 +244,16 @@ void gameplay_screen() {
 }
 
 void initialise_level() {
+    level_1();
     //chooses level to initialise
+    /*
     if (current_level == 1) {
         level_1();
     }
     else if (current_level == 1) {
         //level_2();
     }
+    */
     setup_collaborative_diffusion_map();
 }
 
