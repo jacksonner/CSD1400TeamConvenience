@@ -186,14 +186,6 @@ void game_init(void) {
     /*Initialise to Main_Menu*/
     Current_Gamestate = MAIN_MENU_SCREEN;
 
-    /*Initialise to main_menu -> NEED TO REMOVE BELOW when MAIN MENU IS CREATED*/
-    minion_count = 0;
-    reset_map_and_minions();
-    initialise_level();
-    gIsPaused = FALSE;
-
-    initialise_pause_and_timer_button();
-
     /* get dt, time elapsed from last frame*/
     currentElapsedTime = CP_System_GetDt();
 
@@ -304,6 +296,14 @@ void main_menu_clicked(float x, float y) {
     if (x >= start_game_buttonX && x <= (start_game_buttonX + button_width) &&
         y >= start_game_buttonY && y <= start_game_buttonY + button_height) {
         Current_Gamestate = GAMEPLAY_SCREEN;
+
+        /*initialise for gameplay screen*/
+        minion_count = 0;
+        reset_map_and_minions();
+        initialise_level();
+        gIsPaused = FALSE;
+
+        initialise_pause_and_timer_button();
     }
     /*Level selector button clicked*/
     else if (x >= level_selectorX && x <= (level_selectorX + button_width) &&
@@ -596,23 +596,27 @@ void move_minion() {
                         array_MinionStats[i][MINION_DIRECTION] = Past_Direction;
                         array_isMinionBlocked[correct_enemy][i] = 0;
                     }
-                    /*Minion attacking ground guard if blocked*/
+                    /*Minion attacking ground guard if blocked and guard attacking minion in return*/
                     else {
                         if (array_EnemyStats[correct_enemy][ENEMY_HP] > 0) {
                             array_MinionStats[i][MINION_DIRECTION] = STOP;
                             if (array_MinionStats[i][MINION_HP] > 0) {
                                 array_EnemyStats[correct_enemy][ENEMY_HP] = array_EnemyStats[correct_enemy][ENEMY_HP] - array_MinionStats[i][MINION_ATTACK];
-                                array_MinionStats[i][MINION_HP] -= array_EnemyStats[correct_enemy][ENEMY_ATTACK];
-
-                                if (array_MinionStats[i][MINION_HP] <= 0) {
-                                    array_EnemyStats[correct_enemy][ENEMY_CURRENT_MINIONS_ON_BLOCK] -= array_MinionStats[i][MINION_WEIGHT];
-                                }
+                                array_MinionStats[i][MINION_HP] -= array_EnemyStats[correct_enemy][ENEMY_ATTACK];   
+                            }
+                            if (array_MinionStats[i][MINION_HP] <= 0) {
+                                array_EnemyStats[correct_enemy][ENEMY_CURRENT_MINIONS_ON_BLOCK] -= array_MinionStats[i][MINION_WEIGHT];
+                                array_isMinionBlocked[correct_enemy][i] = 0;
                             }
                         }
                         else if (array_EnemyStats[correct_enemy][ENEMY_HP] <= 0) {
+                            array_EnemyStats[correct_enemy][ENEMY_CURRENT_MINIONS_ON_BLOCK] = 0;
                             array_GameMap[row_enemy][col_enemy] = BLOCK_EMPTY;
                             array_MinionStats[i][MINION_DIRECTION] = Past_Direction;
                         }
+                        //printf("1 - %d |", array_EnemyStats[0][ENEMY_CURRENT_MINIONS_ON_BLOCK]);
+                        //printf("2 - %d |", array_EnemyStats[1][ENEMY_CURRENT_MINIONS_ON_BLOCK]);
+                        //printf("3 - %d \n", array_EnemyStats[2][ENEMY_CURRENT_MINIONS_ON_BLOCK]);
                     }
                 }
             }
