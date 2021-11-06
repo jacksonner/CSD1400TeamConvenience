@@ -605,7 +605,7 @@ void move_minion() {
                                 array_MinionStats[i][MINION_HP] -= array_EnemyStats[correct_enemy][ENEMY_ATTACK];
 
                                 if (array_MinionStats[i][MINION_HP] <= 0) {
-                                    array_EnemyStats[correct_enemy][ENEMY_BLOCK] += array_MinionStats[i][MINION_WEIGHT]; //not sure if this is the best way but it works for now
+                                    array_EnemyStats[correct_enemy][ENEMY_CURRENT_MINIONS_ON_BLOCK] -= array_MinionStats[i][MINION_WEIGHT];
                                 }
                             }
                         }
