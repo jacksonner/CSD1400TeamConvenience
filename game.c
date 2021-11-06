@@ -600,7 +600,14 @@ void move_minion() {
                     else {
                         if (array_EnemyStats[correct_enemy][ENEMY_HP] > 0) {
                             array_MinionStats[i][MINION_DIRECTION] = STOP;
-                            array_EnemyStats[correct_enemy][ENEMY_HP] = array_EnemyStats[correct_enemy][ENEMY_HP] - array_MinionStats[i][MINION_ATTACK];
+                            if (array_MinionStats[i][MINION_HP] > 0) {
+                                array_EnemyStats[correct_enemy][ENEMY_HP] = array_EnemyStats[correct_enemy][ENEMY_HP] - array_MinionStats[i][MINION_ATTACK];
+                                array_MinionStats[i][MINION_HP] -= array_EnemyStats[correct_enemy][ENEMY_ATTACK];
+
+                                if (array_MinionStats[i][MINION_HP] <= 0) {
+                                    array_EnemyStats[correct_enemy][ENEMY_BLOCK] += array_MinionStats[i][MINION_WEIGHT]; //not sure if this is the best way but it works for now
+                                }
+                            }
                         }
                         else if (array_EnemyStats[correct_enemy][ENEMY_HP] <= 0) {
                             array_GameMap[row_enemy][col_enemy] = BLOCK_EMPTY;
@@ -627,7 +634,9 @@ void move_minion() {
             array_MinionStats[i][Y] = array_MinionStats[i][Y];
         }
         assign_minion_color();
-        CP_Graphics_DrawCircle((float)array_MinionStats[i][X], (float)array_MinionStats[i][Y], (float)array_MinionStats[i][MINION_SIZE]);
+        if (array_MinionStats[i][MINION_HP] > 0) { //only live minion are drawn
+            CP_Graphics_DrawCircle((float)array_MinionStats[i][X], (float)array_MinionStats[i][Y], (float)array_MinionStats[i][MINION_SIZE]);
+        }
     }
 }
 
@@ -695,7 +704,7 @@ void assign_enemy_stats() {
         if (array_EnemyStats[i][ENEMY_TYPE] == GUARD_ENEMY) {
             CP_Settings_Fill(COLOR_RED);
             array_EnemyStats[i][ENEMY_HP] = 150;
-            array_EnemyStats[i][ENEMY_ATTACK] = 0;
+            array_EnemyStats[i][ENEMY_ATTACK] = 2;
             array_EnemyStats[i][ENEMY_ATTACK_SPEED] = 2; //idk how attack_speed works yet
             array_EnemyStats[i][ENEMY_BLOCK] = 2;
             array_EnemyStats[i][ENEMY_SIZE] = BLOCK_SIZE / 2;
