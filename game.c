@@ -111,7 +111,13 @@ int Current_Gamestate;
 /**/
 #define FALSE 0
 #define TRUE 1
-int level_has_been_reset;
+int level_has_been_reset; //checks if level has reset so stats won't constantly be reassigned making the enemies immortal
+
+/*Counter for no. of Minions who entered the base*/
+int minions_in_base;
+void minion_enter_base_counter(void);
+char base_counter[10];
+void display_minion_eneter_base_counter(void);
 
 /*Levels*/
 void level_1(void);
@@ -203,6 +209,7 @@ void game_update(void) {
     }
     else if (Current_Gamestate == GAMEPLAY_SCREEN) {
         gameplay_screen();
+        display_minion_eneter_base_counter();
         draw_timer_and_pause_button();
         render_enemy();
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
@@ -244,6 +251,7 @@ void game_update(void) {
                 test = CP_System_GetDt();
                 start_timer();
                 snprintf(buffer, sizeof(buffer), "%d", (60 - (int)elapsed_timer));
+                minion_enter_base_counter();
             }
         }
     }
@@ -302,6 +310,7 @@ void main_menu_clicked(float x, float y) {
         reset_map_and_minions();
         initialise_level();
         gIsPaused = FALSE;
+        minions_in_base = 0;
 
         initialise_pause_and_timer_button();
     }
@@ -644,10 +653,35 @@ void move_minion() {
     }
 }
 
+void minion_enter_base_counter() {
+    for (int i = 0; i < MINION_MAX; i++) {
+        int current_boxCOL = (array_MinionStats[i][X] - origin_map_coordinateX + BLOCK_SIZE / 2 - 1) / BLOCK_SIZE;
+        int current_boxROW = (array_MinionStats[i][Y] - origin_map_coordinateY + BLOCK_SIZE / 2 - 1) / BLOCK_SIZE;
+        if (array_GameMap[current_boxROW][current_boxCOL] == BLOCK_END && array_MinionStats[i][MINION_HP] > 0) {
+            minions_in_base++;
+            array_MinionStats[i][MINION_HP] = 0; //so essentially the minion dies, and amirah's code should come into effect here to essentially recycle the minion
+        }
+    }  
+}
+
+void display_minion_eneter_base_counter() {
+    float counter_X, counter_Y, counter_width, counter_height;
+    counter_height = 80;
+    counter_width = (float)BLOCK_SIZE - 20;
+    counter_X = (float)CP_System_GetWindowWidth() - (float)origin_map_coordinateX - (float)BLOCK_SIZE + 10;
+    counter_Y = (float)origin_map_coordinateY + (float)MAP_GRID_ROWS * (float)BLOCK_SIZE + 10;
+    snprintf(base_counter, sizeof(base_counter), "%d", minions_in_base);
+    CP_Settings_Fill(COLOR_WHITE);
+    CP_Graphics_DrawRect(counter_X, counter_Y, counter_width, counter_height);
+    CP_Settings_Fill(COLOR_BLACK);
+    CP_Settings_TextSize(50);
+    CP_Font_DrawText(base_counter, (counter_X + 17), (counter_Y + 55));
+}
+
 void assign_minion_stats() {
     if (array_MinionStats[minion_count][MINION_TYPE] == SPAM_MINION) {
         array_MinionStats[minion_count][MINION_HP] = 50;
-        array_MinionStats[minion_count][MINION_MOVEMENT_SPEED] = 6; //original speed was 8
+        array_MinionStats[minion_count][MINION_MOVEMENT_SPEED] = 8; //original speed was 8
         array_MinionStats[minion_count][MINION_ATTACK] = 4;
         array_MinionStats[minion_count][MINION_ATTACK_SPEED] = 2;
         array_MinionStats[minion_count][MINION_WEIGHT] = 1;
@@ -665,7 +699,7 @@ void assign_minion_stats() {
     }
     if (array_MinionStats[minion_count][MINION_TYPE] == TANK_MINION) {
         array_MinionStats[minion_count][MINION_HP] = 240;
-        array_MinionStats[minion_count][MINION_MOVEMENT_SPEED] = 6; //original speed was 3
+        array_MinionStats[minion_count][MINION_MOVEMENT_SPEED] = 3; //original speed was 3
         array_MinionStats[minion_count][MINION_ATTACK] = 1;
         array_MinionStats[minion_count][MINION_ATTACK_SPEED] = 2;
         array_MinionStats[minion_count][MINION_WEIGHT] = 1;
@@ -774,13 +808,14 @@ void level_1() {
         array_EnemyStats[0][ENEMY_ROW] = 4;
         array_EnemyStats[0][ENEMY_COL] = 7;
         array_EnemyStats[0][ENEMY_TYPE] = GUARD_ENEMY;
-    array_GameMap[4][3] = BLOCK_ENEMY;
-        array_EnemyStats[1][ENEMY_ROW] = 4;
+    array_GameMap[3][3] = BLOCK_ENEMY;
+        array_EnemyStats[1][ENEMY_ROW] = 3;
         array_EnemyStats[1][ENEMY_COL] = 3;
         array_EnemyStats[1][ENEMY_TYPE] = GUARD_ENEMY;
     array_GameMap[3][0] = BLOCK_ENEMY;
         array_EnemyStats[2][ENEMY_ROW] = 3;
         array_EnemyStats[2][ENEMY_COL] = 0;
         array_EnemyStats[2][ENEMY_TYPE] = GUARD_ENEMY;
+        array_GameMap[4][6] = BLOCK_PRESENT;
 }
 
