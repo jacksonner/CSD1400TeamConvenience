@@ -33,11 +33,12 @@ float array_Collaborative_DiffusionMap[MAP_GRID_ROWS][MAP_GRID_COLS][2];
 #define COLOR_WHITE CP_Color_Create(255, 255, 255, 255)
 #define COLOR_RED CP_Color_Create(255, 0, 0, 255)
 #define COLOR_GREEN CP_Color_Create(0, 255, 0, 255)
+#define COLOR_SEAGREEN CP_Color_Create(46, 139, 87, 255)
 #define COLOR_BLUE CP_Color_Create(0, 0, 255, 255)
 #define TEXT_COLOR CP_Color_Create(0, 0, 0, 255) //Text colour is just black though...?
-#define COLOR_BROWN CP_Color_Create(205,133,63,255)
-#define COLOR_CYAN CP_Color_Create(175,238,238, 255)
-#define COLOR_PURPLE CP_Color_Create(238,130,238, 255)
+#define COLOR_BROWN CP_Color_Create(165, 42, 42, 255)
+#define COLOR_CYAN CP_Color_Create(0, 255, 255, 255)
+#define COLOR_PURPLE CP_Color_Create(53, 50, 204, 255)
 
 /*Minion Stats*/
 #define X 0 //x-coordinates
@@ -59,11 +60,10 @@ int array_MinionStats[MINION_MAX][12]; //MUST edit reset_map_and_minions() when 
 /*Types of Minions*/
 #define SPAM_MINION 0 //weak everything, but low cost
 #define WARRIOR_MINION 1 //decent health, decent attack
-#define TANK_MINION 2 //tanky but low attack
-#define WIZARD_MINION 3 //low health, high attack
-#define HEALER_MINION 4 //decent health, no attack, heal other minions
-#define A_MINION 5 //TBC - YC
-#define B_MINION 6 //TBC - YC
+#define TANK_MINION 2 //tanky but low attack //targets tower but very low damage rip
+#define WIZARD_MINION 3 //low health, after x amount of time, lightning from the skies hits all enemies BUT not so high damage ||
+                               //limited range BUT higher damage //targets towers
+#define HEALER_MINION 4 //decent health, no attack, heal other minions, relatively ex
 
 /*Directions*/
 #define STOP 0
@@ -96,9 +96,9 @@ int array_isMinionBlocked[ENEMY_MAX][MINION_MAX];
 /*Types of Enemies*/
 #define GUARD_ENEMY 0 //block minions
 #define DAMAGE_ENEMY 1 // shorter range than tower
-#define SLOW_ENEMY 2 //slow down minion
-#define HEALING_TOWER 3 //heal enemies
-#define RANGED_TOWER 4
+#define SLOW_ENEMY 2 //slow down minion around it
+#define HEALING_TOWER 3 //heals enemies around it
+#define RANGED_TOWER 4 //
 #define BASE 5 //TBC
 #define B_TOWER 6 //TBC
 
@@ -110,6 +110,13 @@ int array_isMinionBlocked[ENEMY_MAX][MINION_MAX];
 #define PAUSE_SCREEN 4 //like a translucent array with a giant play button?
 #define LEVEL_SELECTOR_SCREEN 5
 int Current_Gamestate;
+
+/*render HP bar for minions*/
+#define HP_BAR_HEIGHT 10
+float max_hp;
+float hp_percentage;
+float default_hp = 50.f;
+void renderminionhp_bar();
 
 /**/
 #define FALSE 0
@@ -234,6 +241,7 @@ void game_update(void) {
                 array_MinionStats[minion_count][MINION_TYPE] = array_MinionStats[i][MINION_TYPE];
                 assign_minion_color(i);
                 CP_Graphics_DrawCircle((float)array_MinionStats[i][X], (float)array_MinionStats[i][Y], (float)array_MinionStats[i][MINION_SIZE]);
+                renderminionhp_bar();
             }
         }
 
@@ -243,6 +251,7 @@ void game_update(void) {
             }
             if (minion_count > 0) {
                 move_minion();
+                renderminionhp_bar();
                 test = CP_System_GetDt();
                 start_timer();
                 snprintf(buffer, sizeof(buffer), "%d", (60 - (int)elapsed_timer));
@@ -698,6 +707,36 @@ void display_minion_eneter_base_counter() {
     CP_Font_DrawText(base_counter, (counter_X + 17), (counter_Y + 55));
 }
 
+void renderminionhp_bar() {
+    for (int i = 0; i < MINION_MAX; i++) {
+        if (array_MinionStats[i][MINION_TYPE] == SPAM_MINION) {
+            max_hp = 50;
+            hp_percentage = array_MinionStats[i][MINION_HP] / max_hp;//to find current hp
+        }
+        else if (array_MinionStats[i][MINION_TYPE] == WARRIOR_MINION) {
+            max_hp = 130;
+            hp_percentage = array_MinionStats[i][MINION_HP] / max_hp;
+        }
+        else if (array_MinionStats[i][MINION_TYPE] == TANK_MINION) {
+            max_hp = 240;
+            hp_percentage = array_MinionStats[i][MINION_HP] / max_hp;
+        }
+        else if (array_MinionStats[i][MINION_TYPE] == WIZARD_MINION) {
+            max_hp = 80;
+            hp_percentage = array_MinionStats[i][MINION_HP] / max_hp;
+        }
+        else if (array_MinionStats[i][MINION_TYPE] == HEALER_MINION) {
+            max_hp = 120;
+            hp_percentage = array_MinionStats[i][MINION_HP] / max_hp;
+        }
+        float new_hp_bar = hp_percentage * default_hp;
+        CP_Settings_Fill(COLOR_RED);
+        CP_Graphics_DrawRect((float)array_MinionStats[i][X] - 20, (float)array_MinionStats[i][Y] - 80, (float)default_hp, (float)HP_BAR_HEIGHT); //max_hp
+        CP_Settings_Fill(COLOR_GREEN);
+        CP_Graphics_DrawRect((float)array_MinionStats[i][X] - 20, (float)array_MinionStats[i][Y] - 80, (float)new_hp_bar, (float)HP_BAR_HEIGHT);
+    }
+}
+
 void assign_minion_stats() {
     if (array_MinionStats[minion_count][MINION_TYPE] == SPAM_MINION) {
         array_MinionStats[minion_count][MINION_HP] = 50;
@@ -756,7 +795,7 @@ void assign_minion_color(int i) { /*probably going to be removed in the final pr
             CP_Settings_Fill(COLOR_BLUE);
         }
         else if (array_MinionStats[i][MINION_TYPE] == WARRIOR_MINION) {
-            CP_Settings_Fill(COLOR_GREEN);
+            CP_Settings_Fill(COLOR_SEAGREEN);
         }
         else if (array_MinionStats[i][MINION_TYPE] == TANK_MINION) {
             CP_Settings_Fill(COLOR_BROWN);
@@ -825,11 +864,6 @@ void assign_enemy_stats() {
             array_EnemyStats[i][ENEMY_SIZE] = BLOCK_SIZE / 2;
             array_EnemyStats[i][ENEMY_RANGE] = 1;
         }
-        /*
-        if (array_EnemyStats[i][MINION_TYPE] == ) {
-
-        }
-        */
     }
 }
 
