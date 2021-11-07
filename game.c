@@ -34,11 +34,11 @@ float array_Collaborative_DiffusionMap[MAP_GRID_ROWS][MAP_GRID_COLS][2];
 #define COLOR_RED CP_Color_Create(255, 0, 0, 255)
 #define COLOR_GREEN CP_Color_Create(0, 255, 0, 255)
 #define COLOR_SEAGREEN CP_Color_Create(46, 139, 87, 255)
-#define COLOR_BLUE CP_Color_Create(0, 0, 255, 255)
+#define COLOR_BLUE CP_Color_Create(30, 144, 255, 255)
 #define TEXT_COLOR CP_Color_Create(0, 0, 0, 255) //Text colour is just black though...?
 #define COLOR_BROWN CP_Color_Create(165, 42, 42, 255)
 #define COLOR_CYAN CP_Color_Create(0, 255, 255, 255)
-#define COLOR_PURPLE CP_Color_Create(53, 50, 204, 255)
+#define COLOR_PURPLE CP_Color_Create(138, 43, 226, 255)
 
 /*Minion Stats*/
 #define X 0 //x-coordinates
@@ -117,6 +117,9 @@ float max_hp;
 float hp_percentage;
 float default_hp = 50.f;
 void renderminionhp_bar();
+
+/*Recycling minions when minion dies*/
+void minion_dies_array_recycle(int i);
 
 /**/
 #define FALSE 0
@@ -242,7 +245,6 @@ void game_update(void) {
                 ((CP_Input_GetMouseY() >= gPauseButtonPositionY) && (CP_Input_GetMouseY() <= pauseButtonLimitY)))
             {
                 gIsPaused = !gIsPaused;
-
             }
         }
         if (gIsPaused == TRUE) {
@@ -743,6 +745,9 @@ void move_minion() {
             array_MinionStats[i][X] = array_MinionStats[i][X];
             array_MinionStats[i][Y] = array_MinionStats[i][Y];
         }
+        if (array_MinionStats[i][MINION_HP] <= 0) {
+            minion_dies_array_recycle(i);
+        }
         if (array_MinionStats[i][MINION_HP] > 0) { //only live minion are drawn
             assign_minion_color(i);
             CP_Graphics_DrawCircle((float)array_MinionStats[i][X], (float)array_MinionStats[i][Y], (float)array_MinionStats[i][MINION_SIZE]);
@@ -750,14 +755,36 @@ void move_minion() {
     }
 }
 
+void minion_dies_array_recycle(int dead_minion_number) {
+    /*ISSUE WITH THE TRANSFERING OF THE COORDINATES - MINIONS END UP TELEPORTING TO WHERE DEAD MINION WAS*/
+    int array_Temp_MinionStats[MINION_MAX][12];
+    for (int i = 0; i < dead_minion_number; i++) {
+        for (int j = 0; j < 12; j++) {
+            array_Temp_MinionStats[i][j] = array_MinionStats[i][j];
+        }
+    }
+    for (int k = (dead_minion_number + 1); k <= minion_count; k++, dead_minion_number++) {
+        for (int m = 0; m < 12; m++) {
+            array_Temp_MinionStats[dead_minion_number][m] = array_MinionStats[k][m];
+        }
+    }
+    for (int h = 0; h < minion_count; h++) {
+        for (int n = 0; n < 12; n++) {
+            array_MinionStats[h][n] = array_Temp_MinionStats[h][n];
+        }
+    }
+    minion_count--;
+}
 
+/*
 void minion_enter_base_counter() {
     for (int i = 0; i < MINION_MAX; i++) {
         int current_boxCOL = (array_MinionStats[i][X] - origin_map_coordinateX + BLOCK_SIZE / 2 - 1) / BLOCK_SIZE;
         int current_boxROW = (array_MinionStats[i][Y] - origin_map_coordinateY + BLOCK_SIZE / 2 - 1) / BLOCK_SIZE;
-        if (array_GameMap[current_boxROW][current_boxCOL] == BLOCK_END && array_MinionStats[i][MINION_HP] > 0) {
+        if (array_GameMap[current_boxROW][current_boxCOL] == BLOCK_END) {
             minions_in_base++;
-            array_MinionStats[i][MINION_HP] = 0; //so essentially the minion dies, and amirah's code should come into effect here to essentially recycle the minion
+            array_MinionStats[i][MINION_HP] = 0; //so essentially the minion dies
+            minion_dies_array_recycle(i);
         }
     }  
 }
@@ -779,6 +806,35 @@ void display_minion_eneter_base_counter() {
 
 void renderminionhp_bar() {
     for (int i = 0; i < MINION_MAX; i++) {
+        if (array_MinionStats[i][MINION_HP] > 0) {
+            if (array_MinionStats[i][MINION_TYPE] == SPAM_MINION) {
+                max_hp = 50;
+                hp_percentage = array_MinionStats[i][MINION_HP] / max_hp;//to find current hp
+            }
+            else if (array_MinionStats[i][MINION_TYPE] == WARRIOR_MINION) {
+                max_hp = 130;
+                hp_percentage = array_MinionStats[i][MINION_HP] / max_hp;
+            }
+            else if (array_MinionStats[i][MINION_TYPE] == TANK_MINION) {
+                max_hp = 240;
+                hp_percentage = array_MinionStats[i][MINION_HP] / max_hp;
+            }
+            else if (array_MinionStats[i][MINION_TYPE] == WIZARD_MINION) {
+                max_hp = 80;
+                hp_percentage = array_MinionStats[i][MINION_HP] / max_hp;
+            }
+            else if (array_MinionStats[i][MINION_TYPE] == HEALER_MINION) {
+                max_hp = 120;
+                hp_percentage = array_MinionStats[i][MINION_HP] / max_hp;
+            }
+            float new_hp_bar = hp_percentage * default_hp;
+            CP_Settings_Fill(COLOR_RED);
+            CP_Graphics_DrawRect((float)array_MinionStats[i][X] - 20, (float)array_MinionStats[i][Y] - 80, (float)default_hp, (float)HP_BAR_HEIGHT); //max_hp
+            CP_Settings_Fill(COLOR_GREEN);
+            CP_Graphics_DrawRect((float)array_MinionStats[i][X] - 20, (float)array_MinionStats[i][Y] - 80, (float)new_hp_bar, (float)HP_BAR_HEIGHT);
+        }
+    }
+}
         if (array_MinionStats[i][MINION_TYPE] == SPAM_MINION) {
             max_hp = 50;
             hp_percentage = array_MinionStats[i][MINION_HP] / max_hp;//to find current hp
@@ -824,7 +880,7 @@ void display_money_counter() {
 void assign_minion_stats() {
     if (array_MinionStats[minion_count][MINION_TYPE] == SPAM_MINION) {
         array_MinionStats[minion_count][MINION_HP] = 50;
-        array_MinionStats[minion_count][MINION_MOVEMENT_SPEED] = 8; //original speed was 8
+        array_MinionStats[minion_count][MINION_MOVEMENT_SPEED] = 6; //original speed was 8
         array_MinionStats[minion_count][MINION_ATTACK] = 4;
         array_MinionStats[minion_count][MINION_ATTACK_SPEED] = 2;
         array_MinionStats[minion_count][MINION_WEIGHT] = 1;
@@ -867,11 +923,6 @@ void assign_minion_stats() {
         array_MinionStats[minion_count][MINION_COST] = 150;
         array_MinionStats[minion_count][MINION_SIZE] = 60;
     }
-    /*
-    if (array_MinionStats[minion_count][MINION_TYPE] == ) {
-
-    } 
-    */
 }
 
 void assign_minion_color(int i) { /*probably going to be removed in the final product*/
