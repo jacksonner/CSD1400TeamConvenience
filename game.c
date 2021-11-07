@@ -126,11 +126,12 @@ void minion_dies_array_recycle(int i);
 #define TRUE 1
 int level_has_been_reset; //checks if level has reset so stats won't constantly be reassigned making the enemies immortal
 
-/*Counter for no. of Minions who entered the base*/
+/*Counter for no. of Minions who entered the base
 int minions_in_base;
 void minion_enter_base_counter(void);
 char base_counter[10];
-void display_minion_enter_base_counter(void);
+void display_minion_eneter_base_counter(void);
+*/
 
 /*Levels*/
 void level_1(void);
@@ -147,7 +148,7 @@ char buffer[60];
 int level_timer = 60;
 float test;
 float elapsed_timer;
-float gPauseButtonTextPositionX, gPauseButtonTextPositionY;
+float gPauseButtonPositionX, gPauseButtonPositionY, gPauseButtonTextPositionX, gPauseButtonTextPositionY;
 float gTimerPositionX, gTimerPositionY, gTimerButtonTextPositionX, gTimerButtonTextPositionY;
 float currentElapsedTime;
 static float totalElapsedTime;
@@ -165,6 +166,12 @@ int minion_count;
 int spawn_row; 
 int spawn_col;
 void update_variables_and_make_screen_nice(); //since it's full screen, need to update the various variables so everything still looks nice
+
+/*Money Code*/
+void display_money_counter(void);
+//void money_over_time(void);
+char money_buffer[400];
+int money = 50;
 
 /*GamePlay Screen*/
 int options_boxX, options_boxY, box_width, box_length; //this is the giant wide box atm which all the options etc. goes in
@@ -227,13 +234,15 @@ void game_update(void) {
     }
     else if (Current_Gamestate == GAMEPLAY_SCREEN) {
         gameplay_screen();
-        display_minion_enter_base_counter();
+        //display_minion_eneter_base_counter(); Commented out
         draw_timer_and_pause_button();
+        display_money_counter();
+        
         render_enemy();
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
         {
-            if (((CP_Input_GetMouseX() >= gPauseButtonTextPositionX) && (CP_Input_GetMouseX() <= pauseButtonLimitX)) &&
-                ((CP_Input_GetMouseY() >= gPauseButtonTextPositionY) && (CP_Input_GetMouseY() <= pauseButtonLimitY)))
+            if (((CP_Input_GetMouseX() >= gPauseButtonPositionX) && (CP_Input_GetMouseX() <= pauseButtonLimitX)) &&
+                ((CP_Input_GetMouseY() >= gPauseButtonPositionY) && (CP_Input_GetMouseY() <= pauseButtonLimitY)))
             {
                 gIsPaused = !gIsPaused;
             }
@@ -256,8 +265,9 @@ void game_update(void) {
                 renderminionhp_bar();
                 test = CP_System_GetDt();
                 start_timer();
-                snprintf(buffer, sizeof(buffer), "%d", (60 - (int)elapsed_timer));
-                minion_enter_base_counter();
+                //money_over_time();
+                snprintf(buffer, sizeof(buffer), "%d", (60 - (int)test));
+                //minion_enter_base_counter();
             }
         }
     }
@@ -316,7 +326,7 @@ void main_menu_clicked(float x, float y) {
         reset_map_and_minions();
         initialise_level();
         gIsPaused = FALSE;
-        minions_in_base = 0;
+        //minions_in_base = 0; Part of minion counter which has been commented out
 
         initialise_pause_and_timer_button();
     }
@@ -364,30 +374,50 @@ void reset_map_and_minions(void) {
 }
 
 void initialise_pause_and_timer_button(void) {
-    
-    gPauseButtonTextPositionX = 10.f;
-    gPauseButtonTextPositionY = 10.f;
-    gTimerPositionX = gPauseButtonTextPositionX + 40.f;
-    gTimerPositionY = 10.f;
-    gTimerButtonTextPositionX = gTimerPositionX + 5.f;
-    gTimerButtonTextPositionY = gTimerPositionY + 20.f;
-    pauseButtonLimitX = gPauseButtonTextPositionX + 100.f;
-    pauseButtonLimitY = gPauseButtonTextPositionY + 50.f;
+
+    gTimerPositionX = 1330.f;
+    gTimerPositionY = 845.f;
+    gPauseButtonPositionX = gTimerPositionX;
+    gPauseButtonPositionY = gTimerPositionY + 100.f;
+    gTimerButtonTextPositionX = gTimerPositionX + 30.f;
+    gTimerButtonTextPositionY = gTimerPositionY + 35.f;
+    gPauseButtonTextPositionX = gPauseButtonPositionX + 15.f;
+    gPauseButtonTextPositionY = gPauseButtonPositionY + 30.f;
+    pauseButtonLimitX = gPauseButtonPositionX + 100.f;
+    pauseButtonLimitY = gPauseButtonPositionY + 50.f;
 }
 
 void draw_timer_and_pause_button(void) {
     CP_Font_Set(CP_Font_GetDefault());
     CP_Settings_Fill(COLOR_WHITE);
-    CP_Graphics_DrawRect(gPauseButtonTextPositionX, gPauseButtonTextPositionY, 30.f, 30.f);
-    CP_Graphics_DrawRect(gTimerPositionX, gTimerPositionY, 50.f, 30.f);
+    CP_Graphics_DrawRect(gPauseButtonPositionX, gPauseButtonPositionY, 100.f, 50.f);
+    CP_Graphics_DrawRect(gTimerPositionX, gTimerPositionY, 100.f, 50.f);
     CP_Settings_Fill(COLOR_BLACK);
-    CP_Settings_TextSize(20);
+    CP_Settings_TextSize(35);
     CP_Font_DrawText(buffer, gTimerButtonTextPositionX, gTimerButtonTextPositionY);
+    if (gIsPaused == 1)
+    {
+        CP_Settings_TextSize(30);
+        CP_Font_DrawText("Play", (gPauseButtonTextPositionX + 10.f), gPauseButtonTextPositionY);
+    }
+    else
+    {
+        CP_Settings_TextSize(30);
+        CP_Font_DrawText("Pause", gPauseButtonTextPositionX, gPauseButtonTextPositionY);
+    }
+
 }
 
 void start_timer(void) {
     elapsed_timer += test;
+    money = money + (int)elapsed_timer;
 }
+/*
+void money_over_time(void)
+{
+    money = money + (int)test;
+}
+*/
 
 void gameplay_screen() {
     //initialise_level();
@@ -412,25 +442,66 @@ void gameplay_screen() {
 void gameplay_screen_clicked(float x, float y) {
     float origin_first_boxX = (float)options_boxX + (float)minion_buttons_width - (float)minion_buttons_width / 2.f;
     if (y >= minion_boxY && y <= minion_boxY + minion_buttons_height) {
-        if (x >= origin_first_boxX && x < origin_first_boxX + minion_buttons_width) {
-            array_MinionStats[minion_count][MINION_TYPE] = SPAM_MINION;
-            assign_minion_stats(); //maybe can throw this function call in render_minion
+        if (x >= origin_first_boxX && x < origin_first_boxX + minion_buttons_width) { //Create Spam Minion
+            if (money < 25)
+            {
+
+            }
+            else
+            {
+                money -= 25;
+                array_MinionStats[minion_count][MINION_TYPE] = SPAM_MINION;
+                assign_minion_stats(); //maybe can throw this function call in render_minion
+            }
         }
-        else if (x >= (origin_first_boxX + minion_buttons_width) && x < (origin_first_boxX + 2 * minion_buttons_width)) {
-            array_MinionStats[minion_count][MINION_TYPE] = WARRIOR_MINION; 
-            assign_minion_stats(); //maybe can throw this function call in render_minion
+        else if (x >= (origin_first_boxX + minion_buttons_width) && x < (origin_first_boxX + 2 * minion_buttons_width)) { //Create Warrior Minion
+            if (money < 50)
+            {
+
+            }
+            else
+            {
+                money -= 50;
+                array_MinionStats[minion_count][MINION_TYPE] = WARRIOR_MINION;
+                assign_minion_stats(); //maybe can throw this function call in render_minion
+            }
+            
         }
-        else if (x >= (origin_first_boxX + 2 * minion_buttons_width) && x < (origin_first_boxX + 3 * minion_buttons_width)) {
-            array_MinionStats[minion_count][MINION_TYPE] = TANK_MINION;
-            assign_minion_stats(); //maybe can throw this function call in render_minion
+        else if (x >= (origin_first_boxX + 2 * minion_buttons_width) && x < (origin_first_boxX + 3 * minion_buttons_width)) { //Create Tank Minion
+            if (money < 100)
+            {
+
+            }
+            else
+            {
+                money -= 100;
+                array_MinionStats[minion_count][MINION_TYPE] = TANK_MINION;
+                assign_minion_stats(); //maybe can throw this function call in render_minion
+            }
         }
-        else if (x >= (origin_first_boxX + 3 * minion_buttons_width) && x < (origin_first_boxX + 4 * minion_buttons_width)) {
-            array_MinionStats[minion_count][MINION_TYPE] = WIZARD_MINION;
-            assign_minion_stats(); //maybe can throw this function call in render_minion
+        else if (x >= (origin_first_boxX + 3 * minion_buttons_width) && x < (origin_first_boxX + 4 * minion_buttons_width)) { //Create Wizard Minion
+            if (money < 150)
+            {
+
+            }
+            else
+            {
+                money -= 150;
+                array_MinionStats[minion_count][MINION_TYPE] = WIZARD_MINION;
+                assign_minion_stats(); //maybe can throw this function call in render_minion
+            }
         }
-        else if (x >= (origin_first_boxX + 4 * minion_buttons_width) && x < (origin_first_boxX + 5 * minion_buttons_width)) {
-            array_MinionStats[minion_count][MINION_TYPE] = HEALER_MINION;
-            assign_minion_stats(); //maybe can throw this function call in render_minion
+        else if (x >= (origin_first_boxX + 4 * minion_buttons_width) && x < (origin_first_boxX + 5 * minion_buttons_width)) { //Create Healer Minion
+            if (money < 150)
+            {
+
+            }
+            else
+            {
+                money -= 150;
+                array_MinionStats[minion_count][MINION_TYPE] = HEALER_MINION;
+                assign_minion_stats(); //maybe can throw this function call in render_minion
+            }
         }
         render_minion();
     }
@@ -708,6 +779,7 @@ void minion_dies_array_recycle(int dead_minion_number) {
     minion_count--;
 }
 
+/*
 void minion_enter_base_counter() {
     for (int i = 0; i < MINION_MAX; i++) {
         int current_boxCOL = (array_MinionStats[i][X] - origin_map_coordinateX + BLOCK_SIZE / 2 - 1) / BLOCK_SIZE;
@@ -765,6 +837,47 @@ void renderminionhp_bar() {
         }
     }
 }
+        if (array_MinionStats[i][MINION_TYPE] == SPAM_MINION) {
+            max_hp = 50;
+            hp_percentage = array_MinionStats[i][MINION_HP] / max_hp;//to find current hp
+        }
+        else if (array_MinionStats[i][MINION_TYPE] == WARRIOR_MINION) {
+            max_hp = 130;
+            hp_percentage = array_MinionStats[i][MINION_HP] / max_hp;
+        }
+        else if (array_MinionStats[i][MINION_TYPE] == TANK_MINION) {
+            max_hp = 240;
+            hp_percentage = array_MinionStats[i][MINION_HP] / max_hp;
+        }
+        else if (array_MinionStats[i][MINION_TYPE] == WIZARD_MINION) {
+            max_hp = 80;
+            hp_percentage = array_MinionStats[i][MINION_HP] / max_hp;
+        }
+        else if (array_MinionStats[i][MINION_TYPE] == HEALER_MINION) {
+            max_hp = 120;
+            hp_percentage = array_MinionStats[i][MINION_HP] / max_hp;
+        }
+        float new_hp_bar = hp_percentage * default_hp;
+        CP_Settings_Fill(COLOR_RED);
+        CP_Graphics_DrawRect((float)array_MinionStats[i][X] - 20, (float)array_MinionStats[i][Y] - 80, (float)default_hp, (float)HP_BAR_HEIGHT); //max_hp
+        CP_Settings_Fill(COLOR_GREEN);
+        CP_Graphics_DrawRect((float)array_MinionStats[i][X] - 20, (float)array_MinionStats[i][Y] - 80, (float)new_hp_bar, (float)HP_BAR_HEIGHT);
+    }
+}
+void display_money_counter() {
+    float counter_X, counter_Y, counter_width, counter_height;
+    counter_height = 80;
+    counter_width = (float)BLOCK_SIZE - 20;
+    counter_X = (float)CP_System_GetWindowWidth() - (float)origin_map_coordinateX - (float)BLOCK_SIZE + 10;
+    counter_Y = (float)origin_map_coordinateY + (float)MAP_GRID_ROWS * (float)BLOCK_SIZE + 10;
+    snprintf(money_buffer, sizeof(money_buffer), "%d", money);
+    CP_Settings_Fill(COLOR_WHITE);
+    CP_Graphics_DrawRect(counter_X, counter_Y, counter_width, counter_height);
+    CP_Settings_Fill(COLOR_BLACK);
+    CP_Settings_TextSize(50);
+    CP_Font_DrawText("Money: " , (counter_X - 150.f), (counter_Y + 55));
+    CP_Font_DrawText(money_buffer, (counter_X + 40.f), (counter_Y + 55));
+}
 
 void assign_minion_stats() {
     if (array_MinionStats[minion_count][MINION_TYPE] == SPAM_MINION) {
@@ -773,7 +886,7 @@ void assign_minion_stats() {
         array_MinionStats[minion_count][MINION_ATTACK] = 4;
         array_MinionStats[minion_count][MINION_ATTACK_SPEED] = 2;
         array_MinionStats[minion_count][MINION_WEIGHT] = 1;
-        array_MinionStats[minion_count][MINION_COST] = 1;
+        array_MinionStats[minion_count][MINION_COST] = 25;
         array_MinionStats[minion_count][MINION_SIZE] = 50;
     }
     if (array_MinionStats[minion_count][MINION_TYPE] == WARRIOR_MINION) {
@@ -782,7 +895,7 @@ void assign_minion_stats() {
         array_MinionStats[minion_count][MINION_ATTACK] = 5;
         array_MinionStats[minion_count][MINION_ATTACK_SPEED] = 2;
         array_MinionStats[minion_count][MINION_WEIGHT] = 1;
-        array_MinionStats[minion_count][MINION_COST] = 3;
+        array_MinionStats[minion_count][MINION_COST] = 50;
         array_MinionStats[minion_count][MINION_SIZE] = 80;
     }
     if (array_MinionStats[minion_count][MINION_TYPE] == TANK_MINION) {
@@ -791,7 +904,7 @@ void assign_minion_stats() {
         array_MinionStats[minion_count][MINION_ATTACK] = 1;
         array_MinionStats[minion_count][MINION_ATTACK_SPEED] = 2;
         array_MinionStats[minion_count][MINION_WEIGHT] = 1;
-        array_MinionStats[minion_count][MINION_COST] = 5;
+        array_MinionStats[minion_count][MINION_COST] = 100;
         array_MinionStats[minion_count][MINION_SIZE] = 120;
     }
     if (array_MinionStats[minion_count][MINION_TYPE] == WIZARD_MINION) {
@@ -800,7 +913,7 @@ void assign_minion_stats() {
         array_MinionStats[minion_count][MINION_ATTACK] = 40;
         array_MinionStats[minion_count][MINION_ATTACK_SPEED] = 2;
         array_MinionStats[minion_count][MINION_WEIGHT] = 1;
-        array_MinionStats[minion_count][MINION_COST] = 4;
+        array_MinionStats[minion_count][MINION_COST] = 150;
         array_MinionStats[minion_count][MINION_SIZE] = 70;
     }
     if (array_MinionStats[minion_count][MINION_TYPE] == HEALER_MINION) {
@@ -809,7 +922,7 @@ void assign_minion_stats() {
         array_MinionStats[minion_count][MINION_ATTACK] = 0;
         array_MinionStats[minion_count][MINION_ATTACK_SPEED] = 2;
         array_MinionStats[minion_count][MINION_WEIGHT] = 1;
-        array_MinionStats[minion_count][MINION_COST] = 5;
+        array_MinionStats[minion_count][MINION_COST] = 150;
         array_MinionStats[minion_count][MINION_SIZE] = 60;
     }
 }
@@ -907,5 +1020,9 @@ void level_1() {
         array_EnemyStats[2][ENEMY_COL] = 0;
         array_EnemyStats[2][ENEMY_TYPE] = GUARD_ENEMY;
         array_GameMap[4][6] = BLOCK_PRESENT;
+    array_GameMap[3][8] = BLOCK_ENEMY;
+        array_EnemyStats[2][ENEMY_ROW] = 3;
+        array_EnemyStats[2][ENEMY_COL] = 7;
+        array_EnemyStats[2][ENEMY_TYPE] = GUARD_ENEMY;
 }
 
