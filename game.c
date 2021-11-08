@@ -131,8 +131,8 @@ int minions_in_base;
 void minion_enter_base_counter(void);
 /*
 char base_counter[10];
-void display_minion_eneter_base_counter(void);
-*/
+//void display_minion_eneter_base_counter(void);
+
 
 /*Levels*/
 void level_1(void);
@@ -170,9 +170,9 @@ void update_variables_and_make_screen_nice(); //since it's full screen, need to 
 
 /*Money Code*/
 void display_money_counter(void);
-//void money_over_time(void);
 char money_buffer[400];
 int money = 50;
+int money_test = 0;
 
 /*GamePlay Screen*/
 int options_boxX, options_boxY, box_width, box_length; //this is the giant wide box atm which all the options etc. goes in
@@ -266,9 +266,8 @@ void game_update(void) {
                 renderminionhp_bar();
                 test = CP_System_GetDt();
                 start_timer();
-                //money_over_time();
-                snprintf(buffer, sizeof(buffer), "%d", (60 - (int)test));
-                minion_enter_base_counter();
+                snprintf(buffer, sizeof(buffer), "%d", (60 - (int)elapsed_timer));
+                //minion_enter_base_counter();
             }
         }
     }
@@ -411,15 +410,12 @@ void draw_timer_and_pause_button(void) {
 
 void start_timer(void) {
     elapsed_timer += test;
-    money = money + (int)elapsed_timer;
+    for (int i = 0; i < elapsed_timer; i++)
+    {
+        money = money + 25;
+    }
+    
 }
-
-/*
-void money_over_time(void)
-{
-    money = money + (int)test;
-}
-*/
 
 void gameplay_screen() {
     //initialise_level();
@@ -451,7 +447,7 @@ void gameplay_screen_clicked(float x, float y) {
             }
             else
             {
-                money -= 25;
+                money = money - 25;
                 array_MinionStats[minion_count][MINION_TYPE] = SPAM_MINION;
                 assign_minion_stats(); //maybe can throw this function call in render_minion
             }
