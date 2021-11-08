@@ -121,6 +121,11 @@ void renderminionhp_bar();
 /*Recycling minions when minion dies*/
 void minion_dies_array_recycle(int i);
 
+/*Restart level*/
+float restartX, restartY, restart_length, restart_width;
+void restart_level();
+void display_restart_button(void); //found in gameplay_screen
+
 /**/
 #define FALSE 0
 #define TRUE 1
@@ -238,7 +243,6 @@ void game_update(void) {
         //display_minion_eneter_base_counter(); Commented out
         draw_timer_and_pause_button();
         display_money_counter();
-        
         render_enemy();
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
         {
@@ -418,6 +422,32 @@ void start_timer(void) {
     elapsed_timer += test;
 }
 
+void display_restart_button(void) {
+    restartX = (float)origin_map_coordinateX + 15;
+    restartY = 900; 
+    restart_length = 80;
+    restart_width = 50;
+    /*Button*/
+    CP_Settings_Fill(COLOR_WHITE);
+    CP_Graphics_DrawRect(restartX, restartY, restart_length, restart_width);
+    /*Text*/
+    CP_Settings_Fill(COLOR_BLACK);
+    CP_Settings_TextSize(25);
+    CP_Font_DrawText("Restart", restartX + 4, restartY + 30);
+}
+
+/*Raiyan add on code to restart the money and timer thanks*/
+void restart_level(void) {
+    minion_count = 0;
+    reset_map_and_minions();
+    initialise_level();
+    gIsPaused = FALSE;
+    //minions_in_base = 0; Part of minion counter which has been commented out
+    initialise_pause_and_timer_button();
+
+}
+
+
 void gameplay_screen() {
     //initialise_level();
     render_background();
@@ -435,6 +465,7 @@ void gameplay_screen() {
         CP_Graphics_DrawRect((float)minion_boxX, (float)minion_boxY, (float)minion_buttons_width, (float)minion_buttons_height);
     }
     CP_Settings_RectMode(CP_POSITION_CORNER);
+    display_restart_button();
 
 }
 
@@ -503,6 +534,9 @@ void gameplay_screen_clicked(float x, float y) {
             }
         }
         render_minion();
+    }
+    if (y >= restartY && (y <= (restartY + restart_length)) && x >= restartX && (x <= (restartX + restart_width))) {
+        restart_level();
     }
 }
 
