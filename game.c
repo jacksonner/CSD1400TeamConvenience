@@ -257,16 +257,22 @@ void game_update(void) {
         }
 
         else if (gIsPaused == FALSE) {
+            test = CP_System_GetDt();
+            start_timer();
+            snprintf(buffer, sizeof(buffer), "%d", (60 - (int)elapsed_timer));
             if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
                 gameplay_screen_clicked(CP_Input_GetMouseX(), CP_Input_GetMouseY());
             }
             if (minion_count > 0) {
                 move_minion();
                 renderminionhp_bar();
-                test = CP_System_GetDt();
-                start_timer();
-                snprintf(buffer, sizeof(buffer), "%d", (60 - (int)elapsed_timer));
                 //minion_enter_base_counter();
+                float money_per_frame = 0;
+                money_per_frame += 25.f / 60.f;
+                if ((int)money_per_frame > 0)
+                {
+                    money += (int)money_per_frame;
+                }
             }
         }
     }
@@ -409,11 +415,6 @@ void draw_timer_and_pause_button(void) {
 
 void start_timer(void) {
     elapsed_timer += test;
-    for (int i = 0; i < elapsed_timer; i++)
-    {
-        money = money + 25;
-    }
-    
 }
 
 void gameplay_screen() {
@@ -776,7 +777,7 @@ void minion_dies_array_recycle(int dead_minion_number) {
     minion_count--;
 }
 
-/*
+
 void minion_enter_base_counter() {
     for (int i = 0; i < MINION_MAX; i++) {
         int current_boxCOL = (array_MinionStats[i][X] - origin_map_coordinateX + BLOCK_SIZE / 2 - 1) / BLOCK_SIZE;
@@ -835,33 +836,7 @@ void renderminionhp_bar() {
         }
     }
 }
-        if (array_MinionStats[i][MINION_TYPE] == SPAM_MINION) {
-            max_hp = 50;
-            hp_percentage = array_MinionStats[i][MINION_HP] / max_hp;//to find current hp
-        }
-        else if (array_MinionStats[i][MINION_TYPE] == WARRIOR_MINION) {
-            max_hp = 130;
-            hp_percentage = array_MinionStats[i][MINION_HP] / max_hp;
-        }
-        else if (array_MinionStats[i][MINION_TYPE] == TANK_MINION) {
-            max_hp = 240;
-            hp_percentage = array_MinionStats[i][MINION_HP] / max_hp;
-        }
-        else if (array_MinionStats[i][MINION_TYPE] == WIZARD_MINION) {
-            max_hp = 80;
-            hp_percentage = array_MinionStats[i][MINION_HP] / max_hp;
-        }
-        else if (array_MinionStats[i][MINION_TYPE] == HEALER_MINION) {
-            max_hp = 120;
-            hp_percentage = array_MinionStats[i][MINION_HP] / max_hp;
-        }
-        float new_hp_bar = hp_percentage * default_hp;
-        CP_Settings_Fill(COLOR_RED);
-        CP_Graphics_DrawRect((float)array_MinionStats[i][X] - 20, (float)array_MinionStats[i][Y] - 80, (float)default_hp, (float)HP_BAR_HEIGHT); //max_hp
-        CP_Settings_Fill(COLOR_GREEN);
-        CP_Graphics_DrawRect((float)array_MinionStats[i][X] - 20, (float)array_MinionStats[i][Y] - 80, (float)new_hp_bar, (float)HP_BAR_HEIGHT);
-    }
-}
+        
 void display_money_counter() {
     float counter_X, counter_Y, counter_width, counter_height;
     counter_height = 80;
