@@ -126,9 +126,10 @@ void minion_dies_array_recycle(int i);
 #define TRUE 1
 int level_has_been_reset; //checks if level has reset so stats won't constantly be reassigned making the enemies immortal
 
-/*Counter for no. of Minions who entered the base
+/*Counter for no. of Minions who entered the base*/
 int minions_in_base;
 void minion_enter_base_counter(void);
+/*
 char base_counter[10];
 void display_minion_eneter_base_counter(void);
 */
@@ -267,7 +268,7 @@ void game_update(void) {
                 start_timer();
                 //money_over_time();
                 snprintf(buffer, sizeof(buffer), "%d", (60 - (int)test));
-                //minion_enter_base_counter();
+                minion_enter_base_counter();
             }
         }
     }
@@ -412,6 +413,7 @@ void start_timer(void) {
     elapsed_timer += test;
     money = money + (int)elapsed_timer;
 }
+
 /*
 void money_over_time(void)
 {
@@ -779,7 +781,6 @@ void minion_dies_array_recycle(int dead_minion_number) {
     minion_count--;
 }
 
-/*
 void minion_enter_base_counter() {
     for (int i = 0; i < MINION_MAX; i++) {
         int current_boxCOL = (array_MinionStats[i][X] - origin_map_coordinateX + BLOCK_SIZE / 2 - 1) / BLOCK_SIZE;
@@ -792,6 +793,7 @@ void minion_enter_base_counter() {
     }  
 }
 
+/*
 void display_minion_enter_base_counter() {
     float counter_X, counter_Y, counter_width, counter_height;
     counter_height = 80;
@@ -805,6 +807,7 @@ void display_minion_enter_base_counter() {
     CP_Settings_TextSize(50);
     CP_Font_DrawText(base_counter, (counter_X + 17), (counter_Y + 55));
 }
+*/
 
 void renderminionhp_bar() {
     for (int i = 0; i < MINION_MAX; i++) {
@@ -837,33 +840,7 @@ void renderminionhp_bar() {
         }
     }
 }
-        if (array_MinionStats[i][MINION_TYPE] == SPAM_MINION) {
-            max_hp = 50;
-            hp_percentage = array_MinionStats[i][MINION_HP] / max_hp;//to find current hp
-        }
-        else if (array_MinionStats[i][MINION_TYPE] == WARRIOR_MINION) {
-            max_hp = 130;
-            hp_percentage = array_MinionStats[i][MINION_HP] / max_hp;
-        }
-        else if (array_MinionStats[i][MINION_TYPE] == TANK_MINION) {
-            max_hp = 240;
-            hp_percentage = array_MinionStats[i][MINION_HP] / max_hp;
-        }
-        else if (array_MinionStats[i][MINION_TYPE] == WIZARD_MINION) {
-            max_hp = 80;
-            hp_percentage = array_MinionStats[i][MINION_HP] / max_hp;
-        }
-        else if (array_MinionStats[i][MINION_TYPE] == HEALER_MINION) {
-            max_hp = 120;
-            hp_percentage = array_MinionStats[i][MINION_HP] / max_hp;
-        }
-        float new_hp_bar = hp_percentage * default_hp;
-        CP_Settings_Fill(COLOR_RED);
-        CP_Graphics_DrawRect((float)array_MinionStats[i][X] - 20, (float)array_MinionStats[i][Y] - 80, (float)default_hp, (float)HP_BAR_HEIGHT); //max_hp
-        CP_Settings_Fill(COLOR_GREEN);
-        CP_Graphics_DrawRect((float)array_MinionStats[i][X] - 20, (float)array_MinionStats[i][Y] - 80, (float)new_hp_bar, (float)HP_BAR_HEIGHT);
-    }
-}
+
 void display_money_counter() {
     float counter_X, counter_Y, counter_width, counter_height;
     counter_height = 80;
@@ -927,7 +904,8 @@ void assign_minion_stats() {
     }
 }
 
-void assign_minion_color(int i) { /*probably going to be removed in the final product*/
+/*probably going to be removed in the final product*/
+void assign_minion_color(int i) { 
         if (array_MinionStats[i][MINION_TYPE] == SPAM_MINION) {
             CP_Settings_Fill(COLOR_BLUE);
         }
@@ -1022,7 +1000,7 @@ void level_1() {
         array_GameMap[4][6] = BLOCK_PRESENT;
     array_GameMap[3][8] = BLOCK_ENEMY;
         array_EnemyStats[2][ENEMY_ROW] = 3;
-        array_EnemyStats[2][ENEMY_COL] = 7;
+        array_EnemyStats[2][ENEMY_COL] = 8;
         array_EnemyStats[2][ENEMY_TYPE] = GUARD_ENEMY;
 }
 
