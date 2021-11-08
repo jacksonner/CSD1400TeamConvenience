@@ -267,7 +267,7 @@ void game_update(void) {
                 test = CP_System_GetDt();
                 start_timer();
                 snprintf(buffer, sizeof(buffer), "%d", (60 - (int)elapsed_timer));
-                //minion_enter_base_counter();
+                minion_enter_base_counter(); //please do not comment this out
             }
         }
     }
@@ -414,7 +414,6 @@ void start_timer(void) {
     {
         money = money + 25;
     }
-    
 }
 
 void gameplay_screen() {
@@ -993,10 +992,11 @@ void level_1() {
         array_EnemyStats[2][ENEMY_ROW] = 3;
         array_EnemyStats[2][ENEMY_COL] = 0;
         array_EnemyStats[2][ENEMY_TYPE] = GUARD_ENEMY;
-        array_GameMap[4][6] = BLOCK_PRESENT;
     array_GameMap[3][8] = BLOCK_ENEMY;
-        array_EnemyStats[2][ENEMY_ROW] = 3;
-        array_EnemyStats[2][ENEMY_COL] = 8;
-        array_EnemyStats[2][ENEMY_TYPE] = GUARD_ENEMY;
+        array_EnemyStats[3][ENEMY_ROW] = 3;
+        array_EnemyStats[3][ENEMY_COL] = 8;
+        array_EnemyStats[3][ENEMY_TYPE] = GUARD_ENEMY;
+        /*Please be careful when adding a new enemy, change the number array_EnemyStats[3][ENEMY_TYPE] -> array_EnemyStats[4][ENEMY_TYPE]*/
+    array_GameMap[4][6] = BLOCK_PRESENT;
 }
 
