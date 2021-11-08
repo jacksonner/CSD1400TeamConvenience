@@ -126,9 +126,10 @@ void minion_dies_array_recycle(int i);
 #define TRUE 1
 int level_has_been_reset; //checks if level has reset so stats won't constantly be reassigned making the enemies immortal
 
-//Counter for no. of Minions who entered the base
+/*Counter for no. of Minions who entered the base*/
 int minions_in_base;
 void minion_enter_base_counter(void);
+/*
 char base_counter[10];
 //void display_minion_eneter_base_counter(void);
 
@@ -266,13 +267,13 @@ void game_update(void) {
             if (minion_count > 0) {
                 move_minion();
                 renderminionhp_bar();
-                //minion_enter_base_counter();
                 float money_per_frame = 0;
                 money_per_frame += 25.f / 60.f;
                 if ((int)money_per_frame > 0)
                 {
                     money += (int)money_per_frame;
                 }
+                minion_enter_base_counter(); //please do not comment this out
             }
         }
     }
@@ -789,8 +790,9 @@ void minion_enter_base_counter() {
         }
     }  
 }
+
 /*
-void display_minion_eneter_base_counter() {
+void display_minion_enter_base_counter() {
     float counter_X, counter_Y, counter_width, counter_height;
     counter_height = 80;
     counter_width = (float)BLOCK_SIZE - 20;
@@ -836,7 +838,7 @@ void renderminionhp_bar() {
         }
     }
 }
-        
+
 void display_money_counter() {
     float counter_X, counter_Y, counter_width, counter_height;
     counter_height = 80;
@@ -900,7 +902,8 @@ void assign_minion_stats() {
     }
 }
 
-void assign_minion_color(int i) { /*probably going to be removed in the final product*/
+/*probably going to be removed in the final product*/
+void assign_minion_color(int i) { 
         if (array_MinionStats[i][MINION_TYPE] == SPAM_MINION) {
             CP_Settings_Fill(COLOR_BLUE);
         }
@@ -992,10 +995,11 @@ void level_1() {
         array_EnemyStats[2][ENEMY_ROW] = 3;
         array_EnemyStats[2][ENEMY_COL] = 0;
         array_EnemyStats[2][ENEMY_TYPE] = GUARD_ENEMY;
-        array_GameMap[4][6] = BLOCK_PRESENT;
     array_GameMap[3][8] = BLOCK_ENEMY;
-        array_EnemyStats[2][ENEMY_ROW] = 3;
-        array_EnemyStats[2][ENEMY_COL] = 7;
-        array_EnemyStats[2][ENEMY_TYPE] = GUARD_ENEMY;
+        array_EnemyStats[3][ENEMY_ROW] = 3;
+        array_EnemyStats[3][ENEMY_COL] = 8;
+        array_EnemyStats[3][ENEMY_TYPE] = GUARD_ENEMY;
+        /*Please be careful when adding a new enemy, change the number array_EnemyStats[3][ENEMY_TYPE] -> array_EnemyStats[4][ENEMY_TYPE]*/
+    array_GameMap[4][6] = BLOCK_PRESENT;
 }
 
