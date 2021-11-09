@@ -26,6 +26,7 @@ float array_Collaborative_DiffusionMap[MAP_GRID_ROWS][MAP_GRID_COLS][2];
 #define BLOCK_SPAWN 4
 #define BLOCK_INVISIBLE 5
 #define BLOCK_ENEMY_DEAD 6
+#define BLOCK_TOWER_ENEMY 7 //used to mark location for tower enemies
 
 /*Different Colours in Use*/
 #define COLOR_BLACK CP_Color_Create(0, 0, 0, 255)
@@ -660,7 +661,7 @@ void setup_collaborative_diffusion_map() {
 void render_enemy() {
     for (int row = 0; row < MAP_GRID_ROWS; ++row) {
         for (int col = 0; col < MAP_GRID_COLS; ++col) {
-            if (array_GameMap[row][col] == BLOCK_ENEMY) {
+            if (array_GameMap[row][col] == BLOCK_ENEMY || array_GameMap[row][col] == BLOCK_TOWER_ENEMY) {
                 for (int i = 0; i < ENEMY_MAX; ++i) {
                     if (level_has_been_reset == TRUE) {
                         assign_enemy_stats();
@@ -811,7 +812,6 @@ void minion_dies_array_recycle(int dead_minion_number) {
     }
     minion_count--;
 }
-
 
 void minion_enter_base_counter() {
     for (int i = 0; i < MINION_MAX; i++) {
@@ -1033,6 +1033,10 @@ void level_1() {
         array_EnemyStats[3][ENEMY_ROW] = 3;
         array_EnemyStats[3][ENEMY_COL] = 8;
         array_EnemyStats[3][ENEMY_TYPE] = GUARD_ENEMY;
+    array_GameMap[2][5] = BLOCK_TOWER_ENEMY;
+        array_EnemyStats[3][ENEMY_ROW] = 2;
+        array_EnemyStats[3][ENEMY_COL] = 5;
+        array_EnemyStats[3][ENEMY_TYPE] = SLOW_ENEMY;
         /*Please be careful when adding a new enemy, change the number array_EnemyStats[3][ENEMY_TYPE] -> array_EnemyStats[4][ENEMY_TYPE]*/
     array_GameMap[4][6] = BLOCK_PRESENT;
 }
