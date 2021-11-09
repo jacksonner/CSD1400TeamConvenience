@@ -40,6 +40,7 @@ float array_Collaborative_DiffusionMap[MAP_GRID_ROWS][MAP_GRID_COLS][2];
 #define COLOR_BROWN CP_Color_Create(165, 42, 42, 255)
 #define COLOR_CYAN CP_Color_Create(0, 255, 255, 255)
 #define COLOR_PURPLE CP_Color_Create(138, 43, 226, 255)
+#define TRANSLUCENT_WHITE CP_Color_Create(255, 255, 255, 100)
 
 /*Minion Stats*/
 #define X 0 //x-coordinates
@@ -457,9 +458,7 @@ void restart_level(void) {
     elapsed_timer2 = 0;
     draw_timer_and_pause_button();
     display_money_counter();
-    gIsPaused = TRUE;
 }
-
 
 void gameplay_screen() {
     //initialise_level();
@@ -476,6 +475,31 @@ void gameplay_screen() {
         minion_boxX = options_boxX + (i * minion_buttons_width) - minion_buttons_width/2;
         minion_boxY = options_boxY + (box_width / 4) - 20; //minion_boxY remains constant throughout
         CP_Graphics_DrawRect((float)minion_boxX, (float)minion_boxY, (float)minion_buttons_width, (float)minion_buttons_height);
+    }
+    float minion_costboxY = (float)minion_boxY + 100.f;
+    float minion_costbox_height =  50;
+    /*Render minion pictures here BEFORE THE COST BOXES*/
+    //
+    //
+    //
+    for (int i = 0; i < 5; i++) {
+        minion_boxX = options_boxX + minion_buttons_width + (i * minion_buttons_width) - minion_buttons_width / 2;
+        CP_Settings_Fill(TRANSLUCENT_WHITE);
+        CP_Graphics_DrawRect((float)minion_boxX, minion_costboxY, (float)minion_buttons_width, minion_costbox_height);
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Settings_TextSize(35);
+        CP_Font_DrawText( (i == 0 
+            ? "25"
+            : i == 1
+            ? "50"
+            : i == 2
+            ? "100"
+            : i == 3
+            ? "150"
+            : i == 4
+            ? "150"
+            : "ERROR")
+            , (float)minion_boxX + 90, minion_costboxY + 32);
     }
     CP_Settings_RectMode(CP_POSITION_CORNER);
     display_restart_button();
@@ -533,6 +557,7 @@ void gameplay_screen_clicked(float x, float y) {
     }
 }
 
+/*Initialises level depending on the current level - TBC*/
 void initialise_level() {
     level_1();
     //chooses level to initialise
@@ -557,7 +582,7 @@ void render_background() {
                 ? COLOR_GREY
                 : array_GameMap[row][col] == BLOCK_END //add something to include text to show that this is the end point
                 ? COLOR_BLACK
-                : array_GameMap[row][col] == BLOCK_PRESENT
+                : array_GameMap[row][col] == BLOCK_PRESENT || array_GameMap[row][col] == BLOCK_TOWER_ENEMY
                 ? COLOR_WHITE
                 : array_GameMap[row][col] == BLOCK_SPAWN
                 ? COLOR_GREEN
@@ -1043,4 +1068,3 @@ void level_1() {
         /*Please be careful when adding a new enemy, change the number array_EnemyStats[3][ENEMY_TYPE] -> array_EnemyStats[4][ENEMY_TYPE]*/
     array_GameMap[4][6] = BLOCK_PRESENT;
 }
-
