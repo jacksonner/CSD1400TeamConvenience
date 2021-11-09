@@ -55,9 +55,15 @@ float array_Collaborative_DiffusionMap[MAP_GRID_ROWS][MAP_GRID_COLS][2];
 #define MINION_SIZE 9 //like the radius of the minion, might be removed when actualy sprites are included?
 #define MINION_DIRECTION 10
 #define MINION_HEAL 11
+
 /*can add a MINION_COLOUR too maybe?*/
 #define MINION_MAX 7 //Maximum number of minions in the game at any one time
-int array_MinionStats[MINION_MAX][12]; //MUST edit reset_map_and_minions() when the array size is changed
+#define MINION_TOTAL_STATS 12
+int array_MinionStats[MINION_MAX][MINION_TOTAL_STATS]; //MUST edit reset_map_and_minions() when the array size is changed
+
+#define MINION_CHARGE_TIME 0
+#define MINION_CURRENT_CHARGE 1
+float array_MinionCurrentCharge[MINION_MAX][2];
 
 /*Types of Minions*/
 #define SPAM_MINION 0 //weak everything, but low cost
@@ -90,7 +96,8 @@ int array_MinionStats[MINION_MAX][12]; //MUST edit reset_map_and_minions() when 
 #define ENEMY_CURRENT_MINIONS_ON_BLOCK 12
 
 #define ENEMY_MAX 10 //How many enemies can we have at one time? 
-int array_EnemyStats[ENEMY_MAX][13];
+#define ENEMY_TOTAL_STATS 13
+int array_EnemyStats[ENEMY_MAX][ENEMY_TOTAL_STATS];
 
 /*Used for checking if the minion will be blocked or not*/
 int array_isMinionBlocked[ENEMY_MAX][MINION_MAX];
@@ -122,6 +129,10 @@ void renderminionhp_bar();
 
 /*Recycling minions when minion dies*/
 void minion_dies_array_recycle(int i);
+
+/*Special attacks for minions*/
+void minion_special_attack();
+void minion_attacking_towers();
 
 /*Restart level*/
 float restartX, restartY, restart_length, restart_width;
@@ -280,6 +291,7 @@ void game_update(void) {
             }
             if (minion_count > 0) {
                 move_minion();
+                minion_special_attack();
                 renderminionhp_bar();
                 minion_enter_base_counter(); //please do not comment this out
             }
@@ -375,7 +387,7 @@ void reset_map_and_minions(void) {
         }
     }
     for (int row = 0; row < MINION_MAX; ++row) {
-        for (int col = 0; col < 12; ++col) {
+        for (int col = 0; col < MINION_TOTAL_STATS; ++col) {
             array_MinionStats[row][col] = 0;
         }
     }
@@ -430,6 +442,10 @@ void update_timer(void)
 {
     elapsed_timer += test;  //For Countdown
     elapsed_timer2 += test; //For Money
+    /*for the minion charged attacks*/
+    for (int i = 0; i < minion_count; i++) {
+        array_MinionCurrentCharge[i][MINION_CURRENT_CHARGE] += test;
+    }
 }
 
 void display_restart_button(void) {
@@ -820,22 +836,40 @@ void move_minion() {
     }
 }
 
+/*Should probably update this code to make it shorter lol*/
 void minion_dies_array_recycle(int dead_minion_number) {
-    /*ISSUE WITH THE TRANSFERING OF THE COORDINATES - MINIONS END UP TELEPORTING TO WHERE DEAD MINION WAS*/
-    int array_Temp_MinionStats[MINION_MAX][12];
+    int array_Temp_MinionStats[MINION_MAX][MINION_TOTAL_STATS];
+    float array_Temp_MinionCharge[MINION_MAX][2];
     for (int i = 0; i < dead_minion_number; i++) {
-        for (int j = 0; j < 12; j++) {
+        for (int j = 0; j < MINION_TOTAL_STATS; j++) {
             array_Temp_MinionStats[i][j] = array_MinionStats[i][j];
         }
     }
+    for (int i = 0; i < dead_minion_number; i++) {
+        for (int j = 0; j < 2; j++) {
+            array_Temp_MinionCharge[i][j] = array_MinionCurrentCharge[i][j];
+        }
+    }
+    int dead_min_num = dead_minion_number;
+    for (int k = (dead_min_num + 1); k <= minion_count; k++, dead_min_num++) {
+        for (int m = 0; m < MINION_TOTAL_STATS; m++) {
+            array_Temp_MinionStats[dead_min_num][m] = array_MinionStats[k][m];
+        }
+    }
     for (int k = (dead_minion_number + 1); k <= minion_count; k++, dead_minion_number++) {
-        for (int m = 0; m < 12; m++) {
-            array_Temp_MinionStats[dead_minion_number][m] = array_MinionStats[k][m];
+        for (int m = 0; m < 2; m++) {
+            array_Temp_MinionCharge[dead_minion_number][m] = array_MinionCurrentCharge[k][m];
+        }
+    }
+    /*Now we update the original array with the stored values*/
+    for (int h = 0; h < minion_count; h++) {
+        for (int n = 0; n < MINION_TOTAL_STATS; n++) {
+            array_MinionStats[h][n] = array_Temp_MinionStats[h][n];
         }
     }
     for (int h = 0; h < minion_count; h++) {
-        for (int n = 0; n < 12; n++) {
-            array_MinionStats[h][n] = array_Temp_MinionStats[h][n];
+        for (int n = 0; n < 2; n++) {
+            array_MinionCurrentCharge[h][n] = array_Temp_MinionCharge[h][n];
         }
     }
     minion_count--;
@@ -916,6 +950,33 @@ void display_money_counter() {
     CP_Font_DrawText(money_buffer, (counter_X + 40.f), (counter_Y + 55));
 }
 
+void minion_special_attack() {
+    for (int i = 0; i < minion_count; i++)
+    if (array_MinionCurrentCharge[i][MINION_CURRENT_CHARGE] >= array_MinionCurrentCharge[i][MINION_CHARGE_TIME]) {
+        if (array_MinionStats[i][MINION_TYPE] == WARRIOR_MINION) {
+            printf("meaningless gibberish");
+            //insert code for whatever they can do here
+        }
+        else if (array_MinionStats[i][MINION_TYPE] == TANK_MINION) {
+            printf("Hey I happened");
+            //insert code for whatever they can do here
+        }
+        else if (array_MinionStats[i][MINION_TYPE] == WIZARD_MINION) {
+            printf("ooo special attack time");
+            //insert code for whatever they can do here
+        }
+        else if (array_MinionStats[i][MINION_TYPE] == HEALER_MINION) {
+            printf("heal");
+            //insert code for whatever they can do here
+        }
+        array_MinionCurrentCharge[i][MINION_CURRENT_CHARGE] = 0;
+    }
+}
+
+void minion_attacking_towers() {
+
+}
+
 void assign_minion_stats() {
     if (array_MinionStats[minion_count][MINION_TYPE] == SPAM_MINION) {
         array_MinionStats[minion_count][MINION_HP] = 50;
@@ -934,15 +995,17 @@ void assign_minion_stats() {
         array_MinionStats[minion_count][MINION_WEIGHT] = 1;
         array_MinionStats[minion_count][MINION_COST] = 50;
         array_MinionStats[minion_count][MINION_SIZE] = 80;
+        array_MinionCurrentCharge[minion_count][MINION_CHARGE_TIME] = 5; //one strong attack?
     }
-    if (array_MinionStats[minion_count][MINION_TYPE] == TANK_MINION) {
-        array_MinionStats[minion_count][MINION_HP] = 240;
-        array_MinionStats[minion_count][MINION_MOVEMENT_SPEED] = 3; //original speed was 3
-        array_MinionStats[minion_count][MINION_ATTACK] = 1;
+    if (array_MinionStats[minion_count][MINION_TYPE] == TANK_MINION) { //is tall so can attack tower
+        array_MinionStats[minion_count][MINION_HP] = 240; 
+        array_MinionStats[minion_count][MINION_MOVEMENT_SPEED] = 4; //original speed was 3
+        array_MinionStats[minion_count][MINION_ATTACK] = 0;
         array_MinionStats[minion_count][MINION_ATTACK_SPEED] = 2;
-        array_MinionStats[minion_count][MINION_WEIGHT] = 1;
+        array_MinionStats[minion_count][MINION_WEIGHT] = 2; //holds the line so other minions can pass
         array_MinionStats[minion_count][MINION_COST] = 100;
         array_MinionStats[minion_count][MINION_SIZE] = 120;
+        array_MinionCurrentCharge[minion_count][MINION_CHARGE_TIME] = 2;
     }
     if (array_MinionStats[minion_count][MINION_TYPE] == WIZARD_MINION) {
         array_MinionStats[minion_count][MINION_HP] = 80;
@@ -952,15 +1015,18 @@ void assign_minion_stats() {
         array_MinionStats[minion_count][MINION_WEIGHT] = 1;
         array_MinionStats[minion_count][MINION_COST] = 150;
         array_MinionStats[minion_count][MINION_SIZE] = 70;
+        array_MinionCurrentCharge[minion_count][MINION_CHARGE_TIME] = 6;
     }
     if (array_MinionStats[minion_count][MINION_TYPE] == HEALER_MINION) {
         array_MinionStats[minion_count][MINION_HP] = 120;
         array_MinionStats[minion_count][MINION_MOVEMENT_SPEED] = 5;
-        array_MinionStats[minion_count][MINION_ATTACK] = 0;
+        array_MinionStats[minion_count][MINION_ATTACK] = 1; //i mean... self defence?
         array_MinionStats[minion_count][MINION_ATTACK_SPEED] = 2;
         array_MinionStats[minion_count][MINION_WEIGHT] = 1;
         array_MinionStats[minion_count][MINION_COST] = 150;
         array_MinionStats[minion_count][MINION_SIZE] = 60;
+        array_MinionStats[minion_count][MINION_HEAL] = 20;
+        array_MinionCurrentCharge[minion_count][MINION_CHARGE_TIME] = 2; //super healing???
     }
 }
 
