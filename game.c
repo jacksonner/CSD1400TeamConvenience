@@ -152,9 +152,10 @@ int current_level;
 /*Timer and Pause button*/
 int t_time;
 char buffer[60];
-int level_timer = 60;
+int level_timer = 0;
 float test;
 float elapsed_timer;
+float elapsed_timer2;
 float gPauseButtonPositionX, gPauseButtonPositionY, gPauseButtonTextPositionX, gPauseButtonTextPositionY;
 float gTimerPositionX, gTimerPositionY, gTimerButtonTextPositionX, gTimerButtonTextPositionY;
 float currentElapsedTime;
@@ -163,6 +164,7 @@ float pauseButtonLimitX, pauseButtonLimitY;
 float pauseButtonLimitX, pauseButtonLimitY;
 int gIsPaused;
 void start_timer(void);
+void update_timer(void);
 void initialise_pause_and_timer_button(void);
 void draw_timer_and_pause_button(void);
 
@@ -263,8 +265,14 @@ void game_update(void) {
         }
 
         else if (gIsPaused == FALSE) {
-            test = CP_System_GetDt();
+            //test = CP_System_GetDt();
             start_timer();
+            update_timer();
+            if (elapsed_timer2 > 2)
+            {
+                money += 25;
+                elapsed_timer2 -= 2;
+            }
             snprintf(buffer, sizeof(buffer), "%d", (60 - (int)elapsed_timer));
             if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
                 gameplay_screen_clicked(CP_Input_GetMouseX(), CP_Input_GetMouseY());
@@ -272,12 +280,6 @@ void game_update(void) {
             if (minion_count > 0) {
                 move_minion();
                 renderminionhp_bar();
-                float money_per_frame = 0;
-                money_per_frame += 25.f / 60.f;
-                if ((int)money_per_frame > 0)
-                {
-                    money += (int)money_per_frame;
-                }
                 minion_enter_base_counter(); //please do not comment this out
             }
         }
@@ -420,7 +422,12 @@ void draw_timer_and_pause_button(void) {
 }
 
 void start_timer(void) {
-    elapsed_timer += test;
+    test = CP_System_GetDt();
+}
+void update_timer(void)
+{
+    elapsed_timer += test;  //For Countdown
+    elapsed_timer2 += test; //For Money
 }
 
 void display_restart_button(void) {
@@ -445,7 +452,12 @@ void restart_level(void) {
     gIsPaused = FALSE;
     //minions_in_base = 0; Part of minion counter which has been commented out
     initialise_pause_and_timer_button();
-
+    money = 50;
+    elapsed_timer = 0;
+    elapsed_timer2 = 0;
+    draw_timer_and_pause_button();
+    display_money_counter();
+    gIsPaused = TRUE;
 }
 
 
@@ -474,11 +486,7 @@ void gameplay_screen_clicked(float x, float y) {
     float origin_first_boxX = (float)options_boxX + (float)minion_buttons_width - (float)minion_buttons_width / 2.f;
     if (y >= minion_boxY && y <= minion_boxY + minion_buttons_height) {
         if (x >= origin_first_boxX && x < origin_first_boxX + minion_buttons_width) { //Create Spam Minion
-            if (money < 25)
-            {
-
-            }
-            else
+            if (money >= 25)
             {
                 money = money - 25;
                 array_MinionStats[minion_count][MINION_TYPE] = SPAM_MINION;
@@ -486,11 +494,7 @@ void gameplay_screen_clicked(float x, float y) {
             }
         }
         else if (x >= (origin_first_boxX + minion_buttons_width) && x < (origin_first_boxX + 2 * minion_buttons_width)) { //Create Warrior Minion
-            if (money < 50)
-            {
-
-            }
-            else
+            if (money >= 50)
             {
                 money -= 50;
                 array_MinionStats[minion_count][MINION_TYPE] = WARRIOR_MINION;
@@ -499,11 +503,7 @@ void gameplay_screen_clicked(float x, float y) {
             
         }
         else if (x >= (origin_first_boxX + 2 * minion_buttons_width) && x < (origin_first_boxX + 3 * minion_buttons_width)) { //Create Tank Minion
-            if (money < 100)
-            {
-
-            }
-            else
+            if (money >= 100)
             {
                 money -= 100;
                 array_MinionStats[minion_count][MINION_TYPE] = TANK_MINION;
@@ -511,11 +511,7 @@ void gameplay_screen_clicked(float x, float y) {
             }
         }
         else if (x >= (origin_first_boxX + 3 * minion_buttons_width) && x < (origin_first_boxX + 4 * minion_buttons_width)) { //Create Wizard Minion
-            if (money < 150)
-            {
-
-            }
-            else
+            if (money >= 150)
             {
                 money -= 150;
                 array_MinionStats[minion_count][MINION_TYPE] = WIZARD_MINION;
@@ -523,11 +519,7 @@ void gameplay_screen_clicked(float x, float y) {
             }
         }
         else if (x >= (origin_first_boxX + 4 * minion_buttons_width) && x < (origin_first_boxX + 5 * minion_buttons_width)) { //Create Healer Minion
-            if (money < 150)
-            {
-
-            }
-            else
+            if (money >= 150)
             {
                 money -= 150;
                 array_MinionStats[minion_count][MINION_TYPE] = HEALER_MINION;
@@ -536,7 +528,7 @@ void gameplay_screen_clicked(float x, float y) {
         }
         render_minion();
     }
-    if (y >= restartY && (y <= (restartY + restart_length)) && x >= restartX && (x <= (restartX + restart_width))) {
+    if (y >= restartY && (y <= (restartY + restart_width)) && (x >= restartX && (x <= (restartX + restart_length)))) {
         restart_level();
     }
 }
@@ -747,8 +739,19 @@ void move_minion() {
                             array_MinionStats[i][MINION_DIRECTION] = STOP;
                             if (array_MinionStats[i][MINION_HP] > 0) {
                                 array_EnemyStats[correct_enemy][ENEMY_HP] = array_EnemyStats[correct_enemy][ENEMY_HP] - array_MinionStats[i][MINION_ATTACK];
-                                array_MinionStats[i][MINION_HP] -= array_EnemyStats[correct_enemy][ENEMY_ATTACK];   
+                                // array_MinionStats[i][MINION_HP] -= array_EnemyStats[correct_enemy][ENEMY_ATTACK];   for future use when aoe enemy is implemented
                             }
+
+                            /*Single targeting system*/
+                            int previous_minion = i - 1;
+                            if (previous_minion >= 0 && array_MinionStats[previous_minion][MINION_HP] > 0) {
+                                array_MinionStats[previous_minion][MINION_HP] -= array_EnemyStats[correct_enemy][ENEMY_ATTACK];
+                            }
+                            else {
+                                int new_minion = previous_minion + 1;
+                                array_MinionStats[new_minion][MINION_HP] -= array_EnemyStats[correct_enemy][ENEMY_ATTACK];
+                            }
+
                             if (array_MinionStats[i][MINION_HP] <= 0) {
                                 array_EnemyStats[correct_enemy][ENEMY_CURRENT_MINIONS_ON_BLOCK] -= array_MinionStats[i][MINION_WEIGHT];
                                 array_isMinionBlocked[correct_enemy][i] = 0;
