@@ -738,8 +738,19 @@ void move_minion() {
                             array_MinionStats[i][MINION_DIRECTION] = STOP;
                             if (array_MinionStats[i][MINION_HP] > 0) {
                                 array_EnemyStats[correct_enemy][ENEMY_HP] = array_EnemyStats[correct_enemy][ENEMY_HP] - array_MinionStats[i][MINION_ATTACK];
-                                array_MinionStats[i][MINION_HP] -= array_EnemyStats[correct_enemy][ENEMY_ATTACK];   
+                                // array_MinionStats[i][MINION_HP] -= array_EnemyStats[correct_enemy][ENEMY_ATTACK];   for future use when aoe enemy is implemented
                             }
+
+                            /*Single targeting system*/
+                            int previous_minion = i - 1;
+                            if (previous_minion >= 0 && array_MinionStats[previous_minion][MINION_HP] > 0) {
+                                array_MinionStats[previous_minion][MINION_HP] -= array_EnemyStats[correct_enemy][ENEMY_ATTACK];
+                            }
+                            else {
+                                int new_minion = previous_minion + 1;
+                                array_MinionStats[new_minion][MINION_HP] -= array_EnemyStats[correct_enemy][ENEMY_ATTACK];
+                            }
+
                             if (array_MinionStats[i][MINION_HP] <= 0) {
                                 array_EnemyStats[correct_enemy][ENEMY_CURRENT_MINIONS_ON_BLOCK] -= array_MinionStats[i][MINION_WEIGHT];
                                 array_isMinionBlocked[correct_enemy][i] = 0;
