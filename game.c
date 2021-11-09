@@ -131,8 +131,8 @@ void renderminionhp_bar();
 void minion_dies_array_recycle(int i);
 
 /*Special attacks for minions*/
-void minion_special_attack();
-void minion_attacking_towers();
+void minion_special_attack(int i, int current_row, int current_col);
+void minion_attacking_towers(int i, int current_row, int current_col);
 
 /*Restart level*/
 float restartX, restartY, restart_length, restart_width;
@@ -291,7 +291,6 @@ void game_update(void) {
             }
             if (minion_count > 0) {
                 move_minion();
-                minion_special_attack();
                 renderminionhp_bar();
                 minion_enter_base_counter(); //please do not comment this out
             }
@@ -743,6 +742,7 @@ void move_minion() {
         move_down = array_MinionStats[i][Y] + array_MinionStats[i][MINION_MOVEMENT_SPEED];
         current_boxCOL = (array_MinionStats[i][X] - origin_map_coordinateX + BLOCK_SIZE/2 - 1) / BLOCK_SIZE; //x
         current_boxROW = (array_MinionStats[i][Y] - origin_map_coordinateY + BLOCK_SIZE/2 - 1) / BLOCK_SIZE; //y
+        minion_special_attack(i, current_boxROW, current_boxCOL);
         /*now we check, we want to move in the direction of the one with the highest value*/
         array_MinionStats[i][MINION_DIRECTION] = (current_boxCOL + 1 < MAP_GRID_COLS && array_Collaborative_DiffusionMap[current_boxROW][current_boxCOL + 1][0] > array_Collaborative_DiffusionMap[current_boxROW][current_boxCOL][0])
             ? RIGHT
@@ -950,19 +950,26 @@ void display_money_counter() {
     CP_Font_DrawText(money_buffer, (counter_X + 40.f), (counter_Y + 55));
 }
 
-void minion_special_attack() {
-    for (int i = 0; i < minion_count; i++)
+void minion_special_attack(int i, int current_row, int current_col) {
     if (array_MinionCurrentCharge[i][MINION_CURRENT_CHARGE] >= array_MinionCurrentCharge[i][MINION_CHARGE_TIME]) {
         if (array_MinionStats[i][MINION_TYPE] == WARRIOR_MINION) {
             printf("meaningless gibberish");
             //insert code for whatever they can do here
         }
-        else if (array_MinionStats[i][MINION_TYPE] == TANK_MINION) {
-            printf("Hey I happened");
-            //insert code for whatever they can do here
+        else if (array_MinionStats[i][MINION_TYPE] == TANK_MINION) { //restores HP and attack tower
+            if (array_MinionStats[i][MINION_HP] < 140) {
+                array_MinionStats[i][MINION_HP] += 100;
+            }
+            else {
+                int hp_restored = 240 - array_MinionStats[i][MINION_HP];
+                array_MinionStats[i][MINION_HP] += hp_restored;
+            }
+            //code to attack towers surrounding it (TBC-Jan) note to self: copy fromo GOL maybe lol
+            
         }
         else if (array_MinionStats[i][MINION_TYPE] == WIZARD_MINION) {
             printf("ooo special attack time");
+            minion_attacking_towers(i, current_row, current_col);
             //insert code for whatever they can do here
         }
         else if (array_MinionStats[i][MINION_TYPE] == HEALER_MINION) {
@@ -973,10 +980,15 @@ void minion_special_attack() {
     }
 }
 
-void minion_attacking_towers() {
-
+void minion_attacking_towers(int i, int current_row, int current_col) { //can work on the minion's normal attack here, aka attacking towers while moving?
+    if (array_MinionStats[i][MINION_TYPE] == WIZARD_MINION) { //attacks all enemies?
+        printf("ooo special attack time");
+        //insert code for whatever they can do here
+    }
 }
 
+/*IMPORTANT - BEFORE UPDATING ANY VALUE HERE, CTRL+F TO CHECK IF IT HAS BEEN USED ELSEWHERE AND UPDATE ACCORDINGLY*/
+/*for example HP is used in rendering the hp bars. Thanks! :D*/
 void assign_minion_stats() {
     if (array_MinionStats[minion_count][MINION_TYPE] == SPAM_MINION) {
         array_MinionStats[minion_count][MINION_HP] = 50;
@@ -1020,7 +1032,7 @@ void assign_minion_stats() {
     if (array_MinionStats[minion_count][MINION_TYPE] == HEALER_MINION) {
         array_MinionStats[minion_count][MINION_HP] = 120;
         array_MinionStats[minion_count][MINION_MOVEMENT_SPEED] = 5;
-        array_MinionStats[minion_count][MINION_ATTACK] = 1; //i mean... self defence?
+        array_MinionStats[minion_count][MINION_ATTACK] = 0; //i mean... self defence?
         array_MinionStats[minion_count][MINION_ATTACK_SPEED] = 2;
         array_MinionStats[minion_count][MINION_WEIGHT] = 1;
         array_MinionStats[minion_count][MINION_COST] = 150;
