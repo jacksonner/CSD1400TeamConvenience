@@ -424,6 +424,7 @@ void draw_timer_and_pause_button(void) {
 void start_timer(void) {
     test = CP_System_GetDt();
 }
+
 void update_timer(void)
 {
     elapsed_timer += test;  //For Countdown
@@ -444,7 +445,6 @@ void display_restart_button(void) {
     CP_Font_DrawText("Restart", restartX + 4, restartY + 30);
 }
 
-/*Raiyan add on code to restart the money and timer thanks*/
 void restart_level(void) {
     minion_count = 0;
     reset_map_and_minions();
@@ -486,7 +486,7 @@ void gameplay_screen_clicked(float x, float y) {
     float origin_first_boxX = (float)options_boxX + (float)minion_buttons_width - (float)minion_buttons_width / 2.f;
     if (y >= minion_boxY && y <= minion_boxY + minion_buttons_height) {
         if (x >= origin_first_boxX && x < origin_first_boxX + minion_buttons_width) { //Create Spam Minion
-            if (money >= 25)
+            if (money >= 25 && minion_count < MINION_MAX)
             {
                 money = money - 25;
                 array_MinionStats[minion_count][MINION_TYPE] = SPAM_MINION;
@@ -494,7 +494,7 @@ void gameplay_screen_clicked(float x, float y) {
             }
         }
         else if (x >= (origin_first_boxX + minion_buttons_width) && x < (origin_first_boxX + 2 * minion_buttons_width)) { //Create Warrior Minion
-            if (money >= 50)
+            if (money >= 50 && minion_count < MINION_MAX)
             {
                 money -= 50;
                 array_MinionStats[minion_count][MINION_TYPE] = WARRIOR_MINION;
@@ -503,7 +503,7 @@ void gameplay_screen_clicked(float x, float y) {
             
         }
         else if (x >= (origin_first_boxX + 2 * minion_buttons_width) && x < (origin_first_boxX + 3 * minion_buttons_width)) { //Create Tank Minion
-            if (money >= 100)
+            if (money >= 100 && minion_count < MINION_MAX)
             {
                 money -= 100;
                 array_MinionStats[minion_count][MINION_TYPE] = TANK_MINION;
@@ -511,7 +511,7 @@ void gameplay_screen_clicked(float x, float y) {
             }
         }
         else if (x >= (origin_first_boxX + 3 * minion_buttons_width) && x < (origin_first_boxX + 4 * minion_buttons_width)) { //Create Wizard Minion
-            if (money >= 150)
+            if (money >= 150 && minion_count < MINION_MAX)
             {
                 money -= 150;
                 array_MinionStats[minion_count][MINION_TYPE] = WIZARD_MINION;
@@ -519,7 +519,7 @@ void gameplay_screen_clicked(float x, float y) {
             }
         }
         else if (x >= (origin_first_boxX + 4 * minion_buttons_width) && x < (origin_first_boxX + 5 * minion_buttons_width)) { //Create Healer Minion
-            if (money >= 150)
+            if (money >= 150 && minion_count < MINION_MAX)
             {
                 money -= 150;
                 array_MinionStats[minion_count][MINION_TYPE] = HEALER_MINION;
