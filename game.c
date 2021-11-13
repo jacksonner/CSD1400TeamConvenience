@@ -285,7 +285,7 @@ void game_update(void) {
             update_timer();
             if (elapsed_timer2 > 2)
             {
-                money += 25;
+                money += 10;
                 elapsed_timer2 -= 2;
             }
             snprintf(buffer, sizeof(buffer), "%d", (60 - (int)elapsed_timer));
@@ -507,15 +507,15 @@ void gameplay_screen() {
         CP_Settings_Fill(COLOR_BLACK);
         CP_Settings_TextSize(35);
         CP_Font_DrawText( (i == 0 
-            ? "25"
+            ? "30"
             : i == 1
-            ? "50"
+            ? "60"
             : i == 2
-            ? "100"
+            ? "120"
             : i == 3
-            ? "150"
+            ? "160"
             : i == 4
-            ? "150"
+            ? "160"
             : "ERROR")
             , (float)minion_boxX + 90, minion_costboxY + 32);
     }
@@ -528,42 +528,42 @@ void gameplay_screen_clicked(float x, float y) {
     float origin_first_boxX = (float)options_boxX + (float)minion_buttons_width - (float)minion_buttons_width / 2.f;
     if (y >= minion_boxY && y <= minion_boxY + minion_buttons_height) {
         if (x >= origin_first_boxX && x < origin_first_boxX + minion_buttons_width) { //Create Spam Minion
-            if (money >= 25 && minion_count < MINION_MAX)
+            if (money >= 30 && minion_count < MINION_MAX)
             {
-                money = money - 25;
+                money = money - 30;
                 array_MinionStats[minion_count][MINION_TYPE] = SPAM_MINION;
                 assign_minion_stats(); //maybe can throw this function call in render_minion
             }
         }
         else if (x >= (origin_first_boxX + minion_buttons_width) && x < (origin_first_boxX + 2 * minion_buttons_width)) { //Create Warrior Minion
-            if (money >= 50 && minion_count < MINION_MAX)
+            if (money >= 60 && minion_count < MINION_MAX)
             {
-                money -= 50;
+                money -= 60;
                 array_MinionStats[minion_count][MINION_TYPE] = WARRIOR_MINION;
                 assign_minion_stats(); //maybe can throw this function call in render_minion
             }
             
         }
         else if (x >= (origin_first_boxX + 2 * minion_buttons_width) && x < (origin_first_boxX + 3 * minion_buttons_width)) { //Create Tank Minion
-            if (money >= 100 && minion_count < MINION_MAX)
+            if (money >= 120 && minion_count < MINION_MAX)
             {
-                money -= 100;
+                money -= 120;
                 array_MinionStats[minion_count][MINION_TYPE] = TANK_MINION;
                 assign_minion_stats(); //maybe can throw this function call in render_minion
             }
         }
         else if (x >= (origin_first_boxX + 3 * minion_buttons_width) && x < (origin_first_boxX + 4 * minion_buttons_width)) { //Create Wizard Minion
-            if (money >= 150 && minion_count < MINION_MAX)
+            if (money >= 160 && minion_count < MINION_MAX)
             {
-                money -= 150;
+                money -= 160;
                 array_MinionStats[minion_count][MINION_TYPE] = WIZARD_MINION;
                 assign_minion_stats(); //maybe can throw this function call in render_minion
             }
         }
         else if (x >= (origin_first_boxX + 4 * minion_buttons_width) && x < (origin_first_boxX + 5 * minion_buttons_width)) { //Create Healer Minion
-            if (money >= 150 && minion_count < MINION_MAX)
+            if (money >= 160 && minion_count < MINION_MAX)
             {
-                money -= 150;
+                money -= 160;
                 array_MinionStats[minion_count][MINION_TYPE] = HEALER_MINION;
                 assign_minion_stats(); //maybe can throw this function call in render_minion
             }
@@ -806,6 +806,7 @@ void move_minion() {
                             array_EnemyStats[correct_enemy][ENEMY_CURRENT_MINIONS_ON_BLOCK] = 0;
                             array_GameMap[row_enemy][col_enemy] = BLOCK_EMPTY;
                             array_MinionStats[i][MINION_DIRECTION] = Past_Direction;
+                            money += 20;
                         }
                         //printf("1 - %d |", array_EnemyStats[0][ENEMY_CURRENT_MINIONS_ON_BLOCK]);
                         //printf("2 - %d |", array_EnemyStats[1][ENEMY_CURRENT_MINIONS_ON_BLOCK]);
