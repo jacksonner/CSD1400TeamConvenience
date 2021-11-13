@@ -228,6 +228,7 @@ void render_enemy(void);
 void assign_minion_color(int i);
 void projectile_logic(float x_coord, float y_coord);
 void projectile_render(float x_coord, float y_coord);
+void assign_enemy_color(int i);
 
 /*
 void check_minion_type(void);
@@ -713,13 +714,28 @@ void render_enemy() {
                         assign_enemy_stats();
                         level_has_been_reset = FALSE;
                     }
-                    CP_Settings_Fill(COLOR_RED);
+                    /*
+                    if (array_EnemyStats[i][ENEMY_TYPE] == DAMAGE_ENEMY)
+                    {
+                        CP_Settings_Fill(COLOR_BLUE);
+                    }
+                    if (array_EnemyStats[i][ENEMY_TYPE] == GUARD_ENEMY)
+                    {
+                        CP_Settings_Fill(COLOR_RED);
+                    }
+                    */
                     CP_Settings_RectMode(CP_POSITION_CENTER);
                     array_EnemyStats[i][ENEMY_ROW_COORDINATES] = origin_map_coordinateX + BLOCK_SIZE * col + array_EnemyStats[i][ENEMY_SIZE];
                     array_EnemyStats[i][ENEMY_COL_COORDINATES] = origin_map_coordinateY + BLOCK_SIZE * row + array_EnemyStats[i][ENEMY_SIZE];
+                    assign_enemy_color(i);
                     CP_Graphics_DrawRect((float)array_EnemyStats[i][ENEMY_ROW_COORDINATES], (float)array_EnemyStats[i][ENEMY_COL_COORDINATES], (float)array_EnemyStats[i][ENEMY_SIZE], (float)array_EnemyStats[i][ENEMY_SIZE]);
                     CP_Settings_RectMode(CP_POSITION_CORNER); 
-                    projectile_logic(((float)array_EnemyStats[i][ENEMY_ROW_COORDINATES]), ((float)array_EnemyStats[i][ENEMY_COL_COORDINATES]));
+                    //projectile_logic(((float)array_EnemyStats[i][ENEMY_ROW_COORDINATES]), ((float)array_EnemyStats[i][ENEMY_COL_COORDINATES]));
+                    if (array_EnemyStats[i][ENEMY_TYPE] == DAMAGE_ENEMY)
+                    {
+                        projectile_logic(((float)array_EnemyStats[i][ENEMY_ROW_COORDINATES]), ((float)array_EnemyStats[i][ENEMY_COL_COORDINATES]));
+                        //projectile_render((float)array_EnemyStats[i][ENEMY_ROW_COORDINATES], (float)array_EnemyStats[i][ENEMY_COL_COORDINATES]);
+                    }
                 }
             }
         }
@@ -728,8 +744,9 @@ void render_enemy() {
 
 void projectile_logic(float x_coord, float y_coord)
 {
-    //float right_limit = x_coord + (x_coord / 7);
-    if (array_MinionStats[0][X] <= x_coord )
+    float right_limit = x_coord + (x_coord / 7);
+    float left_limit = x_coord - (x_coord / 7);
+    if ((float)array_MinionStats[0][X] <= right_limit && (float)array_MinionStats[0][X] >= left_limit)
     {
         projectile_render(x_coord, y_coord);
     }
@@ -1109,6 +1126,23 @@ void assign_minion_stats() {
         array_MinionCurrentCharge[minion_count][MINION_CHARGE_TIME] = 2; //super healing???
     }
 }
+void assign_enemy_color(int i) {
+    if (array_EnemyStats[i][ENEMY_TYPE] == GUARD_ENEMY) {
+        CP_Settings_Fill(COLOR_RED);
+    }
+    if (array_EnemyStats[i][ENEMY_TYPE] == DAMAGE_ENEMY) {
+        CP_Settings_Fill(COLOR_BLUE);
+    }
+    if (array_EnemyStats[i][ENEMY_TYPE] == SLOW_ENEMY) {
+        CP_Settings_Fill(COLOR_GREEN);
+    }
+    if (array_EnemyStats[i][ENEMY_TYPE] == HEALING_TOWER) {
+        CP_Settings_Fill(COLOR_CYAN);
+    }
+    if (array_EnemyStats[i][ENEMY_TYPE] == RANGED_TOWER) {
+        CP_Settings_Fill(COLOR_PURPLE);
+    }
+}
 
 /*probably going to be removed in the final product*/
 void assign_minion_color(int i) { 
@@ -1144,7 +1178,7 @@ void assign_enemy_stats() {
             array_EnemyStats[i][ENEMY_ATTACK] = 30;
             array_EnemyStats[i][ENEMY_ATTACK_SPEED] = 2;
             array_EnemyStats[i][ENEMY_BLOCK] = 2;
-            array_EnemyStats[i][ENEMY_SIZE] = BLOCK_SIZE / 2;
+            array_EnemyStats[i][ENEMY_SIZE] = BLOCK_SIZE / 3;
             array_EnemyStats[i][ENEMY_RANGE] = 2;
         }
         if (array_EnemyStats[i][ENEMY_TYPE] == SLOW_ENEMY) {
@@ -1152,7 +1186,7 @@ void assign_enemy_stats() {
             array_EnemyStats[i][ENEMY_ATTACK] = 20;
             array_EnemyStats[i][ENEMY_ATTACK_SPEED] = 2;
             array_EnemyStats[i][ENEMY_BLOCK] = 2;
-            array_EnemyStats[i][ENEMY_SIZE] = BLOCK_SIZE / 2;
+            array_EnemyStats[i][ENEMY_SIZE] = BLOCK_SIZE / 4;
             array_EnemyStats[i][ENEMY_RANGE] = 1;
         }
         if (array_EnemyStats[i][ENEMY_TYPE] == HEALING_TOWER) {
@@ -1200,7 +1234,7 @@ void level_1() {
     array_GameMap[3][8] = BLOCK_TOWER_ENEMY;
         array_EnemyStats[3][ENEMY_ROW] = 3;
         array_EnemyStats[3][ENEMY_COL] = 8;
-        array_EnemyStats[3][ENEMY_TYPE] = HEALING_TOWER;
+        array_EnemyStats[3][ENEMY_TYPE] = DAMAGE_ENEMY;
     array_GameMap[2][5] = BLOCK_TOWER_ENEMY;
         array_EnemyStats[4][ENEMY_ROW] = 2;
         array_EnemyStats[4][ENEMY_COL] = 5;
