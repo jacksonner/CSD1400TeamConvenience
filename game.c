@@ -1010,7 +1010,7 @@ void minion_special_attack(int i, int current_row, int current_col) {
                 int hp_restored = 240 - array_MinionStats[i][MINION_HP];
                 array_MinionStats[i][MINION_HP] += hp_restored;
             }
-            //code to attack towers surrounding it (TBC-Jan) note to self: copy fromo GOL maybe lol
+            
             
         }
         else if (array_MinionStats[i][MINION_TYPE] == WIZARD_MINION) {
