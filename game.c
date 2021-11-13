@@ -227,7 +227,7 @@ void assign_enemy_stats(void);
 void render_enemy(void);
 void assign_minion_color(int i);
 void projectile_logic(float x_coord, float y_coord);
-void projectile_render(void);
+void projectile_render(float x_coord, float y_coord);
 
 /*
 void check_minion_type(void);
@@ -269,6 +269,10 @@ void game_update(void) {
         draw_timer_and_pause_button();
         display_money_counter();
         render_enemy();
+        if (CP_Input_KeyTriggered(KEY_1))
+        {
+            money += 1000;
+        }
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
         {
             if (((CP_Input_GetMouseX() >= gPauseButtonPositionX) && (CP_Input_GetMouseX() <= pauseButtonLimitX)) &&
@@ -724,15 +728,16 @@ void render_enemy() {
 
 void projectile_logic(float x_coord, float y_coord)
 {
-
+    //float right_limit = x_coord + (x_coord / 7);
     if (array_MinionStats[0][X] <= x_coord )
     {
-
+        projectile_render(x_coord, y_coord);
     }
 }
 
-void projectile_render()
+void projectile_render(float x_coord, float y_coord)
 {
+    CP_Graphics_DrawRect(x_coord, y_coord, 3, 3);
 
 }
 
