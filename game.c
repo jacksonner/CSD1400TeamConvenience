@@ -416,6 +416,11 @@ void reset_map_and_minions(void) {
             array_isMinionBlocked[row][col] = 0;
         }
     }
+    for (int row = 0; row < ENEMY_MAX; row++) {
+        for (int col = 0; col < ENEMY_TOTAL_STATS; col++) {
+            array_EnemyStats[row][col] = 0;
+        }
+    }
     level_has_been_reset = TRUE;
 }
 
@@ -761,8 +766,7 @@ void render_enemy() {
                             CP_Graphics_DrawRect((float)testX, (float)testY, (float)array_EnemyStats[i][ENEMY_SIZE], (float)array_EnemyStats[i][ENEMY_SIZE]);
                         }
                     }
-                    
-                    
+                       
                     CP_Settings_RectMode(CP_POSITION_CORNER); 
                 }
             }
