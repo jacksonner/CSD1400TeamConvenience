@@ -141,6 +141,10 @@ void minion_dies_array_recycle(int i);
 void minion_special_attack(int i, int current_row, int current_col);
 void minion_attacking_towers(int i, int current_row, int current_col);
 
+/*checking surrounding squares for AOE attacks*/
+int array_enemy_to_attack[ENEMY_MAX];
+int check_which_enemy(int row, int col);
+
 /*Restart level*/
 float restartX, restartY, restart_length, restart_width;
 void restart_level();
@@ -1049,8 +1053,17 @@ void minion_special_attack(int i, int current_row, int current_col) {
                 int hp_restored = 240 - array_MinionStats[i][MINION_HP];
                 array_MinionStats[i][MINION_HP] += hp_restored;
             }
-            //code to attack towers surrounding it (TBC-Jan) note to self: copy fromo GOL maybe lol
-            
+            minion_attacking_towers(i, current_row, current_col);
+            for (int t = 0; t < ENEMY_MAX; t++) {
+                if (array_enemy_to_attack[t] == 1) {
+                    array_EnemyStats[t][ENEMY_HP] -= 50;
+                    //renderguardhp_bar(t, );
+                    printf("%d ",array_EnemyStats[t][ENEMY_HP]);
+                    /*is only attacking 1 enemy? need to check more*/
+                    /*include code to have enemy die*/
+                }
+
+            }
         }
         else if (array_MinionStats[i][MINION_TYPE] == WIZARD_MINION) {
             printf("ooo special attack time");
@@ -1066,10 +1079,77 @@ void minion_special_attack(int i, int current_row, int current_col) {
 }
 
 void minion_attacking_towers(int i, int current_row, int current_col) { //can work on the minion's normal attack here, aka attacking towers while moving?
-    if (array_MinionStats[i][MINION_TYPE] == WIZARD_MINION) { //attacks all enemies?
-        printf("ooo special attack time");
-        //insert code for whatever they can do here
+    int which_enemy, check_row, check_col;
+    /*Case 1*/
+    for (int t = 0; t < ENEMY_MAX; t++) {
+        array_enemy_to_attack[t] = 0;
     }
+    if ((check_row = current_row - 1) >= 0 && (check_col = current_col - 1) >= 0) {
+        if (array_GameMap[check_row][check_col] == BLOCK_TOWER_ENEMY) {
+            which_enemy = check_which_enemy(check_row, check_col);
+            array_enemy_to_attack[which_enemy] = 1;
+        }
+    } 
+    /*Case 2*/
+    if ((check_row = current_row) >= 0 && (check_col = current_col - 1) >= 0) {
+        if (array_GameMap[check_row][check_col] == BLOCK_TOWER_ENEMY) {
+            which_enemy = check_which_enemy(check_row, check_col);
+            array_enemy_to_attack[which_enemy] = 1;
+        }
+    }
+    /*Case 3*/
+    if ((check_row = current_row + 1) < MAP_GRID_ROWS && (check_col = current_col - 1) >= 0) {
+        if (array_GameMap[check_row][check_col] == BLOCK_TOWER_ENEMY) {
+            which_enemy = check_which_enemy(check_row, check_col);
+            array_enemy_to_attack[which_enemy] = 1;
+        }
+    }
+    /*Case 4*/
+    if ((check_row = current_row - 1) >= 0 && (check_col = current_col) >= 0) {
+        if (array_GameMap[check_row][check_col] == BLOCK_TOWER_ENEMY) {
+            which_enemy = check_which_enemy(check_row, check_col);
+            array_enemy_to_attack[which_enemy] = 1;
+        }
+    }
+    /*Case 5*/
+    if ((check_row = current_row + 1) < MAP_GRID_ROWS && (check_col = current_col) >= 0) {
+        if (array_GameMap[check_row][check_col] == BLOCK_TOWER_ENEMY) {
+            which_enemy = check_which_enemy(check_row, check_col);
+            array_enemy_to_attack[which_enemy] = 1;
+        }
+    }
+    /*Case 6*/
+    if ((check_row = current_row - 1) >= 0 && (check_col = current_col + 1) < MAP_GRID_COLS) {
+        if (array_GameMap[check_row][check_col] == BLOCK_TOWER_ENEMY) {
+            which_enemy = check_which_enemy(check_row, check_col);
+            array_enemy_to_attack[which_enemy] = 1;
+        }
+    }
+    /*Case 7*/
+    if ((check_row = current_row) >= 0 && (check_col = current_col + 1) < MAP_GRID_COLS) {
+        if (array_GameMap[check_row][check_col] == BLOCK_TOWER_ENEMY) {
+            which_enemy = check_which_enemy(check_row, check_col);
+            array_enemy_to_attack[which_enemy] = 1;
+        }
+    }
+    /*Case 8*/
+    if ((check_row = current_row + 1) < MAP_GRID_ROWS && (check_col = current_col + 1) < MAP_GRID_COLS) {
+        if (array_GameMap[check_row][check_col] == BLOCK_TOWER_ENEMY) {
+            which_enemy = check_which_enemy(check_row, check_col);
+            array_enemy_to_attack[which_enemy] = 1;
+        }
+    }
+}
+
+int check_which_enemy(int row, int col) { //input is the row and col to be checked for enemy presence
+    int correct_enemy = 0;
+    for (int r = 0; r < ENEMY_MAX; r++) {
+        /*Finds out which is the right enemy, since there can be 10 enemies at a time*/
+        if ((array_EnemyStats[r][ENEMY_ROW] == row) && (array_EnemyStats[r][ENEMY_COL] == col)) {
+            correct_enemy = r;
+        }
+    }
+    return correct_enemy;
 }
 
 /*IMPORTANT - BEFORE UPDATING ANY VALUE HERE, CTRL+F TO CHECK IF IT HAS BEEN USED ELSEWHERE AND UPDATE ACCORDINGLY*/
