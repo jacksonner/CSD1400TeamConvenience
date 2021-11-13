@@ -1078,11 +1078,7 @@ void minion_special_attack(int i, int current_row, int current_col) {
             minion_attacking_towers(i, current_row, current_col);
             for (int t = 0; t < ENEMY_MAX; t++) {
                 if (array_enemy_to_attack[t] == 1) {
-                    array_EnemyStats[t][ENEMY_HP] -= 50;
-                    //renderguardhp_bar(t, );
-                    printf("%d ",array_EnemyStats[t][ENEMY_HP]);
-                    /*is only attacking 1 enemy? need to check more*/
-                    /*include code to have enemy die*/
+                    array_EnemyStats[t][ENEMY_HP] -= 20;
                 }
 
             }
@@ -1106,57 +1102,80 @@ void minion_attacking_towers(int i, int current_row, int current_col) { //can wo
     for (int t = 0; t < ENEMY_MAX; t++) {
         array_enemy_to_attack[t] = 0;
     }
-    if ((check_row = current_row - 1) >= 0 && (check_col = current_col - 1) >= 0) {
-        if (array_GameMap[check_row][check_col] == BLOCK_TOWER_ENEMY) {
+    check_row = current_row - 1;
+    check_col = current_col - 1;
+    if (check_row >= 0 && check_col >= 0) {
+        if (array_GameMap[check_row][check_col] == BLOCK_TOWER_ENEMY || array_GameMap[check_row][check_col] == BLOCK_ENEMY) {
             which_enemy = check_which_enemy(check_row, check_col);
             array_enemy_to_attack[which_enemy] = 1;
         }
     } 
     /*Case 2*/
-    if ((check_row = current_row) >= 0 && (check_col = current_col - 1) >= 0) {
-        if (array_GameMap[check_row][check_col] == BLOCK_TOWER_ENEMY) {
+    check_row = current_row;
+    check_col = current_col - 1;
+    if (check_row  >= 0 && check_col >= 0) {
+        if (array_GameMap[check_row][check_col] == BLOCK_TOWER_ENEMY || array_GameMap[check_row][check_col] == BLOCK_ENEMY) {
             which_enemy = check_which_enemy(check_row, check_col);
             array_enemy_to_attack[which_enemy] = 1;
         }
     }
     /*Case 3*/
-    if ((check_row = current_row + 1) < MAP_GRID_ROWS && (check_col = current_col - 1) >= 0) {
-        if (array_GameMap[check_row][check_col] == BLOCK_TOWER_ENEMY) {
+    check_row = current_row + 1;
+    check_col = current_col - 1;
+    if (check_row < MAP_GRID_ROWS && check_col >= 0) {
+        if (array_GameMap[check_row][check_col] == BLOCK_TOWER_ENEMY || array_GameMap[check_row][check_col] == BLOCK_ENEMY) {
             which_enemy = check_which_enemy(check_row, check_col);
             array_enemy_to_attack[which_enemy] = 1;
         }
     }
     /*Case 4*/
-    if ((check_row = current_row - 1) >= 0 && (check_col = current_col) >= 0) {
-        if (array_GameMap[check_row][check_col] == BLOCK_TOWER_ENEMY) {
+    check_row = current_row - 1;
+    check_col = current_col;
+    if (check_row >= 0 && check_col >= 0) {
+        if (array_GameMap[check_row][check_col] == BLOCK_TOWER_ENEMY || array_GameMap[check_row][check_col] == BLOCK_ENEMY) {
             which_enemy = check_which_enemy(check_row, check_col);
             array_enemy_to_attack[which_enemy] = 1;
         }
     }
     /*Case 5*/
-    if ((check_row = current_row + 1) < MAP_GRID_ROWS && (check_col = current_col) >= 0) {
-        if (array_GameMap[check_row][check_col] == BLOCK_TOWER_ENEMY) {
+    check_row = current_row + 1;
+    check_col = current_col;
+    if (check_row < MAP_GRID_ROWS && check_col >= 0) {
+        if (array_GameMap[check_row][check_col] == BLOCK_TOWER_ENEMY || array_GameMap[check_row][check_col] == BLOCK_ENEMY) {
             which_enemy = check_which_enemy(check_row, check_col);
             array_enemy_to_attack[which_enemy] = 1;
         }
     }
     /*Case 6*/
-    if ((check_row = current_row - 1) >= 0 && (check_col = current_col + 1) < MAP_GRID_COLS) {
-        if (array_GameMap[check_row][check_col] == BLOCK_TOWER_ENEMY) {
+    check_row = current_row - 1;
+    check_col = current_col + 1;
+    if (check_row >= 0 && check_col < MAP_GRID_COLS) {
+        if (array_GameMap[check_row][check_col] == BLOCK_TOWER_ENEMY || array_GameMap[check_row][check_col] == BLOCK_ENEMY) {
             which_enemy = check_which_enemy(check_row, check_col);
             array_enemy_to_attack[which_enemy] = 1;
         }
     }
     /*Case 7*/
-    if ((check_row = current_row) >= 0 && (check_col = current_col + 1) < MAP_GRID_COLS) {
-        if (array_GameMap[check_row][check_col] == BLOCK_TOWER_ENEMY) {
+    check_row = current_row;
+    check_col = current_col + 1;
+    if (check_row >= 0 && check_col < MAP_GRID_COLS) {
+        if (array_GameMap[check_row][check_col] == BLOCK_TOWER_ENEMY || array_GameMap[check_row][check_col] == BLOCK_ENEMY) {
             which_enemy = check_which_enemy(check_row, check_col);
             array_enemy_to_attack[which_enemy] = 1;
         }
     }
     /*Case 8*/
-    if ((check_row = current_row + 1) < MAP_GRID_ROWS && (check_col = current_col + 1) < MAP_GRID_COLS) {
-        if (array_GameMap[check_row][check_col] == BLOCK_TOWER_ENEMY) {
+    check_row = current_row + 1;
+    check_col = current_col + 1;
+    if (check_row < MAP_GRID_ROWS && check_col < MAP_GRID_COLS) {
+        if (array_GameMap[check_row][check_col] == BLOCK_TOWER_ENEMY || array_GameMap[check_row][check_col] == BLOCK_ENEMY) {
+            which_enemy = check_which_enemy(check_row, check_col);
+            array_enemy_to_attack[which_enemy] = 1;
+        }
+    }
+    /*Case 9 - Current Row*/
+    if ((check_row = current_row) >= 0 && (check_col = current_col) >= 0) {
+        if (array_GameMap[check_row][check_col] == BLOCK_TOWER_ENEMY || array_GameMap[check_row][check_col] == BLOCK_ENEMY) {
             which_enemy = check_which_enemy(check_row, check_col);
             array_enemy_to_attack[which_enemy] = 1;
         }
