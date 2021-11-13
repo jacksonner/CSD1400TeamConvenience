@@ -226,6 +226,8 @@ void assign_minion_stats(void);
 void assign_enemy_stats(void);
 void render_enemy(void);
 void assign_minion_color(int i);
+void projectile_logic(float x_coord, float y_coord);
+void projectile_render(void);
 
 /*
 void check_minion_type(void);
@@ -713,10 +715,25 @@ void render_enemy() {
                     array_EnemyStats[i][ENEMY_COL_COORDINATES] = origin_map_coordinateY + BLOCK_SIZE * row + array_EnemyStats[i][ENEMY_SIZE];
                     CP_Graphics_DrawRect((float)array_EnemyStats[i][ENEMY_ROW_COORDINATES], (float)array_EnemyStats[i][ENEMY_COL_COORDINATES], (float)array_EnemyStats[i][ENEMY_SIZE], (float)array_EnemyStats[i][ENEMY_SIZE]);
                     CP_Settings_RectMode(CP_POSITION_CORNER); 
+                    projectile_logic(((float)array_EnemyStats[i][ENEMY_ROW_COORDINATES]), ((float)array_EnemyStats[i][ENEMY_COL_COORDINATES]));
                 }
             }
         }
     }
+}
+
+void projectile_logic(float x_coord, float y_coord)
+{
+
+    if (array_MinionStats[0][X] <= x_coord )
+    {
+
+    }
+}
+
+void projectile_render()
+{
+
 }
 
 void render_minion() {
