@@ -63,7 +63,9 @@ int array_MinionStats[MINION_MAX][MINION_TOTAL_STATS]; //MUST edit reset_map_and
 
 #define MINION_CHARGE_TIME 0
 #define MINION_CURRENT_CHARGE 1
-float array_MinionCurrentCharge[MINION_MAX][2];
+#define MINION_BASIC_ATTACK_SPEED 2 //this is attack speed in the main array lol...
+#define MINION_BASIC_CURRENT_CHARGE 3
+float array_MinionCurrentCharge[MINION_MAX][4];
 
 /*Types of Minions*/
 #define SPAM_MINION 0 //weak everything, but low cost
@@ -1041,7 +1043,6 @@ void minion_special_attack(int i, int current_row, int current_col) {
                 if (array_enemy_to_attack[t] == 1) {
                     array_EnemyStats[t][ENEMY_HP] -= 20;
                 }
-
             }
         }
         else if (array_MinionStats[i][MINION_TYPE] == WIZARD_MINION) {
