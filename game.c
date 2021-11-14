@@ -100,6 +100,7 @@ float array_MinionCurrentCharge[MINION_MAX][4];
 #define ENEMY_MAX 10 //How many enemies can we have at one time? 
 #define ENEMY_TOTAL_STATS 13
 int array_EnemyStats[ENEMY_MAX][ENEMY_TOTAL_STATS];
+int enemy_count;
 
 /*Used for checking if the minion will be blocked or not*/
 int array_isMinionBlocked[ENEMY_MAX][MINION_MAX];
@@ -134,7 +135,7 @@ float enemy_max_hp;
 float enemy_hp_percentage;
 float default_hp_tower = 80.f;
 float array_Enemy_HP_BAR[ENEMY_MAX][1];
-void renderguardhp_bar(int i, int row, int col);
+void renderguardhp_bar(int i);
 
 /*Recycling minions when minion dies*/
 void minion_dies_array_recycle(int i);
@@ -470,6 +471,7 @@ void update_timer(void)
     /*for the minion charged attacks*/
     for (int i = 0; i < minion_count; i++) {
         array_MinionCurrentCharge[i][MINION_CURRENT_CHARGE] += test;
+        array_MinionCurrentCharge[i][MINION_BASIC_CURRENT_CHARGE] += test;
     }
 }
 
@@ -720,55 +722,18 @@ void render_enemy() {
     for (int row = 0; row < MAP_GRID_ROWS; ++row) {
         for (int col = 0; col < MAP_GRID_COLS; ++col) {
             if (array_GameMap[row][col] == BLOCK_ENEMY || array_GameMap[row][col] == BLOCK_TOWER_ENEMY) {
-                for (int i = 0; i < ENEMY_MAX; ++i) {
-                    if (level_has_been_reset == TRUE) {
-                        assign_enemy_stats();
-                        level_has_been_reset = FALSE;
-                    }
-                    CP_Settings_RectMode(CP_POSITION_CENTER);
-                    array_EnemyStats[i][ENEMY_ROW_COORDINATES] = origin_map_coordinateX + BLOCK_SIZE * col + array_EnemyStats[i][ENEMY_SIZE];
-                    array_EnemyStats[i][ENEMY_COL_COORDINATES] = origin_map_coordinateY + BLOCK_SIZE * row + array_EnemyStats[i][ENEMY_SIZE];
-                    
-                    assign_enemy_color(i);
-                    //CP_Graphics_DrawRect((float)array_EnemyStats[i][ENEMY_ROW_COORDINATES], (float)array_EnemyStats[i][ENEMY_COL_COORDINATES], (float)array_EnemyStats[i][ENEMY_SIZE], (float)array_EnemyStats[i][ENEMY_SIZE]);
-                    if (array_GameMap[row][col] == BLOCK_ENEMY && array_EnemyStats[i][ENEMY_TYPE] == GUARD_ENEMY)
-                    {
-                        CP_Graphics_DrawRect((float)array_EnemyStats[i][ENEMY_ROW_COORDINATES], (float)array_EnemyStats[i][ENEMY_COL_COORDINATES], (float)array_EnemyStats[i][ENEMY_SIZE], (float)array_EnemyStats[i][ENEMY_SIZE]);
-                    }
-                    else if (array_GameMap[row][col] == BLOCK_TOWER_ENEMY)
-                    {
-                        if (array_EnemyStats[i][ENEMY_TYPE] == DAMAGE_ENEMY)
-                        {
-                            int testX = origin_map_coordinateX + BLOCK_SIZE * array_EnemyStats[i][ENEMY_COL] + array_EnemyStats[i][ENEMY_SIZE];
-                            int testY = origin_map_coordinateX + BLOCK_SIZE * array_EnemyStats[i][ENEMY_ROW] + array_EnemyStats[i][ENEMY_SIZE];
-                            CP_Graphics_DrawRect((float)testX, (float)testY, (float)array_EnemyStats[i][ENEMY_SIZE], (float)array_EnemyStats[i][ENEMY_SIZE]);
-                            //CP_Graphics_DrawRect((float)array_EnemyStats[i][ENEMY_ROW_COORDINATES], (float)array_EnemyStats[i][ENEMY_COL_COORDINATES], (float)array_EnemyStats[i][ENEMY_SIZE], (float)array_EnemyStats[i][ENEMY_SIZE]);
-                            
-                        }
-                        if (array_EnemyStats[i][ENEMY_TYPE] == SLOW_ENEMY)
-                        {
-                            int testX = origin_map_coordinateX + BLOCK_SIZE * array_EnemyStats[i][ENEMY_COL] + array_EnemyStats[i][ENEMY_SIZE];
-                            int testY = origin_map_coordinateX + BLOCK_SIZE * array_EnemyStats[i][ENEMY_ROW] + array_EnemyStats[i][ENEMY_SIZE];
-                            CP_Graphics_DrawRect((float)testX, (float)testY, (float)array_EnemyStats[i][ENEMY_SIZE], (float)array_EnemyStats[i][ENEMY_SIZE]);
-                            //CP_Graphics_DrawRect((float)array_EnemyStats[i][ENEMY_ROW_COORDINATES], (float)array_EnemyStats[i][ENEMY_COL_COORDINATES], (float)array_EnemyStats[i][ENEMY_SIZE], (float)array_EnemyStats[i][ENEMY_SIZE]);
-
-                        }
-                        if (array_EnemyStats[i][ENEMY_TYPE] == HEALING_TOWER)
-                        {
-                            int testX = origin_map_coordinateX + BLOCK_SIZE * array_EnemyStats[i][ENEMY_COL] + array_EnemyStats[i][ENEMY_SIZE];
-                            int testY = origin_map_coordinateX + BLOCK_SIZE * array_EnemyStats[i][ENEMY_ROW] + array_EnemyStats[i][ENEMY_SIZE];
-                            CP_Graphics_DrawRect((float)testX, (float)testY, (float)array_EnemyStats[i][ENEMY_SIZE], (float)array_EnemyStats[i][ENEMY_SIZE]);
-                        }
-                        if (array_EnemyStats[i][ENEMY_TYPE] == RANGED_TOWER)
-                        {
-                            int testX = origin_map_coordinateX + BLOCK_SIZE * array_EnemyStats[i][ENEMY_COL] + array_EnemyStats[i][ENEMY_SIZE];
-                            int testY = origin_map_coordinateX + BLOCK_SIZE * array_EnemyStats[i][ENEMY_ROW] + array_EnemyStats[i][ENEMY_SIZE];
-                            CP_Graphics_DrawRect((float)testX, (float)testY, (float)array_EnemyStats[i][ENEMY_SIZE], (float)array_EnemyStats[i][ENEMY_SIZE]);
-                        }
-                    }
-                       
-                    CP_Settings_RectMode(CP_POSITION_CORNER); 
+                int which_enemy = check_which_enemy(row, col);
+                array_EnemyStats[which_enemy][ENEMY_ROW_COORDINATES] = origin_map_coordinateX + BLOCK_SIZE * col + array_EnemyStats[which_enemy][ENEMY_SIZE];
+                array_EnemyStats[which_enemy][ENEMY_COL_COORDINATES] = origin_map_coordinateY + BLOCK_SIZE * row + array_EnemyStats[which_enemy][ENEMY_SIZE];
+                if (level_has_been_reset == TRUE) {
+                    assign_enemy_stats();
+                    level_has_been_reset = FALSE;
                 }
+                CP_Settings_RectMode(CP_POSITION_CENTER);
+                assign_enemy_color(which_enemy);
+                CP_Graphics_DrawRect((float)array_EnemyStats[which_enemy][ENEMY_ROW_COORDINATES], (float)array_EnemyStats[which_enemy][ENEMY_COL_COORDINATES], (float)array_EnemyStats[which_enemy][ENEMY_SIZE], (float)array_EnemyStats[which_enemy][ENEMY_SIZE]);
+                CP_Settings_RectMode(CP_POSITION_CORNER);
+                renderguardhp_bar(which_enemy);
             }
         }
     }
@@ -838,7 +803,6 @@ void move_minion() {
             row_enemy = current_boxROW;
             col_enemy = current_boxCOL;
             int correct_enemy;
-            //correct_enemy = 0;
             for (int r = 0; r < ENEMY_MAX; r++) {
                 /*Finds out which is the right enemy, since there can be 10 enemies at a time*/
                 if ((array_EnemyStats[r][ENEMY_ROW] == row_enemy) && (array_EnemyStats[r][ENEMY_COL] == col_enemy)) {
@@ -859,7 +823,7 @@ void move_minion() {
                             array_MinionStats[i][MINION_DIRECTION] = STOP;
                             if (array_MinionStats[i][MINION_HP] > 0) {
                                 array_EnemyStats[correct_enemy][ENEMY_HP] = array_EnemyStats[correct_enemy][ENEMY_HP] - array_MinionStats[i][MINION_ATTACK];
-                                renderguardhp_bar(correct_enemy, row_enemy, col_enemy);
+                                //renderguardhp_bar(correct_enemy, row_enemy, col_enemy);
                                 // array_MinionStats[i][MINION_HP] -= array_EnemyStats[correct_enemy][ENEMY_ATTACK];   for future use when aoe enemy is implemented
                             }
 
@@ -1016,13 +980,13 @@ void renderminionhp_bar() {
     }
 }
 
-void renderguardhp_bar(int i, int row, int col) {
+void renderguardhp_bar(int i) {
     if (array_EnemyStats[i][ENEMY_HP] > 0) {
         if (array_EnemyStats[i][ENEMY_TYPE] == GUARD_ENEMY) {
             enemy_max_hp = 150;
             enemy_hp_percentage = array_EnemyStats[i][ENEMY_HP] / enemy_max_hp;//to find current hp
         }
-        else if (array_EnemyStats[i][ENEMY_TYPE] == DAMAGE_ENEMY) {
+        if (array_EnemyStats[i][ENEMY_TYPE] == DAMAGE_ENEMY) {
             enemy_max_hp = 100;
             enemy_hp_percentage = array_EnemyStats[i][ENEMY_HP] / enemy_max_hp;
         }
@@ -1043,8 +1007,8 @@ void renderguardhp_bar(int i, int row, int col) {
             enemy_hp_percentage = array_EnemyStats[i][ENEMY_HP] / enemy_max_hp;
         }
         float enemy_hp_bar = enemy_hp_percentage * default_hp_tower;
-        array_EnemyStats[i][ENEMY_ROW_COORDINATES] = origin_map_coordinateX + BLOCK_SIZE * col + array_EnemyStats[i][ENEMY_SIZE];
-        array_EnemyStats[i][ENEMY_COL_COORDINATES] = origin_map_coordinateY + BLOCK_SIZE * row + array_EnemyStats[i][ENEMY_SIZE];
+        //array_EnemyStats[i][ENEMY_ROW_COORDINATES] = origin_map_coordinateX + BLOCK_SIZE * col + array_EnemyStats[i][ENEMY_SIZE];
+        //array_EnemyStats[i][ENEMY_COL_COORDINATES] = origin_map_coordinateY + BLOCK_SIZE * row + array_EnemyStats[i][ENEMY_SIZE];
         CP_Settings_Fill(COLOR_RED);
         CP_Graphics_DrawRect((float)array_EnemyStats[i][ENEMY_ROW_COORDINATES] - 40, (float)array_EnemyStats[i][ENEMY_COL_COORDINATES] - 70, (float)default_hp_tower, (float)HP_BAR_HEIGHT); //max_hp
         CP_Settings_Fill(COLOR_GREEN);
@@ -1252,6 +1216,7 @@ void assign_minion_stats() {
         array_MinionCurrentCharge[minion_count][MINION_CHARGE_TIME] = 2; //super healing???
     }
 }
+
 void assign_enemy_color(int i) {
     if (array_EnemyStats[i][ENEMY_TYPE] == GUARD_ENEMY) {
         CP_Settings_Fill(COLOR_RED);
@@ -1367,4 +1332,5 @@ void level_1() {
         array_EnemyStats[4][ENEMY_TYPE] = SLOW_ENEMY;
         /*Please be careful when adding a new enemy, change the number array_EnemyStats[3][ENEMY_TYPE] -> array_EnemyStats[4][ENEMY_TYPE]*/
     array_GameMap[4][6] = BLOCK_PRESENT;
+    enemy_count = 5;
 }
