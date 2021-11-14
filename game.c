@@ -812,51 +812,22 @@ void render_enemy() {
                     array_EnemyStats[which_enemy][ENEMY_COL_COORDINATES] = origin_map_coordinateY + BLOCK_SIZE * row + array_EnemyStats[which_enemy][ENEMY_SIZE];
                     
                     assign_enemy_color(which_enemy);
-                    //CP_Graphics_DrawRect((float)array_EnemyStats[i][ENEMY_ROW_COORDINATES], (float)array_EnemyStats[i][ENEMY_COL_COORDINATES], (float)array_EnemyStats[i][ENEMY_SIZE], (float)array_EnemyStats[i][ENEMY_SIZE]);
-                    /*
-                    if (array_GameMap[row][col] == BLOCK_ENEMY && array_EnemyStats[which_enemy][ENEMY_TYPE] == GUARD_ENEMY)
-                    {
-                        CP_Graphics_DrawRect((float)array_EnemyStats[which_enemy][ENEMY_ROW_COORDINATES], (float)array_EnemyStats[which_enemy][ENEMY_COL_COORDINATES], (float)array_EnemyStats[which_enemy][ENEMY_SIZE], (float)array_EnemyStats[which_enemy][ENEMY_SIZE]);
-                    }
-                    else if (array_GameMap[row][col] == BLOCK_TOWER_ENEMY)
-                    {
-                        if (array_EnemyStats[which_enemy][ENEMY_TYPE] == DAMAGE_ENEMY)
-                        {
-                            int testX = origin_map_coordinateX + BLOCK_SIZE * array_EnemyStats[which_enemy][ENEMY_COL] + array_EnemyStats[which_enemy][ENEMY_SIZE];
-                            int testY = origin_map_coordinateX + BLOCK_SIZE * array_EnemyStats[which_enemy][ENEMY_ROW] + array_EnemyStats[which_enemy][ENEMY_SIZE];
-                            CP_Graphics_DrawRect((float)testX, (float)testY, (float)array_EnemyStats[which_enemy][ENEMY_SIZE], (float)array_EnemyStats[which_enemy][ENEMY_SIZE]);
-                            //CP_Graphics_DrawRect((float)array_EnemyStats[i][ENEMY_ROW_COORDINATES], (float)array_EnemyStats[i][ENEMY_COL_COORDINATES], (float)array_EnemyStats[i][ENEMY_SIZE], (float)array_EnemyStats[i][ENEMY_SIZE]);
-                            
-                        }
-                        if (array_EnemyStats[which_enemy][ENEMY_TYPE] == SLOW_ENEMY)
-                        {
-                            int testX = origin_map_coordinateX + BLOCK_SIZE * array_EnemyStats[which_enemy][ENEMY_COL] + array_EnemyStats[which_enemy][ENEMY_SIZE];
-                            int testY = origin_map_coordinateX + BLOCK_SIZE * array_EnemyStats[which_enemy][ENEMY_ROW] + array_EnemyStats[which_enemy][ENEMY_SIZE];
-                            CP_Graphics_DrawRect((float)testX, (float)testY, (float)array_EnemyStats[which_enemy][ENEMY_SIZE], (float)array_EnemyStats[which_enemy][ENEMY_SIZE]);
-                            //CP_Graphics_DrawRect((float)array_EnemyStats[i][ENEMY_ROW_COORDINATES], (float)array_EnemyStats[i][ENEMY_COL_COORDINATES], (float)array_EnemyStats[i][ENEMY_SIZE], (float)array_EnemyStats[i][ENEMY_SIZE]);
-
-                        }
-                        if (array_EnemyStats[which_enemy][ENEMY_TYPE] == HEALING_TOWER)
-                        {
-                            int testX = origin_map_coordinateX + BLOCK_SIZE * array_EnemyStats[which_enemy][ENEMY_COL] + array_EnemyStats[which_enemy][ENEMY_SIZE];
-                            int testY = origin_map_coordinateX + BLOCK_SIZE * array_EnemyStats[which_enemy][ENEMY_ROW] + array_EnemyStats[which_enemy][ENEMY_SIZE];
-                            CP_Graphics_DrawRect((float)testX, (float)testY, (float)array_EnemyStats[which_enemy][ENEMY_SIZE], (float)array_EnemyStats[which_enemy][ENEMY_SIZE]);
-                        }
-                        if (array_EnemyStats[which_enemy][ENEMY_TYPE] == RANGED_TOWER)
-                        {
-                            int testX = origin_map_coordinateX + BLOCK_SIZE * array_EnemyStats[which_enemy][ENEMY_COL] + array_EnemyStats[which_enemy][ENEMY_SIZE];
-                            int testY = origin_map_coordinateX + BLOCK_SIZE * array_EnemyStats[which_enemy][ENEMY_ROW] + array_EnemyStats[which_enemy][ENEMY_SIZE];
-                            CP_Graphics_DrawRect((float)testX, (float)testY, (float)array_EnemyStats[which_enemy][ENEMY_SIZE], (float)array_EnemyStats[which_enemy][ENEMY_SIZE]);
-                        }
-                    }*/
+                    
                     if (array_EnemyStats[which_enemy][ENEMY_TYPE] == DAMAGE_ENEMY)
                     {
                         projectile_logic((float)array_EnemyStats[which_enemy][ENEMY_ROW_COORDINATES], (float)array_EnemyStats[which_enemy][ENEMY_COL_COORDINATES]);
                     }
                 }
                 else if (array_EnemyStats[which_enemy][ENEMY_HP] <= 0) {
-                    array_EnemyStats[which_enemy][ENEMY_CURRENT_MINIONS_ON_BLOCK] = 0;
-                    array_GameMap[row][col] = BLOCK_EMPTY;
+                    if (array_EnemyStats[which_enemy][ENEMY_TYPE] == GUARD_ENEMY) {
+                        array_EnemyStats[which_enemy][ENEMY_CURRENT_MINIONS_ON_BLOCK] = 0;
+                        array_GameMap[row][col] = BLOCK_EMPTY;
+                    }
+                    else if (array_EnemyStats[which_enemy][ENEMY_TYPE] == SLOW_ENEMY || array_EnemyStats[which_enemy][ENEMY_TYPE] == HEALING_TOWER
+                        || array_EnemyStats[which_enemy][ENEMY_TYPE] == RANGED_TOWER || array_EnemyStats[which_enemy][ENEMY_TYPE] == DAMAGE_ENEMY) {
+                        array_EnemyStats[which_enemy][ENEMY_CURRENT_MINIONS_ON_BLOCK] = 0;
+                        array_GameMap[row][col] = BLOCK_PRESENT;
+                    }
                 }
             }
         }
