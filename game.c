@@ -183,6 +183,7 @@ int level_timer = 0;
 float test;
 float elapsed_timer;
 float elapsed_timer2;
+float elapsed_timer3;
 float gPauseButtonPositionX, gPauseButtonPositionY, gPauseButtonTextPositionX, gPauseButtonTextPositionY;
 float gTimerPositionX, gTimerPositionY, gTimerButtonTextPositionX, gTimerButtonTextPositionY;
 float currentElapsedTime;
@@ -194,6 +195,16 @@ void start_timer(void);
 void update_timer(void);
 void initialise_pause_and_timer_button(void);
 void draw_timer_and_pause_button(void);
+
+/*Projectile Variables*/
+#define PROJ_MAX 5
+#define PROJ_X 0
+#define PROJ_Y 1
+#define PROJ_SPEED 2
+#define PROJ_STATS 3
+float projectile[PROJ_MAX][PROJ_STATS];
+int l_time = 0;
+void projectile_move(void);
 
 /*Variables*/
 int BlockPositionX;
@@ -328,6 +339,7 @@ void game_update(void) {
             {
                 Current_Gamestate = LOSE_SCREEN;
             }
+            //l_time += 1;
         }
     }
     else if (Current_Gamestate == LOSE_SCREEN)
@@ -541,6 +553,7 @@ void update_timer(void)
 {
     elapsed_timer += test;  //For Countdown
     elapsed_timer2 += test; //For Money
+    elapsed_timer3 += test;
     /*for the minion charged attacks*/
     for (int i = 0; i < minion_count; i++) {
         array_MinionCurrentCharge[i][MINION_CURRENT_CHARGE] += test;
@@ -572,6 +585,8 @@ void restart_level(void) {
     money = 50;
     elapsed_timer = 0;
     elapsed_timer2 = 0;
+    elapsed_timer3 = 0;
+    l_time = 0;
     draw_timer_and_pause_button();
     display_money_counter();
 }
@@ -871,11 +886,21 @@ void projectile_logic(float x_coord, float y_coord)
     float bot_limit = y_coord - (y_coord / 4);
     
 
+
+    projectile[0][X] = x_coord;
+    projectile[0][Y] = y_coord;
+
     if ((float)array_MinionStats[0][X] <= right_limit && (float)array_MinionStats[0][X] >= left_limit)
     {
         if ((float)array_MinionStats[0][Y] >= bot_limit)
         {
-            projectile_render(x_coord, y_coord);
+            
+            projectile_move();
+            projectile_render(projectile[0][X], projectile[0][Y]);
+            if (projectile[0][X] )
+            {
+
+            }
         }
     }
 }
@@ -883,6 +908,15 @@ void projectile_logic(float x_coord, float y_coord)
 void projectile_render(float x_coord, float y_coord)
 {
     CP_Graphics_DrawRect(x_coord, y_coord, 4, 4);
+}
+
+void projectile_move()
+{
+    float vectorX = (float)array_MinionStats[0][X];
+    float vectorY = (float)array_MinionStats[0][Y];
+    l_time++;
+    projectile[0][X] = projectile[0][X] + (l_time * ((vectorX - projectile[0][X]) / 30));
+    projectile[0][Y] = projectile[0][Y] + (l_time * ((vectorY - projectile[0][Y]) / 30));
 
 }
 
