@@ -221,6 +221,13 @@ float start_textX, start_textY, levels_textX, levels_textY;
 void main_menu_screen(void);
 void main_menu_clicked(float x, float y);
 
+/*Lose Screen*/
+float button_heightL, button_widthL;
+float restart_loseX, restart_loseY, main_loseX, main_loseY;
+float restart_textX, restart_textY, main_textX, main_textY;
+void lose_screen(void);
+void lose_clicked(float x, float y);
+
 /*Functions*/
 void reset_map_and_minions(void);
 void render_background(void); //for the gameplay_screen
@@ -236,6 +243,7 @@ void assign_minion_color(int i);
 void projectile_logic(float x_coord, float y_coord);
 void projectile_render(float x_coord, float y_coord);
 void assign_enemy_color(int i);
+
 
 /*
 void check_minion_type(void);
@@ -316,6 +324,17 @@ void game_update(void) {
                 renderminionhp_bar();
                 minion_enter_base_counter(); //please do not comment this out
             }
+            if ((int)elapsed_timer == 60)
+            {
+                Current_Gamestate = LOSE_SCREEN;
+            }
+        }
+    }
+    else if (Current_Gamestate == LOSE_SCREEN)
+    {
+        lose_screen();
+        if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
+            lose_clicked(CP_Input_GetMouseX(), CP_Input_GetMouseY());
         }
     }
 }
@@ -385,6 +404,62 @@ void main_menu_clicked(float x, float y) {
     }
 
 }
+
+void lose_screen(void) {
+    //const char* main_menu_image = "./Assets/main_menu.png";
+    CP_Graphics_ClearBackground(COLOR_GREY);
+    /*Buttons*/
+    CP_Settings_Fill(COLOR_WHITE);
+
+    float quarter_blockX = (float)CP_System_GetDisplayWidth() / 4;
+    float quarter_blockY = (float)CP_System_GetDisplayHeight() / 4;
+    button_height = 120.f;
+    button_width = 300.f;
+    main_loseX = (quarter_blockX * 3) - button_width;
+    restart_loseX = quarter_blockX;
+    main_loseY = restart_loseY = quarter_blockY * 2.8f;
+    CP_Graphics_DrawRect(main_loseX, main_loseY, button_width, button_height);
+    CP_Graphics_DrawRect(restart_loseX, restart_loseY, button_width, button_height);
+    /*Now Text*/
+    CP_Settings_TextSize(60);
+    CP_Settings_Fill(COLOR_BLACK);
+    restart_textX = restart_loseX + 40;
+    restart_textY = restart_loseY + 80;
+    main_textX = main_loseX + 35;
+    main_textY = main_loseY + 75;
+    CP_Font_DrawText("RESTART", restart_textX, restart_textY);
+    CP_Settings_TextSize(50);
+    CP_Font_DrawText("MAIN MENU", main_textX, main_textY);
+}
+
+void lose_clicked(float x, float y) {
+    //float button_height, button_width;
+    //float level_selectorX, level_selectorY, start_game_buttonX, start_game_buttonY;
+    /*Play button clicked*/
+    if (x >= restart_loseX && x <= (restart_loseX + button_width) &&
+        y >= restart_loseY && y <= restart_loseY + button_height) {
+        Current_Gamestate = GAMEPLAY_SCREEN;
+
+        /*initialise for gameplay screen*/
+        minion_count = 0;
+        reset_map_and_minions();
+        initialise_level();
+        gIsPaused = FALSE;
+        //minions_in_base = 0; Part of minion counter which has been commented out
+
+        //initialise_pause_and_timer_button();
+        restart_level();
+    }
+    /*Level selector button clicked*/
+    else if (x >= main_loseX && x <= (main_loseX + button_width) &&
+        y >= main_loseY && y <= main_loseY + button_height) {
+        Current_Gamestate = MAIN_MENU_SCREEN;
+        /*pending level_selector_screen completion*/
+    }
+
+}
+
+
 /*Updates the new origin depending on what the full screen size is*/
 void update_variables_and_make_screen_nice() {
     int map_border_width, window_width, window_height; //map_border_height;
@@ -730,6 +805,51 @@ void render_enemy() {
                     CP_Graphics_DrawRect((float)array_EnemyStats[which_enemy][ENEMY_ROW_COORDINATES], (float)array_EnemyStats[which_enemy][ENEMY_COL_COORDINATES], (float)array_EnemyStats[which_enemy][ENEMY_SIZE], (float)array_EnemyStats[which_enemy][ENEMY_SIZE]);
                     CP_Settings_RectMode(CP_POSITION_CORNER);
                     renderguardhp_bar(which_enemy);
+                    array_EnemyStats[which_enemy][ENEMY_ROW_COORDINATES] = origin_map_coordinateX + BLOCK_SIZE * col + array_EnemyStats[which_enemy][ENEMY_SIZE];
+                    array_EnemyStats[which_enemy][ENEMY_COL_COORDINATES] = origin_map_coordinateY + BLOCK_SIZE * row + array_EnemyStats[which_enemy][ENEMY_SIZE];
+                    
+                    assign_enemy_color(which_enemy);
+                    //CP_Graphics_DrawRect((float)array_EnemyStats[i][ENEMY_ROW_COORDINATES], (float)array_EnemyStats[i][ENEMY_COL_COORDINATES], (float)array_EnemyStats[i][ENEMY_SIZE], (float)array_EnemyStats[i][ENEMY_SIZE]);
+                    /*
+                    if (array_GameMap[row][col] == BLOCK_ENEMY && array_EnemyStats[which_enemy][ENEMY_TYPE] == GUARD_ENEMY)
+                    {
+                        CP_Graphics_DrawRect((float)array_EnemyStats[which_enemy][ENEMY_ROW_COORDINATES], (float)array_EnemyStats[which_enemy][ENEMY_COL_COORDINATES], (float)array_EnemyStats[which_enemy][ENEMY_SIZE], (float)array_EnemyStats[which_enemy][ENEMY_SIZE]);
+                    }
+                    else if (array_GameMap[row][col] == BLOCK_TOWER_ENEMY)
+                    {
+                        if (array_EnemyStats[which_enemy][ENEMY_TYPE] == DAMAGE_ENEMY)
+                        {
+                            int testX = origin_map_coordinateX + BLOCK_SIZE * array_EnemyStats[which_enemy][ENEMY_COL] + array_EnemyStats[which_enemy][ENEMY_SIZE];
+                            int testY = origin_map_coordinateX + BLOCK_SIZE * array_EnemyStats[which_enemy][ENEMY_ROW] + array_EnemyStats[which_enemy][ENEMY_SIZE];
+                            CP_Graphics_DrawRect((float)testX, (float)testY, (float)array_EnemyStats[which_enemy][ENEMY_SIZE], (float)array_EnemyStats[which_enemy][ENEMY_SIZE]);
+                            //CP_Graphics_DrawRect((float)array_EnemyStats[i][ENEMY_ROW_COORDINATES], (float)array_EnemyStats[i][ENEMY_COL_COORDINATES], (float)array_EnemyStats[i][ENEMY_SIZE], (float)array_EnemyStats[i][ENEMY_SIZE]);
+                            
+                        }
+                        if (array_EnemyStats[which_enemy][ENEMY_TYPE] == SLOW_ENEMY)
+                        {
+                            int testX = origin_map_coordinateX + BLOCK_SIZE * array_EnemyStats[which_enemy][ENEMY_COL] + array_EnemyStats[which_enemy][ENEMY_SIZE];
+                            int testY = origin_map_coordinateX + BLOCK_SIZE * array_EnemyStats[which_enemy][ENEMY_ROW] + array_EnemyStats[which_enemy][ENEMY_SIZE];
+                            CP_Graphics_DrawRect((float)testX, (float)testY, (float)array_EnemyStats[which_enemy][ENEMY_SIZE], (float)array_EnemyStats[which_enemy][ENEMY_SIZE]);
+                            //CP_Graphics_DrawRect((float)array_EnemyStats[i][ENEMY_ROW_COORDINATES], (float)array_EnemyStats[i][ENEMY_COL_COORDINATES], (float)array_EnemyStats[i][ENEMY_SIZE], (float)array_EnemyStats[i][ENEMY_SIZE]);
+
+                        }
+                        if (array_EnemyStats[which_enemy][ENEMY_TYPE] == HEALING_TOWER)
+                        {
+                            int testX = origin_map_coordinateX + BLOCK_SIZE * array_EnemyStats[which_enemy][ENEMY_COL] + array_EnemyStats[which_enemy][ENEMY_SIZE];
+                            int testY = origin_map_coordinateX + BLOCK_SIZE * array_EnemyStats[which_enemy][ENEMY_ROW] + array_EnemyStats[which_enemy][ENEMY_SIZE];
+                            CP_Graphics_DrawRect((float)testX, (float)testY, (float)array_EnemyStats[which_enemy][ENEMY_SIZE], (float)array_EnemyStats[which_enemy][ENEMY_SIZE]);
+                        }
+                        if (array_EnemyStats[which_enemy][ENEMY_TYPE] == RANGED_TOWER)
+                        {
+                            int testX = origin_map_coordinateX + BLOCK_SIZE * array_EnemyStats[which_enemy][ENEMY_COL] + array_EnemyStats[which_enemy][ENEMY_SIZE];
+                            int testY = origin_map_coordinateX + BLOCK_SIZE * array_EnemyStats[which_enemy][ENEMY_ROW] + array_EnemyStats[which_enemy][ENEMY_SIZE];
+                            CP_Graphics_DrawRect((float)testX, (float)testY, (float)array_EnemyStats[which_enemy][ENEMY_SIZE], (float)array_EnemyStats[which_enemy][ENEMY_SIZE]);
+                        }
+                    }*/
+                    if (array_EnemyStats[which_enemy][ENEMY_TYPE] == DAMAGE_ENEMY)
+                    {
+                        projectile_logic((float)array_EnemyStats[which_enemy][ENEMY_ROW_COORDINATES], (float)array_EnemyStats[which_enemy][ENEMY_COL_COORDINATES]);
+                    }
                 }
                 else if (array_EnemyStats[which_enemy][ENEMY_HP] <= 0) {
                     array_EnemyStats[which_enemy][ENEMY_CURRENT_MINIONS_ON_BLOCK] = 0;
@@ -742,17 +862,22 @@ void render_enemy() {
 
 void projectile_logic(float x_coord, float y_coord)
 {
-    float right_limit = x_coord + (x_coord / 7);
-    float left_limit = x_coord - (x_coord / 7);
+    float right_limit = x_coord + (x_coord / 8);
+    float left_limit = x_coord - (x_coord / 8);
+    //float top_limit = y_coord + (y_coord / 4);
+    float bot_limit = y_coord - (y_coord / 4);
     if ((float)array_MinionStats[0][X] <= right_limit && (float)array_MinionStats[0][X] >= left_limit)
     {
-        projectile_render(x_coord, y_coord);
+        if ((float)array_MinionStats[0][Y] >= bot_limit)
+        {
+            projectile_render(x_coord, y_coord);
+        }
     }
 }
 
 void projectile_render(float x_coord, float y_coord)
 {
-    CP_Graphics_DrawRect(x_coord, y_coord, 3, 3);
+    CP_Graphics_DrawRect(x_coord, y_coord, 4, 4);
 
 }
 
