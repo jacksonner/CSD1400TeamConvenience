@@ -840,6 +840,8 @@ void projectile_logic(float x_coord, float y_coord)
     float left_limit = x_coord - (x_coord / 8);
     //float top_limit = y_coord + (y_coord / 4);
     float bot_limit = y_coord - (y_coord / 4);
+    
+
     if ((float)array_MinionStats[0][X] <= right_limit && (float)array_MinionStats[0][X] >= left_limit)
     {
         if ((float)array_MinionStats[0][Y] >= bot_limit)
