@@ -736,7 +736,7 @@ void render_enemy() {
                             int testY = origin_map_coordinateX + BLOCK_SIZE * array_EnemyStats[i][ENEMY_ROW] + array_EnemyStats[i][ENEMY_SIZE];
                             CP_Graphics_DrawRect((float)testX, (float)testY, (float)array_EnemyStats[i][ENEMY_SIZE], (float)array_EnemyStats[i][ENEMY_SIZE]);
                             //CP_Graphics_DrawRect((float)array_EnemyStats[i][ENEMY_ROW_COORDINATES], (float)array_EnemyStats[i][ENEMY_COL_COORDINATES], (float)array_EnemyStats[i][ENEMY_SIZE], (float)array_EnemyStats[i][ENEMY_SIZE]);
-                            
+                            projectile_logic((float)testX, (float)testY);
                         }
                         if (array_EnemyStats[i][ENEMY_TYPE] == SLOW_ENEMY)
                         {
@@ -760,7 +760,6 @@ void render_enemy() {
                         }
                     }
                     
-                    
                     CP_Settings_RectMode(CP_POSITION_CORNER); 
                 }
             }
@@ -770,17 +769,22 @@ void render_enemy() {
 
 void projectile_logic(float x_coord, float y_coord)
 {
-    float right_limit = x_coord + (x_coord / 7);
-    float left_limit = x_coord - (x_coord / 7);
+    float right_limit = x_coord + (x_coord / 8);
+    float left_limit = x_coord - (x_coord / 8);
+    //float top_limit = y_coord + (y_coord / 4);
+    float bot_limit = y_coord - (y_coord / 4);
     if ((float)array_MinionStats[0][X] <= right_limit && (float)array_MinionStats[0][X] >= left_limit)
     {
-        projectile_render(x_coord, y_coord);
+        if ((float)array_MinionStats[0][Y] >= bot_limit)
+        {
+            projectile_render(x_coord, y_coord);
+        }
     }
 }
 
 void projectile_render(float x_coord, float y_coord)
 {
-    CP_Graphics_DrawRect(x_coord, y_coord, 3, 3);
+    CP_Graphics_DrawRect(x_coord, y_coord, 4, 4);
 
 }
 
