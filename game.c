@@ -950,32 +950,39 @@ void display_minion_enter_base_counter() {
 
 void renderminionhp_bar() {
     for (int i = 0; i < MINION_MAX; i++) {
+        int buffer_space = 0;
         if (array_MinionStats[i][MINION_HP] > 0) {
             if (array_MinionStats[i][MINION_TYPE] == SPAM_MINION) {
                 max_hp = 50;
                 hp_percentage = array_MinionStats[i][MINION_HP] / max_hp;//to find current hp
+                buffer_space = array_MinionStats[i][MINION_SIZE] / 2 + 18;
             }
             else if (array_MinionStats[i][MINION_TYPE] == WARRIOR_MINION) {
                 max_hp = 130;
                 hp_percentage = array_MinionStats[i][MINION_HP] / max_hp;
+                buffer_space = array_MinionStats[i][MINION_SIZE] / 2 + 18;
             }
             else if (array_MinionStats[i][MINION_TYPE] == TANK_MINION) {
                 max_hp = 240;
                 hp_percentage = array_MinionStats[i][MINION_HP] / max_hp;
+                buffer_space = array_MinionStats[i][MINION_SIZE] / 2 + 18;
             }
             else if (array_MinionStats[i][MINION_TYPE] == WIZARD_MINION) {
                 max_hp = 80;
                 hp_percentage = array_MinionStats[i][MINION_HP] / max_hp;
+                buffer_space = array_MinionStats[i][MINION_SIZE] / 2 + 18;
             }
             else if (array_MinionStats[i][MINION_TYPE] == HEALER_MINION) {
                 max_hp = 120;
                 hp_percentage = array_MinionStats[i][MINION_HP] / max_hp;
+                buffer_space = array_MinionStats[i][MINION_SIZE] / 2 + 18;
             }
             float new_hp_bar = hp_percentage * default_hp;
+            float positionY = (float)array_MinionStats[i][Y] - (float)buffer_space;
             CP_Settings_Fill(COLOR_RED);
-            CP_Graphics_DrawRect((float)array_MinionStats[i][X]-20, (float)array_MinionStats[i][Y] - 80, (float)default_hp, (float)HP_BAR_HEIGHT); //max_hp
+            CP_Graphics_DrawRect((float)array_MinionStats[i][X]- 25, positionY, (float)default_hp, (float)HP_BAR_HEIGHT); //max_hp
             CP_Settings_Fill(COLOR_GREEN);
-            CP_Graphics_DrawRect((float)array_MinionStats[i][X]-20, (float)array_MinionStats[i][Y] - 80, (float)new_hp_bar, (float)HP_BAR_HEIGHT);
+            CP_Graphics_DrawRect((float)array_MinionStats[i][X]- 25, positionY, (float)new_hp_bar, (float)HP_BAR_HEIGHT);
         }
     }
 }
@@ -1007,12 +1014,10 @@ void renderguardhp_bar(int i) {
             enemy_hp_percentage = array_EnemyStats[i][ENEMY_HP] / enemy_max_hp;
         }
         float enemy_hp_bar = enemy_hp_percentage * default_hp_tower;
-        //array_EnemyStats[i][ENEMY_ROW_COORDINATES] = origin_map_coordinateX + BLOCK_SIZE * col + array_EnemyStats[i][ENEMY_SIZE];
-        //array_EnemyStats[i][ENEMY_COL_COORDINATES] = origin_map_coordinateY + BLOCK_SIZE * row + array_EnemyStats[i][ENEMY_SIZE];
         CP_Settings_Fill(COLOR_RED);
-        CP_Graphics_DrawRect((float)array_EnemyStats[i][ENEMY_ROW_COORDINATES] - 40, (float)array_EnemyStats[i][ENEMY_COL_COORDINATES] - 70, (float)default_hp_tower, (float)HP_BAR_HEIGHT); //max_hp
+        CP_Graphics_DrawRect((float)array_EnemyStats[i][ENEMY_ROW_COORDINATES] - 40, (float)array_EnemyStats[i][ENEMY_COL_COORDINATES] - 60, (float)default_hp_tower, (float)HP_BAR_HEIGHT); //max_hp
         CP_Settings_Fill(COLOR_GREEN);
-        CP_Graphics_DrawRect((float)array_EnemyStats[i][ENEMY_ROW_COORDINATES] - 40, (float)array_EnemyStats[i][ENEMY_COL_COORDINATES] - 70, enemy_hp_bar, (float)HP_BAR_HEIGHT);
+        CP_Graphics_DrawRect((float)array_EnemyStats[i][ENEMY_ROW_COORDINATES] - 40, (float)array_EnemyStats[i][ENEMY_COL_COORDINATES] - 60, enemy_hp_bar, (float)HP_BAR_HEIGHT);
     }
 }
 
