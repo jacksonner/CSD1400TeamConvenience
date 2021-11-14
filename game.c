@@ -492,6 +492,9 @@ void reset_map_and_minions(void) {
             array_isMinionBlocked[row][col] = 0;
         }
     }
+    for (int i = 0; i < ENEMY_MAX; i++) {
+        array_EnemyStats[i][ENEMY_CURRENT_MINIONS_ON_BLOCK] = 0;
+    }
     level_has_been_reset = TRUE;
 }
 
