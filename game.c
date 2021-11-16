@@ -220,6 +220,7 @@ float level_selectorX, level_selectorY, start_game_buttonX, start_game_buttonY;
 float start_textX, start_textY, levels_textX, levels_textY;
 void main_menu_screen(void);
 void main_menu_clicked(float x, float y);
+static CP_Image main_menu_image;
 
 /*Lose Screen*/
 float button_heightL, button_widthL;
@@ -304,6 +305,11 @@ void game_update(void) {
                 CP_Graphics_DrawCircle((float)array_MinionStats[i][X], (float)array_MinionStats[i][Y], (float)array_MinionStats[i][MINION_SIZE]);
                 renderminionhp_bar();
             }
+            if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
+                if (CP_Input_GetMouseY() >= restartY && (CP_Input_GetMouseY() <= (restartY + restart_width)) && (CP_Input_GetMouseX() >= restartX && (CP_Input_GetMouseX() <= (restartX + restart_length)))) {
+                    restart_level();
+                }
+            }
         }
 
         else if (gIsPaused == FALSE) {
@@ -344,18 +350,25 @@ void game_exit(void) {
 }
 
 void main_menu_screen(void) {
-    //const char* main_menu_image = "./Assets/main_menu.png";
-    CP_Graphics_ClearBackground(COLOR_GREY);
+    main_menu_image = CP_Image_Load("./Assets/bg_mainmenu2.png");
+    //CP_Graphics_ClearBackground(COLOR_WHITE);
+    static float middleX, middleY, width, height;
+    middleX = (float)(CP_System_GetWindowWidth()/2);
+    middleY = (float)(CP_System_GetWindowHeight()/2);
+    width = (float)CP_Image_GetWidth(main_menu_image);
+    height = (float)CP_Image_GetWidth(main_menu_image) * 0.6f;
+    CP_Image_Draw(main_menu_image, middleX, middleY, width, height, 100);
     /*Buttons*/
     CP_Settings_Fill(COLOR_WHITE);
-    
     float quarter_blockX = (float)CP_System_GetDisplayWidth() / 4;
     float quarter_blockY = (float)CP_System_GetDisplayHeight() / 4;
     button_height = 120.f;
     button_width = 300.f;
-    level_selectorX = (quarter_blockX * 3) - button_width;
+    //level_selectorX = (quarter_blockX * 3) - button_width;
+    level_selectorX = quarter_blockX;
     start_game_buttonX = quarter_blockX;
-    level_selectorY = start_game_buttonY = quarter_blockY * 2.8f;
+    start_game_buttonY = 2.f * quarter_blockY + 0.1f * quarter_blockY;
+    level_selectorY = start_game_buttonY + quarter_blockY * 0.8f;
     CP_Graphics_DrawRect(level_selectorX, level_selectorY, button_width, button_height);
     CP_Graphics_DrawRect(start_game_buttonX, start_game_buttonY, button_width, button_height);
     /*Now Text*/
@@ -367,15 +380,6 @@ void main_menu_screen(void) {
     levels_textY = level_selectorY + 80;
     CP_Font_DrawText("START", start_textX, start_textY);
     CP_Font_DrawText("LEVELS", levels_textX, levels_textY);
-    /*For the bg image*//*
-    CP_Settings_RectMode(CP_POSITION_CORNER);
-    static float middleX, middleY, width, height;
-    width = (float)(CP_System_GetWindowWidth());
-    height = (float)(CP_System_GetWindowHeight());
-    middleX =  width / 2.0f;
-    middleY =  height / 2.0f;
-    CP_Image_Draw(main_menu_image, middleX, middleY, width, height, 30);
-    */
 
 }
 
@@ -386,6 +390,9 @@ void main_menu_clicked(float x, float y) {
     if (x >= start_game_buttonX && x <= (start_game_buttonX + button_width) &&
         y >= start_game_buttonY && y <= start_game_buttonY + button_height) {
         Current_Gamestate = GAMEPLAY_SCREEN;
+
+        /*Free image*/
+        CP_Image_Free(&main_menu_image);
 
         /*initialise for gameplay screen*/
         minion_count = 0;
@@ -401,6 +408,8 @@ void main_menu_clicked(float x, float y) {
         y >= level_selectorY && y <= level_selectorY + button_height) {
         //Current_Gamestate = LEVEL_SELECTOR_SCREEN;
         /*pending level_selector_screen completion*/
+
+        CP_Image_Free(&main_menu_image);
     }
 
 }
@@ -458,7 +467,6 @@ void lose_clicked(float x, float y) {
     }
 
 }
-
 
 /*Updates the new origin depending on what the full screen size is*/
 void update_variables_and_make_screen_nice() {
@@ -985,6 +993,7 @@ void move_minion() {
 void minion_dies_array_recycle(int dead_minion_number) {
     int array_Temp_MinionStats[MINION_MAX][MINION_TOTAL_STATS];
     float array_Temp_MinionCharge[MINION_MAX][2];
+
     for (int i = 0; i < dead_minion_number; i++) {
         for (int j = 0; j < MINION_TOTAL_STATS; j++) {
             array_Temp_MinionStats[i][j] = array_MinionStats[i][j];
