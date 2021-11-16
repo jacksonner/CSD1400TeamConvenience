@@ -143,7 +143,7 @@ void minion_dies_array_recycle(int i);
 
 /*Special attacks for minions*/
 void minion_special_attack(int i, int current_row, int current_col);
-void minion_attacking_towers(int i, int current_row, int current_col);
+void minion_attacking_towers(int i, int current_row, int current_col, int minion_range);
 
 /*checking surrounding squares for AOE attacks*/
 int array_enemy_to_attack[ENEMY_MAX];
@@ -1135,6 +1135,7 @@ void display_money_counter() {
 }
 
 void minion_special_attack(int i, int current_row, int current_col) {
+    int tank_range = 1, wizard_range = 3;
     int full_health[MINION_MAX];
     for (int n = 0; n < MINION_MAX; ++n) {
         full_health[n] = array_MinionStats[n][MINION_HP];
@@ -1153,7 +1154,7 @@ void minion_special_attack(int i, int current_row, int current_col) {
                 int hp_restored = 240 - array_MinionStats[i][MINION_HP];
                 array_MinionStats[i][MINION_HP] += hp_restored;
             }
-            minion_attacking_towers(i, current_row, current_col);
+            minion_attacking_towers(i, current_row, current_col, tank_range);
             for (int t = 0; t < ENEMY_MAX; t++) {
                 if (array_enemy_to_attack[t] == 1) {
                     array_EnemyStats[t][ENEMY_HP] -= 20;
@@ -1162,7 +1163,13 @@ void minion_special_attack(int i, int current_row, int current_col) {
         }
         else if (array_MinionStats[i][MINION_TYPE] == WIZARD_MINION) {
             printf("ooo special attack time");
-            minion_attacking_towers(i, current_row, current_col);
+            minion_attacking_towers(i, current_row, current_col, wizard_range);
+            for (int t = 0; t < ENEMY_MAX; t++) {
+                if (array_enemy_to_attack[t] == 1) {
+                    array_EnemyStats[t][ENEMY_HP] -= 1;
+                }
+            }
+
             //insert code for whatever they can do here
         }
         else if (array_MinionStats[i][MINION_TYPE] == HEALER_MINION) {
@@ -1178,81 +1185,97 @@ void minion_special_attack(int i, int current_row, int current_col) {
     }
 }
 
-void minion_attacking_towers(int i, int current_row, int current_col) { //can work on the minion's normal attack here, aka attacking towers while moving?
+void minion_attacking_towers(int i, int current_row, int current_col, int minion_range) { //can work on the minion's normal attack here, aka attacking towers while moving?
     int which_enemy, check_row, check_col;
     /*Case 1*/
     for (int t = 0; t < ENEMY_MAX; t++) {
         array_enemy_to_attack[t] = 0;
     }
-    check_row = current_row - 1;
-    check_col = current_col - 1;
-    if (check_row >= 0 && check_col >= 0) {
-        if (array_GameMap[check_row][check_col] == BLOCK_TOWER_ENEMY || array_GameMap[check_row][check_col] == BLOCK_ENEMY) {
-            which_enemy = check_which_enemy(check_row, check_col);
-            array_enemy_to_attack[which_enemy] = 1;
+    for (int n = 0; n < minion_range; ++n) {
+        check_row = current_row - n;
+        check_col = current_col - n;
+        if (check_row >= 0 && check_col >= 0) {
+            if (array_GameMap[check_row][check_col] == BLOCK_TOWER_ENEMY || array_GameMap[check_row][check_col] == BLOCK_ENEMY) {
+                which_enemy = check_which_enemy(check_row, check_col);
+                array_enemy_to_attack[which_enemy] = 1;
+            }
         }
-    } 
+    }
     /*Case 2*/
-    check_row = current_row;
-    check_col = current_col - 1;
-    if (check_row  >= 0 && check_col >= 0) {
-        if (array_GameMap[check_row][check_col] == BLOCK_TOWER_ENEMY || array_GameMap[check_row][check_col] == BLOCK_ENEMY) {
-            which_enemy = check_which_enemy(check_row, check_col);
-            array_enemy_to_attack[which_enemy] = 1;
+    for (int n = 0; n < minion_range; ++n) {
+        check_row = current_row;
+        check_col = current_col - n;
+        if (check_row >= 0 && check_col >= 0) {
+            if (array_GameMap[check_row][check_col] == BLOCK_TOWER_ENEMY || array_GameMap[check_row][check_col] == BLOCK_ENEMY) {
+                which_enemy = check_which_enemy(check_row, check_col);
+                array_enemy_to_attack[which_enemy] = 1;
+            }
         }
     }
     /*Case 3*/
-    check_row = current_row + 1;
-    check_col = current_col - 1;
-    if (check_row < MAP_GRID_ROWS && check_col >= 0) {
-        if (array_GameMap[check_row][check_col] == BLOCK_TOWER_ENEMY || array_GameMap[check_row][check_col] == BLOCK_ENEMY) {
-            which_enemy = check_which_enemy(check_row, check_col);
-            array_enemy_to_attack[which_enemy] = 1;
+    for (int n = 0; n < minion_range; ++n) {
+        check_row = current_row + n;
+        check_col = current_col - n;
+        if (check_row < MAP_GRID_ROWS && check_col >= 0) {
+            if (array_GameMap[check_row][check_col] == BLOCK_TOWER_ENEMY || array_GameMap[check_row][check_col] == BLOCK_ENEMY) {
+                which_enemy = check_which_enemy(check_row, check_col);
+                array_enemy_to_attack[which_enemy] = 1;
+            }
         }
     }
     /*Case 4*/
-    check_row = current_row - 1;
-    check_col = current_col;
-    if (check_row >= 0 && check_col >= 0) {
-        if (array_GameMap[check_row][check_col] == BLOCK_TOWER_ENEMY || array_GameMap[check_row][check_col] == BLOCK_ENEMY) {
-            which_enemy = check_which_enemy(check_row, check_col);
-            array_enemy_to_attack[which_enemy] = 1;
+    for (int n = 0; n < minion_range; ++n) {
+        check_row = current_row - n;
+        check_col = current_col;
+        if (check_row >= 0 && check_col >= 0) {
+            if (array_GameMap[check_row][check_col] == BLOCK_TOWER_ENEMY || array_GameMap[check_row][check_col] == BLOCK_ENEMY) {
+                which_enemy = check_which_enemy(check_row, check_col);
+                array_enemy_to_attack[which_enemy] = 1;
+            }
         }
     }
     /*Case 5*/
-    check_row = current_row + 1;
-    check_col = current_col;
-    if (check_row < MAP_GRID_ROWS && check_col >= 0) {
-        if (array_GameMap[check_row][check_col] == BLOCK_TOWER_ENEMY || array_GameMap[check_row][check_col] == BLOCK_ENEMY) {
-            which_enemy = check_which_enemy(check_row, check_col);
-            array_enemy_to_attack[which_enemy] = 1;
+    for (int n = 0; n < minion_range; ++n) {
+        check_row = current_row + n;
+        check_col = current_col;
+        if (check_row < MAP_GRID_ROWS && check_col >= 0) {
+            if (array_GameMap[check_row][check_col] == BLOCK_TOWER_ENEMY || array_GameMap[check_row][check_col] == BLOCK_ENEMY) {
+                which_enemy = check_which_enemy(check_row, check_col);
+                array_enemy_to_attack[which_enemy] = 1;
+            }
         }
     }
     /*Case 6*/
-    check_row = current_row - 1;
-    check_col = current_col + 1;
-    if (check_row >= 0 && check_col < MAP_GRID_COLS) {
-        if (array_GameMap[check_row][check_col] == BLOCK_TOWER_ENEMY || array_GameMap[check_row][check_col] == BLOCK_ENEMY) {
-            which_enemy = check_which_enemy(check_row, check_col);
-            array_enemy_to_attack[which_enemy] = 1;
+    for (int n = 0; n < minion_range; ++n) {
+        check_row = current_row - n;
+        check_col = current_col + n;
+        if (check_row >= 0 && check_col < MAP_GRID_COLS) {
+            if (array_GameMap[check_row][check_col] == BLOCK_TOWER_ENEMY || array_GameMap[check_row][check_col] == BLOCK_ENEMY) {
+                which_enemy = check_which_enemy(check_row, check_col);
+                array_enemy_to_attack[which_enemy] = 1;
+            }
         }
     }
     /*Case 7*/
-    check_row = current_row;
-    check_col = current_col + 1;
-    if (check_row >= 0 && check_col < MAP_GRID_COLS) {
-        if (array_GameMap[check_row][check_col] == BLOCK_TOWER_ENEMY || array_GameMap[check_row][check_col] == BLOCK_ENEMY) {
-            which_enemy = check_which_enemy(check_row, check_col);
-            array_enemy_to_attack[which_enemy] = 1;
+    for (int n = 0; n < minion_range; ++n) {
+        check_row = current_row;
+        check_col = current_col + n;
+        if (check_row >= 0 && check_col < MAP_GRID_COLS) {
+            if (array_GameMap[check_row][check_col] == BLOCK_TOWER_ENEMY || array_GameMap[check_row][check_col] == BLOCK_ENEMY) {
+                which_enemy = check_which_enemy(check_row, check_col);
+                array_enemy_to_attack[which_enemy] = 1;
+            }
         }
     }
     /*Case 8*/
-    check_row = current_row + 1;
-    check_col = current_col + 1;
-    if (check_row < MAP_GRID_ROWS && check_col < MAP_GRID_COLS) {
-        if (array_GameMap[check_row][check_col] == BLOCK_TOWER_ENEMY || array_GameMap[check_row][check_col] == BLOCK_ENEMY) {
-            which_enemy = check_which_enemy(check_row, check_col);
-            array_enemy_to_attack[which_enemy] = 1;
+    for (int n = 0; n < minion_range; ++n) {
+        check_row = current_row + n;
+        check_col = current_col + n;
+        if (check_row < MAP_GRID_ROWS && check_col < MAP_GRID_COLS) {
+            if (array_GameMap[check_row][check_col] == BLOCK_TOWER_ENEMY || array_GameMap[check_row][check_col] == BLOCK_ENEMY) {
+                which_enemy = check_which_enemy(check_row, check_col);
+                array_enemy_to_attack[which_enemy] = 1;
+            }
         }
     }
     /*Case 9 - Current Row*/
@@ -1310,12 +1333,12 @@ void assign_minion_stats() {
     if (array_MinionStats[minion_count][MINION_TYPE] == WIZARD_MINION) {
         array_MinionStats[minion_count][MINION_HP] = 80;
         array_MinionStats[minion_count][MINION_MOVEMENT_SPEED] = 5;
-        array_MinionStats[minion_count][MINION_ATTACK] = 40;
+        array_MinionStats[minion_count][MINION_ATTACK] = 4;
         array_MinionStats[minion_count][MINION_ATTACK_SPEED] = 2;
         array_MinionStats[minion_count][MINION_WEIGHT] = 1;
         array_MinionStats[minion_count][MINION_COST] = 150;
         array_MinionStats[minion_count][MINION_SIZE] = 70;
-        array_MinionCurrentCharge[minion_count][MINION_CHARGE_TIME] = 6;
+        array_MinionCurrentCharge[minion_count][MINION_CHARGE_TIME] = 2;
     }
     if (array_MinionStats[minion_count][MINION_TYPE] == HEALER_MINION) {
         array_MinionStats[minion_count][MINION_HP] = 120;
