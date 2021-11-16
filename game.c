@@ -1135,6 +1135,10 @@ void display_money_counter() {
 }
 
 void minion_special_attack(int i, int current_row, int current_col) {
+    int full_health[MINION_MAX];
+    for (int n = 0; n < MINION_MAX; ++n) {
+        full_health[n] = array_MinionStats[n][MINION_HP];
+    }
     if (array_MinionCurrentCharge[i][MINION_CURRENT_CHARGE] >= array_MinionCurrentCharge[i][MINION_CHARGE_TIME]) {
         if (array_MinionStats[i][MINION_TYPE] == WARRIOR_MINION) {
             printf("meaningless gibberish");
@@ -1163,9 +1167,14 @@ void minion_special_attack(int i, int current_row, int current_col) {
         }
         else if (array_MinionStats[i][MINION_TYPE] == HEALER_MINION) {
             printf("heal");
-            //insert code for whatever they can do here
+            for (int t = 0; t < MINION_MAX; ++t) {
+                if (array_MinionStats[t][MINION_HP] < full_health[i]) { //minion hp wont go higer than 100%
+                    array_MinionStats[t][MINION_HP] += 1;
+                }
+                //insert code for whatever they can do here
+            }
+
         }
-        array_MinionCurrentCharge[i][MINION_CURRENT_CHARGE] = 0;
     }
 }
 
