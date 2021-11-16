@@ -1182,6 +1182,7 @@ void minion_special_attack(int i, int current_row, int current_col) {
             }
 
         }
+        array_MinionCurrentCharge[i][MINION_CURRENT_CHARGE] = 0;
     }
 }
 
@@ -1307,7 +1308,7 @@ void assign_minion_stats() {
         array_MinionStats[minion_count][MINION_ATTACK] = 4;
         array_MinionStats[minion_count][MINION_ATTACK_SPEED] = 2;
         array_MinionStats[minion_count][MINION_WEIGHT] = 1;
-        array_MinionStats[minion_count][MINION_COST] = 25;
+        array_MinionStats[minion_count][MINION_COST] = 30;
         array_MinionStats[minion_count][MINION_SIZE] = 50;
     }
     if (array_MinionStats[minion_count][MINION_TYPE] == WARRIOR_MINION) {
@@ -1316,7 +1317,7 @@ void assign_minion_stats() {
         array_MinionStats[minion_count][MINION_ATTACK] = 5;
         array_MinionStats[minion_count][MINION_ATTACK_SPEED] = 2;
         array_MinionStats[minion_count][MINION_WEIGHT] = 1;
-        array_MinionStats[minion_count][MINION_COST] = 50;
+        array_MinionStats[minion_count][MINION_COST] = 60;
         array_MinionStats[minion_count][MINION_SIZE] = 80;
         array_MinionCurrentCharge[minion_count][MINION_CHARGE_TIME] = 5; //one strong attack?
     }
@@ -1326,7 +1327,7 @@ void assign_minion_stats() {
         array_MinionStats[minion_count][MINION_ATTACK] = 0;
         array_MinionStats[minion_count][MINION_ATTACK_SPEED] = 2;
         array_MinionStats[minion_count][MINION_WEIGHT] = 2; //holds the line so other minions can pass
-        array_MinionStats[minion_count][MINION_COST] = 100;
+        array_MinionStats[minion_count][MINION_COST] = 120;
         array_MinionStats[minion_count][MINION_SIZE] = 120;
         array_MinionCurrentCharge[minion_count][MINION_CHARGE_TIME] = 2;
     }
@@ -1336,7 +1337,7 @@ void assign_minion_stats() {
         array_MinionStats[minion_count][MINION_ATTACK] = 4;
         array_MinionStats[minion_count][MINION_ATTACK_SPEED] = 2;
         array_MinionStats[minion_count][MINION_WEIGHT] = 1;
-        array_MinionStats[minion_count][MINION_COST] = 150;
+        array_MinionStats[minion_count][MINION_COST] = 160;
         array_MinionStats[minion_count][MINION_SIZE] = 70;
         array_MinionCurrentCharge[minion_count][MINION_CHARGE_TIME] = 2;
     }
@@ -1346,7 +1347,7 @@ void assign_minion_stats() {
         array_MinionStats[minion_count][MINION_ATTACK] = 0; //i mean... self defence?
         array_MinionStats[minion_count][MINION_ATTACK_SPEED] = 2;
         array_MinionStats[minion_count][MINION_WEIGHT] = 1;
-        array_MinionStats[minion_count][MINION_COST] = 150;
+        array_MinionStats[minion_count][MINION_COST] = 160;
         array_MinionStats[minion_count][MINION_SIZE] = 60;
         array_MinionStats[minion_count][MINION_HEAL] = 20;
         array_MinionCurrentCharge[minion_count][MINION_CHARGE_TIME] = 2; //super healing???
