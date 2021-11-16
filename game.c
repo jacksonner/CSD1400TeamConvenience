@@ -66,6 +66,7 @@ int array_MinionStats[MINION_MAX][MINION_TOTAL_STATS]; //MUST edit reset_map_and
 #define MINION_BASIC_ATTACK_SPEED 2 //this is attack speed in the main array lol...
 #define MINION_BASIC_CURRENT_CHARGE 3
 float array_MinionCurrentCharge[MINION_MAX][4];
+#define TOTAL_CHARGES 4
 
 /*Types of Minions*/
 #define SPAM_MINION 0 //weak everything, but low cost
@@ -245,15 +246,6 @@ void projectile_logic(float x_coord, float y_coord);
 void projectile_render(float x_coord, float y_coord);
 void assign_enemy_color(int i);
 
-
-/*
-void check_minion_type(void);
-
-void fire_projectile(void);
-void check_distance(void);
-void move_projectile(void);
-*/
-
 void game_init(void) {
     /*Setting the FrameRate to 60fps*/
     CP_System_SetFrameRate(60.0f);
@@ -380,7 +372,6 @@ void main_menu_screen(void) {
     levels_textY = level_selectorY + 80;
     CP_Font_DrawText("START", start_textX, start_textY);
     CP_Font_DrawText("LEVELS", levels_textX, levels_textY);
-
 }
 
 void main_menu_clicked(float x, float y) {
@@ -1000,7 +991,7 @@ void minion_dies_array_recycle(int dead_minion_number) {
         }
     }
     for (int i = 0; i < dead_minion_number; i++) {
-        for (int j = 0; j < 2; j++) {
+        for (int j = 0; j < TOTAL_CHARGES; j++) {
             array_Temp_MinionCharge[i][j] = array_MinionCurrentCharge[i][j];
         }
     }
@@ -1011,7 +1002,7 @@ void minion_dies_array_recycle(int dead_minion_number) {
         }
     }
     for (int k = (dead_minion_number + 1); k <= minion_count; k++, dead_minion_number++) {
-        for (int m = 0; m < 2; m++) {
+        for (int m = 0; m < TOTAL_CHARGES; m++) {
             array_Temp_MinionCharge[dead_minion_number][m] = array_MinionCurrentCharge[k][m];
         }
     }
@@ -1022,7 +1013,7 @@ void minion_dies_array_recycle(int dead_minion_number) {
         }
     }
     for (int h = 0; h < minion_count; h++) {
-        for (int n = 0; n < 2; n++) {
+        for (int n = 0; n < TOTAL_CHARGES; n++) {
             array_MinionCurrentCharge[h][n] = array_Temp_MinionCharge[h][n];
         }
     }
