@@ -364,9 +364,11 @@ void main_menu_screen(void) {
     float quarter_blockY = (float)CP_System_GetDisplayHeight() / 4;
     button_height = 120.f;
     button_width = 300.f;
-    level_selectorX = (quarter_blockX * 3) - button_width;
+    //level_selectorX = (quarter_blockX * 3) - button_width;
+    level_selectorX = quarter_blockX;
     start_game_buttonX = quarter_blockX;
-    level_selectorY = start_game_buttonY = quarter_blockY * 2.8f;
+    start_game_buttonY = 2.f * quarter_blockY + 0.1f * quarter_blockY;
+    level_selectorY = start_game_buttonY + quarter_blockY * 0.8f;
     CP_Graphics_DrawRect(level_selectorX, level_selectorY, button_width, button_height);
     CP_Graphics_DrawRect(start_game_buttonX, start_game_buttonY, button_width, button_height);
     /*Now Text*/
