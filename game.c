@@ -493,7 +493,6 @@ void lose_screen(void) {
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
         {
             Current_Gamestate = GAMEPLAY_SCREEN;
-
             /*initialise for gameplay screen*/
             minion_count = 0;
             reset_map_and_minions();
@@ -527,12 +526,13 @@ void lose_screen(void) {
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
         {
             Current_Gamestate = MAIN_MENU_SCREEN;
-
-
-
+            minion_count = 0;
+            reset_map_and_minions();
+            initialise_level();
+            elapsed_timer = 0;
+            elapsed_timer2 = 0;
         }
     }
-
 
 
 }
