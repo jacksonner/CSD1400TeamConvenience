@@ -24,9 +24,20 @@ float array_Collaborative_DiffusionMap[MAP_GRID_ROWS][MAP_GRID_COLS][2];
 #define BLOCK_END 2
 #define BLOCK_ENEMY 3
 #define BLOCK_SPAWN 4
-#define BLOCK_INVISIBLE 5
-#define BLOCK_ENEMY_DEAD 6
+#define BLOCK_INVISIBLE 5 //ignore
+#define BLOCK_ENEMY_DEAD 6 //ignore
 #define BLOCK_TOWER_ENEMY 7 //used to mark location for tower enemies
+
+#define BLOCK_TELEPORTER 8
+#define BLOCK_TELEPORT_SPAWN 9
+
+/*Teleportation*/
+int level_has_teleporter;
+void setup_teleport_diffusion_map();
+float array_Teleport_DiffusionMap[MAP_GRID_ROWS][MAP_GRID_COLS][2];
+int teleport_row, teleport_col;
+int teleport_spawn_row, teleport_spawn_col;
+int teleport_spawn_X, teleport_spawn_Y;
 
 /*Different Colours in Use*/
 #define COLOR_BLACK CP_Color_Create(0, 0, 0, 255)
@@ -41,6 +52,9 @@ float array_Collaborative_DiffusionMap[MAP_GRID_ROWS][MAP_GRID_COLS][2];
 #define COLOR_CYAN CP_Color_Create(0, 255, 255, 255)
 #define COLOR_PURPLE CP_Color_Create(138, 43, 226, 255)
 #define TRANSLUCENT_WHITE CP_Color_Create(255, 255, 255, 100)
+#define COLOR_BRIGHT_BLUE CP_Color_Create(0, 204, 204, 255)
+#define COLOR_DULLER_BLUE CP_Color_Create(0, 76, 153, 255)
+
 
 /*Minion Stats*/
 #define X 0 //x-coordinates
@@ -55,10 +69,13 @@ float array_Collaborative_DiffusionMap[MAP_GRID_ROWS][MAP_GRID_COLS][2];
 #define MINION_SIZE 9 //like the radius of the minion, might be removed when actualy sprites are included?
 #define MINION_DIRECTION 10
 #define MINION_HEAL 11
+#define MINION_TRAVEL_DIST 12
+#define MINION_PAST_DIRECTION 13
+#define MINION_TELEPORTED 14
 
 /*can add a MINION_COLOUR too maybe?*/
 #define MINION_MAX 7 //Maximum number of minions in the game at any one time
-#define MINION_TOTAL_STATS 12
+#define MINION_TOTAL_STATS 15
 int array_MinionStats[MINION_MAX][MINION_TOTAL_STATS]; //MUST edit reset_map_and_minions() when the array size is changed
 
 #define MINION_CHARGE_TIME 0
@@ -69,7 +86,6 @@ int array_MinionStats[MINION_MAX][MINION_TOTAL_STATS]; //MUST edit reset_map_and
 #define TOTAL_CHARGES 2
 float array_MinionCurrentCharge[MINION_MAX][TOTAL_CHARGES];
 //int check_minion_basic_attack_charge(int i); //checks if it is time for minion to attack
-
 
 /*Types of Minions*/
 #define SPAM_MINION 0 //weak everything, but low cost
@@ -171,7 +187,6 @@ char base_counter[10];
 //void display_minion_eneter_base_counter(void);
 */
 
-
 /*Levels*/
 void level_1(void);
 void level_2(void);
@@ -234,6 +249,11 @@ float restart_textX, restart_textY, main_textX, main_textY;
 void lose_screen(void);
 CP_Image Lose_Screen = NULL;
 
+/*Move Minion*/
+int initial_direction; //when setting up level, check for the initial direction to set this to
+void move_minion(void);
+int check_for_enemy(int minion); //returns 1 if there is an enemy on the minions' current position
+
 /*Functions*/
 void reset_map_and_minions(void);
 void render_background(void); //for the gameplay_screen
@@ -241,7 +261,6 @@ void gameplay_screen(void);
 void initialise_level(void); //TBC
 void setup_collaborative_diffusion_map(void); //ensure no backtracking
 void render_minion(void);
-void move_minion(void);
 void assign_minion_stats(void);
 void assign_enemy_stats(void);
 void render_enemy(void);
@@ -345,6 +364,8 @@ void game_update(void) {
 void game_exit(void) {
 
 }
+
+/*FUNCTIONS START HERE*/
 
 void main_menu_screen(void) {
     main_menu_image = CP_Image_Load("./Assets/bg_mainmenu2.png");
@@ -515,7 +536,6 @@ void lose_screen(void) {
 
 
 }
-
 
 /*Updates the new origin depending on what the full screen size is*/
 void update_variables_and_make_screen_nice() {
@@ -735,8 +755,8 @@ void gameplay_screen_clicked(float x, float y) {
 
 /*Initialises level depending on the current level - TBC*/
 void initialise_level() {
-    level_1();
-    //level_4();
+    //level_1();
+    level_4();
     //chooses level to initialise
     /*
     if (current_level == 1) {
@@ -747,6 +767,9 @@ void initialise_level() {
     }
     */
     setup_collaborative_diffusion_map();
+    if (level_has_teleporter == TRUE) {
+        setup_teleport_diffusion_map();
+    }
 }
 
 void render_background() {
@@ -765,29 +788,18 @@ void render_background() {
                 ? COLOR_GREEN
                 : array_GameMap[row][col] == BLOCK_INVISIBLE
                 ? COLOR_GREY
+                : array_GameMap[row][col] == BLOCK_TELEPORT_SPAWN
+                ? COLOR_BRIGHT_BLUE
+                : array_GameMap[row][col] == BLOCK_TELEPORTER
+                ? COLOR_DULLER_BLUE
                 : COLOR_GREY); //BLOCK_ENEMY
             CP_Graphics_DrawRect((float)BlockPositionX, (float)BlockPositionY, (float)BLOCK_SIZE, (float)BLOCK_SIZE);
         }
     }
 }
 
-/*
-void setup_collaborative_diffusion_map() {    
-    for (int row = 0; row < MAP_GRID_ROWS; ++row) {
-        for (int col = 0; col < MAP_GRID_COLS; ++col) {
-            if (array_GameMap[row][col] == BLOCK_END) {
-                array_Collaborative_DiffusionMap[row][col][1] = 1; //when 1 it means value has been filled and done
-                array_Collaborative_DiffusionMap[row][col][0] = 1000.f;
-                end_row = row;
-                end_col = col; //block number of BLOCK_END
-            }
-            else if (array_GameMap[row][col] == BLOCK_PRESENT || array_GameMap[row][col] == BLOCK_INVISIBLE ||
-                array_GameMap[row][col] == BLOCK_SPAWN)
-        }
-    }
-}
-*/
 
+/*
 void setup_collaborative_diffusion_map() {
     for (int row = 0; row < MAP_GRID_ROWS; ++row) {
         for (int col = 0; col < MAP_GRID_COLS; ++col) {
@@ -862,6 +874,104 @@ void setup_collaborative_diffusion_map() {
                     if (array_GameMap[row + 1][col] == BLOCK_EMPTY || array_GameMap[row + 1][col] == BLOCK_ENEMY) {
                         array_Collaborative_DiffusionMap[row + 1][col][0] = array_Collaborative_DiffusionMap[row][col][0] / 2;
                         array_Collaborative_DiffusionMap[row + 1][col][1] = 1;
+                    }
+                }
+            }
+        }
+    }
+}
+*/
+
+void setup_teleport_diffusion_map() {
+    for (int row = 0; row < MAP_GRID_ROWS; ++row) {
+        for (int col = 0; col < MAP_GRID_COLS; ++col) {
+            if (array_GameMap[row][col] == BLOCK_TELEPORTER) {
+                array_Teleport_DiffusionMap[row][col][1] = TRUE; //when TRUE it means value has been filled and done
+                array_Teleport_DiffusionMap[row][col][0] = 2048.f;
+                teleport_row = row;
+                teleport_col = col;
+            }
+            else if (array_GameMap[row][col] == BLOCK_TELEPORT_SPAWN) {
+                teleport_spawn_row = row;
+                teleport_spawn_col = col;
+                teleport_spawn_X = origin_map_coordinateX + BLOCK_SIZE * col + BLOCK_SIZE/2;
+                teleport_spawn_Y = origin_map_coordinateY + BLOCK_SIZE * row + BLOCK_SIZE/2;
+            }
+        }
+    }
+    for (int i = 0; i < 10; i++) {
+        for (int row = 0; row < MAP_GRID_ROWS; ++row) {
+            for (int col = 0; col < MAP_GRID_COLS; ++col) {
+                if (array_Teleport_DiffusionMap[row][col][1] == TRUE) { //value has been set in stone yay
+                    if ((col - 1) >= 0 && array_Teleport_DiffusionMap[row][col - 1][1] == FALSE) {
+                        if (array_GameMap[row][col - 1] == BLOCK_EMPTY || array_GameMap[row][col - 1] == BLOCK_ENEMY) {
+                            array_Teleport_DiffusionMap[row][col - 1][0] = array_Teleport_DiffusionMap[row][col][0] / 2;
+                            array_Teleport_DiffusionMap[row][col - 1][1] = TRUE;
+                        }
+                    }
+                    if ((col + 1) < MAP_GRID_COLS && array_Teleport_DiffusionMap[row][col + 1][1] == FALSE) {
+                        if (array_GameMap[row][col + 1] == BLOCK_EMPTY || array_GameMap[row][col + 1] == BLOCK_ENEMY) {
+                            array_Teleport_DiffusionMap[row][col + 1][0] = array_Teleport_DiffusionMap[row][col][0] / 2;
+                            array_Teleport_DiffusionMap[row][col + 1][1] = TRUE;
+                        }
+                    }
+                    if ((row - 1) >= 0 && array_Teleport_DiffusionMap[row - 1][col][1] == FALSE) {
+                        if (array_GameMap[row - 1][col] == BLOCK_EMPTY || array_GameMap[row - 1][col] == BLOCK_ENEMY) {
+                            array_Teleport_DiffusionMap[row - 1][col][0] = array_Teleport_DiffusionMap[row][col][0] / 2;
+                            array_Teleport_DiffusionMap[row - 1][col][1] = TRUE;
+                        }
+                    }
+                    if ((row + 1) < MAP_GRID_ROWS && array_Teleport_DiffusionMap[row + 1][col][1] == FALSE) {
+                        if (array_GameMap[row + 1][col] == BLOCK_EMPTY || array_GameMap[row + 1][col] == BLOCK_ENEMY) {
+                            array_Teleport_DiffusionMap[row + 1][col][0] = array_Teleport_DiffusionMap[row][col][0] / 2;
+                            array_Teleport_DiffusionMap[row + 1][col][1] = TRUE;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+void setup_collaborative_diffusion_map() {
+    /*Find BLOCK_END*/
+    for (int row = 0; row < MAP_GRID_ROWS; ++row) {
+        for (int col = 0; col < MAP_GRID_COLS; ++col) {
+            if (array_GameMap[row][col] == BLOCK_END) {
+                array_Collaborative_DiffusionMap[row][col][1] = TRUE; //when TRUE it means value has been filled and done
+                array_Collaborative_DiffusionMap[row][col][0] = 2048.f;
+                spawn_row = row;
+                spawn_col = col;
+            }
+        }
+    }
+    for (int i = 0; i < 10; i++) {
+        for (int row = 0; row < MAP_GRID_ROWS; ++row) {
+            for (int col = 0; col < MAP_GRID_COLS; ++col) {
+                if (array_Collaborative_DiffusionMap[row][col][1] == TRUE) { //value has been set in stone yay
+                    if ((col - 1) >= 0 && array_Collaborative_DiffusionMap[row][col - 1][1] == FALSE) {
+                        if (array_GameMap[row][col - 1] == BLOCK_EMPTY || array_GameMap[row][col - 1] == BLOCK_ENEMY) {
+                            array_Collaborative_DiffusionMap[row][col - 1][0] = array_Collaborative_DiffusionMap[row][col][0] / 2;
+                            array_Collaborative_DiffusionMap[row][col - 1][1] = TRUE;
+                        }
+                    }
+                    if ((col + 1) < MAP_GRID_COLS && array_Collaborative_DiffusionMap[row][col + 1][1] == FALSE) {
+                        if (array_GameMap[row][col + 1] == BLOCK_EMPTY || array_GameMap[row][col + 1] == BLOCK_ENEMY) {
+                            array_Collaborative_DiffusionMap[row][col + 1][0] = array_Collaborative_DiffusionMap[row][col][0] / 2;
+                            array_Collaborative_DiffusionMap[row][col + 1][1] = TRUE;
+                        }
+                    }
+                    if ((row - 1) >= 0 && array_Collaborative_DiffusionMap[row - 1][col][1] == FALSE) {
+                        if (array_GameMap[row - 1][col] == BLOCK_EMPTY || array_GameMap[row - 1][col] == BLOCK_ENEMY) {
+                            array_Collaborative_DiffusionMap[row - 1][col][0] = array_Collaborative_DiffusionMap[row][col][0] / 2;
+                            array_Collaborative_DiffusionMap[row - 1][col][1] = TRUE;
+                        }
+                    }
+                    if ((row + 1) < MAP_GRID_ROWS && array_Collaborative_DiffusionMap[row + 1][col][1] == FALSE) {
+                        if (array_GameMap[row + 1][col] == BLOCK_EMPTY || array_GameMap[row + 1][col] == BLOCK_ENEMY) {
+                            array_Collaborative_DiffusionMap[row + 1][col][0] = array_Collaborative_DiffusionMap[row][col][0] / 2;
+                            array_Collaborative_DiffusionMap[row + 1][col][1] = TRUE;
+                        }
                     }
                 }
             }
@@ -946,6 +1056,9 @@ void render_minion() {
                     array_MinionStats[minion_count][Y] = SpawnY;
                     assign_minion_color(minion_count);
                     CP_Graphics_DrawCircle((float)array_MinionStats[minion_count][X], (float)array_MinionStats[minion_count][Y], (float)array_MinionStats[minion_count][MINION_SIZE]);
+                    array_MinionStats[minion_count][MINION_TRAVEL_DIST] = 0;
+                    array_MinionStats[minion_count][MINION_DIRECTION] = initial_direction;
+                    array_MinionStats[minion_count][MINION_TELEPORTED] = FALSE;
                     ++minion_count;
                 }
                 else if (minion_count >= 7) {
@@ -964,25 +1077,68 @@ void move_minion() {
         move_right = array_MinionStats[i][X] + array_MinionStats[i][MINION_MOVEMENT_SPEED];
         move_up = array_MinionStats[i][Y] - array_MinionStats[i][MINION_MOVEMENT_SPEED];
         move_down = array_MinionStats[i][Y] + array_MinionStats[i][MINION_MOVEMENT_SPEED];
-        current_boxCOL = (array_MinionStats[i][X] - origin_map_coordinateX + BLOCK_SIZE/2 - 1) / BLOCK_SIZE; //x
-        current_boxROW = (array_MinionStats[i][Y] - origin_map_coordinateY + BLOCK_SIZE/2 - 1) / BLOCK_SIZE; //y
+        //current_boxCOL = (array_MinionStats[i][X] - origin_map_coordinateX + BLOCK_SIZE / 2 - 1) / BLOCK_SIZE; //x
+        //current_boxROW = (array_MinionStats[i][Y] - origin_map_coordinateY + BLOCK_SIZE / 2 - 1) / BLOCK_SIZE; //y
+        current_boxCOL = (array_MinionStats[i][X] - origin_map_coordinateX) / BLOCK_SIZE;
+        current_boxROW = (array_MinionStats[i][Y] - origin_map_coordinateY) / BLOCK_SIZE;
         minion_special_attack(i, current_boxROW, current_boxCOL);
         /*now we check, we want to move in the direction of the one with the highest value*/
-        array_MinionStats[i][MINION_DIRECTION] = (current_boxCOL + 1 < MAP_GRID_COLS && array_Collaborative_DiffusionMap[current_boxROW][current_boxCOL + 1][0] > array_Collaborative_DiffusionMap[current_boxROW][current_boxCOL][0] 
-            && (array_GameMap[current_boxROW][current_boxCOL + 1] == BLOCK_EMPTY || array_GameMap[current_boxROW][current_boxCOL + 1] == BLOCK_ENEMY || array_GameMap[current_boxROW][current_boxCOL + 1] == BLOCK_END))
-            ? RIGHT
-            : (current_boxCOL - 1 >= 0 && array_Collaborative_DiffusionMap[current_boxROW][current_boxCOL - 1][0] > array_Collaborative_DiffusionMap[current_boxROW][current_boxCOL][0]
-                && (array_GameMap[current_boxROW][current_boxCOL - 1] == BLOCK_EMPTY || array_GameMap[current_boxROW][current_boxCOL -1] == BLOCK_ENEMY || array_GameMap[current_boxROW][current_boxCOL - 1] == BLOCK_END))
-            ? LEFT
-            : (current_boxROW + 1 < MAP_GRID_ROWS && array_Collaborative_DiffusionMap[current_boxROW + 1][current_boxCOL][0] > array_Collaborative_DiffusionMap[current_boxROW][current_boxCOL][0]
-                && (array_GameMap[current_boxROW + 1][current_boxCOL] == BLOCK_EMPTY || array_GameMap[current_boxROW + 1][current_boxCOL] == BLOCK_ENEMY || array_GameMap[current_boxROW  + 1][current_boxCOL] == BLOCK_END))
-            ? DOWN
-            : (current_boxROW - 1 >= 0 && array_Collaborative_DiffusionMap[current_boxROW - 1][current_boxCOL][0] > array_Collaborative_DiffusionMap[current_boxROW][current_boxCOL][0]
-                && (array_GameMap[current_boxROW -1 ][current_boxCOL] == BLOCK_EMPTY || array_GameMap[current_boxROW -1][current_boxCOL] == BLOCK_ENEMY || array_GameMap[current_boxROW - 1][current_boxCOL] == BLOCK_END))
-            ? UP
-            : STOP;
-        int Past_Direction = array_MinionStats[i][MINION_DIRECTION];
-        if (array_GameMap[current_boxROW][current_boxCOL] == BLOCK_ENEMY) {  
+        array_MinionStats[i][MINION_PAST_DIRECTION] = array_MinionStats[i][MINION_DIRECTION];
+        if (array_MinionStats[i][MINION_TRAVEL_DIST] < BLOCK_SIZE) {
+            array_MinionStats[i][MINION_DIRECTION] = array_MinionStats[i][MINION_PAST_DIRECTION];
+        }
+        else if (level_has_teleporter == TRUE && array_MinionStats[i][MINION_TELEPORTED] == FALSE 
+            && array_MinionStats[i][MINION_TRAVEL_DIST] >= BLOCK_SIZE) {
+            array_MinionStats[i][MINION_TRAVEL_DIST] = 0;
+            array_MinionStats[i][MINION_DIRECTION] = //i'm pretty sure these conditions aren't working tbh
+                (current_boxCOL + 1 < MAP_GRID_COLS && array_Teleport_DiffusionMap[current_boxROW][current_boxCOL + 1][0] > array_Teleport_DiffusionMap[current_boxROW][current_boxCOL][0]
+                    && array_GameMap[current_boxROW][current_boxCOL + 1] != BLOCK_TOWER_ENEMY && array_GameMap[current_boxROW][current_boxCOL + 1] != BLOCK_PRESENT
+                    && (array_GameMap[current_boxROW][current_boxCOL + 1] == BLOCK_ENEMY || array_GameMap[current_boxROW][current_boxCOL + 1] == BLOCK_EMPTY
+                        || array_GameMap[current_boxROW][current_boxCOL + 1] == BLOCK_END || array_GameMap[current_boxROW][current_boxCOL + 1] == BLOCK_TELEPORTER))
+                ? RIGHT
+                : (current_boxCOL - 1 >= 0 && array_Teleport_DiffusionMap[current_boxROW][current_boxCOL - 1][0] > array_Teleport_DiffusionMap[current_boxROW][current_boxCOL][0]
+                    && array_GameMap[current_boxROW][current_boxCOL - 1] != BLOCK_TOWER_ENEMY && array_GameMap[current_boxROW][current_boxCOL - 1] != BLOCK_PRESENT
+                    && (array_GameMap[current_boxROW][current_boxCOL - 1] == BLOCK_ENEMY || array_GameMap[current_boxROW][current_boxCOL - 1] == BLOCK_EMPTY
+                        || array_GameMap[current_boxROW][current_boxCOL - 1] == BLOCK_END || array_GameMap[current_boxROW][current_boxCOL - 1] == BLOCK_TELEPORTER))
+                ? LEFT
+                : (current_boxROW + 1 < MAP_GRID_ROWS && array_Teleport_DiffusionMap[current_boxROW + 1][current_boxCOL][0] > array_Teleport_DiffusionMap[current_boxROW][current_boxCOL][0]
+                    && array_GameMap[current_boxROW + 1][current_boxCOL] != BLOCK_TOWER_ENEMY && array_GameMap[current_boxROW + 1][current_boxCOL] != BLOCK_PRESENT
+                    && (array_GameMap[current_boxROW + 1][current_boxCOL] == BLOCK_ENEMY || array_GameMap[current_boxROW + 1][current_boxCOL] == BLOCK_EMPTY
+                        || array_GameMap[current_boxROW + 1][current_boxCOL] == BLOCK_END || array_GameMap[current_boxROW + 1][current_boxCOL] == BLOCK_TELEPORTER))
+                ? DOWN
+                : (current_boxROW - 1 >= 0 && array_Teleport_DiffusionMap[current_boxROW - 1][current_boxCOL][0] > array_Teleport_DiffusionMap[current_boxROW][current_boxCOL][0]
+                    && array_GameMap[current_boxROW - 1][current_boxCOL] != BLOCK_TOWER_ENEMY && array_GameMap[current_boxROW - 1][current_boxCOL] != BLOCK_PRESENT
+                    && (array_GameMap[current_boxROW - 1][current_boxCOL] == BLOCK_ENEMY || array_GameMap[current_boxROW - 1][current_boxCOL] == BLOCK_EMPTY
+                        || array_GameMap[current_boxROW - 1][current_boxCOL] == BLOCK_END || array_GameMap[current_boxROW - 1][current_boxCOL] == BLOCK_TELEPORTER))
+                ? UP
+                : STOP;
+        }
+        else if (array_MinionStats[i][MINION_TRAVEL_DIST] >= BLOCK_SIZE){
+            array_MinionStats[i][MINION_TRAVEL_DIST] = 0;
+            array_MinionStats[i][MINION_DIRECTION] = 
+                (current_boxCOL + 1 < MAP_GRID_COLS && array_Collaborative_DiffusionMap[current_boxROW][current_boxCOL + 1][0] > array_Collaborative_DiffusionMap[current_boxROW][current_boxCOL][0]
+                    && array_GameMap[current_boxROW][current_boxCOL + 1] != BLOCK_TOWER_ENEMY && array_GameMap[current_boxROW][current_boxCOL + 1] != BLOCK_PRESENT
+                    && (array_GameMap[current_boxROW][current_boxCOL + 1] == BLOCK_ENEMY || array_GameMap[current_boxROW][current_boxCOL + 1] == BLOCK_EMPTY
+                        || array_GameMap[current_boxROW][current_boxCOL + 1] == BLOCK_END || array_GameMap[current_boxROW][current_boxCOL + 1] == BLOCK_TELEPORTER))
+                ? RIGHT
+                : (current_boxCOL - 1 >= 0 && array_Collaborative_DiffusionMap[current_boxROW][current_boxCOL - 1][0] > array_Collaborative_DiffusionMap[current_boxROW][current_boxCOL][0]
+                    && array_GameMap[current_boxROW][current_boxCOL - 1] != BLOCK_TOWER_ENEMY && array_GameMap[current_boxROW][current_boxCOL - 1] != BLOCK_PRESENT
+                    && (array_GameMap[current_boxROW][current_boxCOL - 1] == BLOCK_ENEMY || array_GameMap[current_boxROW][current_boxCOL - 1] == BLOCK_EMPTY
+                        || array_GameMap[current_boxROW][current_boxCOL - 1] == BLOCK_END || array_GameMap[current_boxROW][current_boxCOL - 1] == BLOCK_TELEPORTER))
+                ? LEFT
+                : (current_boxROW + 1 < MAP_GRID_ROWS && array_Collaborative_DiffusionMap[current_boxROW + 1][current_boxCOL][0] > array_Collaborative_DiffusionMap[current_boxROW][current_boxCOL][0]
+                    && array_GameMap[current_boxROW + 1][current_boxCOL] != BLOCK_TOWER_ENEMY && array_GameMap[current_boxROW + 1][current_boxCOL] != BLOCK_PRESENT
+                    && (array_GameMap[current_boxROW + 1][current_boxCOL] == BLOCK_ENEMY || array_GameMap[current_boxROW + 1][current_boxCOL] == BLOCK_EMPTY
+                        || array_GameMap[current_boxROW + 1][current_boxCOL] == BLOCK_END || array_GameMap[current_boxROW + 1][current_boxCOL] == BLOCK_TELEPORTER))
+                ? DOWN
+                : (current_boxROW - 1 >= 0 && array_Collaborative_DiffusionMap[current_boxROW - 1][current_boxCOL][0] > array_Collaborative_DiffusionMap[current_boxROW][current_boxCOL][0]
+                    && array_GameMap[current_boxROW - 1][current_boxCOL] != BLOCK_TOWER_ENEMY && array_GameMap[current_boxROW - 1][current_boxCOL] != BLOCK_PRESENT
+                    && (array_GameMap[current_boxROW - 1][current_boxCOL] == BLOCK_ENEMY || array_GameMap[current_boxROW - 1][current_boxCOL] == BLOCK_EMPTY
+                        || array_GameMap[current_boxROW - 1][current_boxCOL] == BLOCK_END || array_GameMap[current_boxROW - 1][current_boxCOL] == BLOCK_TELEPORTER))
+                ? UP
+                : STOP;
+        }
+        if (array_GameMap[current_boxROW][current_boxCOL] == BLOCK_ENEMY) {
             int row_enemy, col_enemy;
             row_enemy = current_boxROW;
             col_enemy = current_boxCOL;
@@ -998,7 +1154,7 @@ void move_minion() {
                     }
                     if (array_EnemyStats[correct_enemy][ENEMY_CURRENT_MINIONS_ON_BLOCK] > array_EnemyStats[correct_enemy][ENEMY_BLOCK]) {
                         array_EnemyStats[correct_enemy][ENEMY_CURRENT_MINIONS_ON_BLOCK] -= array_MinionStats[i][MINION_WEIGHT];
-                        array_MinionStats[i][MINION_DIRECTION] = Past_Direction;
+                        array_MinionStats[i][MINION_DIRECTION] = array_MinionStats[i][MINION_PAST_DIRECTION];
                         array_isMinionBlocked[correct_enemy][i] = 0;
                     }
                     /*Minion attacking ground guard if blocked and guard attacking minion in return*/
@@ -1028,12 +1184,12 @@ void move_minion() {
                                 }
                                 else {
                                     array_isMinionBlocked[correct_enemy][i] = 0;
-                                } 
+                                }
                             }
                         }
                         else if (array_EnemyStats[correct_enemy][ENEMY_HP] <= 0) {
-                            array_MinionStats[i][MINION_DIRECTION] = Past_Direction;
                             money += 20;
+                            array_MinionStats[i][MINION_DIRECTION] = array_MinionStats[i][MINION_PAST_DIRECTION];
                         }
                     }
                 }
@@ -1044,21 +1200,30 @@ void move_minion() {
             array_MinionStats[i][Y] = (array_MinionStats[i][MINION_DIRECTION] == UP
                 ? move_up
                 : move_down);
+            array_MinionStats[i][MINION_TRAVEL_DIST] += array_MinionStats[i][MINION_MOVEMENT_SPEED];
         }
         else if (array_MinionStats[i][MINION_DIRECTION] == LEFT || array_MinionStats[i][MINION_DIRECTION] == RIGHT) {
             array_MinionStats[i][Y] = array_MinionStats[i][Y];
             array_MinionStats[i][X] = (array_MinionStats[i][MINION_DIRECTION] == LEFT
                 ? move_left
                 : move_right);
+            array_MinionStats[i][MINION_TRAVEL_DIST] += array_MinionStats[i][MINION_MOVEMENT_SPEED];
         }
         else if (array_MinionStats[i][MINION_DIRECTION] == STOP) {
             array_MinionStats[i][X] = array_MinionStats[i][X];
             array_MinionStats[i][Y] = array_MinionStats[i][Y];
+            array_MinionStats[i][MINION_DIRECTION] = array_MinionStats[i][MINION_PAST_DIRECTION];
+        }
+        if (array_GameMap[current_boxROW][current_boxCOL] == BLOCK_TELEPORTER) {
+            array_MinionStats[i][MINION_TELEPORTED] = TRUE;
+            array_MinionStats[i][X] = teleport_spawn_X;
+            array_MinionStats[i][Y] = teleport_spawn_Y;
+            array_MinionStats[i][MINION_TRAVEL_DIST] = 0;
         }
         if (array_MinionStats[i][MINION_HP] <= 0) {
             minion_dies_array_recycle(i);
         }
-        if (array_MinionStats[i][MINION_HP] > 0) { //only live minion are drawn
+        else if (array_MinionStats[i][MINION_HP] > 0) { //only live minion are drawn
             assign_minion_color(i);
             CP_Graphics_DrawCircle((float)array_MinionStats[i][X], (float)array_MinionStats[i][Y], (float)array_MinionStats[i][MINION_SIZE]);
         }
@@ -1122,8 +1287,10 @@ int check_minion_basic_attack_charge(int i) {
 
 void minion_enter_base_counter() {
     for (int i = 0; i < MINION_MAX; i++) {
-        int current_boxCOL = (array_MinionStats[i][X] - origin_map_coordinateX + BLOCK_SIZE / 2 - 1) / BLOCK_SIZE;
-        int current_boxROW = (array_MinionStats[i][Y] - origin_map_coordinateY + BLOCK_SIZE / 2 - 1) / BLOCK_SIZE;
+        int current_boxCOL = (array_MinionStats[i][X] - origin_map_coordinateX) / BLOCK_SIZE;
+        int current_boxROW = (array_MinionStats[i][Y] - origin_map_coordinateY) / BLOCK_SIZE;
+        //int current_boxCOL = (array_MinionStats[i][X] - origin_map_coordinateX + BLOCK_SIZE / 2 - 1) / BLOCK_SIZE;
+        //int current_boxROW = (array_MinionStats[i][Y] - origin_map_coordinateY + BLOCK_SIZE / 2 - 1) / BLOCK_SIZE;
         if (array_GameMap[current_boxROW][current_boxCOL] == BLOCK_END) {
             minions_in_base++;
             array_MinionStats[i][MINION_HP] = 0; //so essentially the minion dies
@@ -1422,7 +1589,7 @@ void assign_minion_stats() {
     }
     if (array_MinionStats[minion_count][MINION_TYPE] == TANK_MINION) { //is tall so can attack tower
         array_MinionStats[minion_count][MINION_HP] = 240; 
-        array_MinionStats[minion_count][MINION_MOVEMENT_SPEED] = 4; //original speed was 3
+        array_MinionStats[minion_count][MINION_MOVEMENT_SPEED] = 3; //original speed was 3
         array_MinionStats[minion_count][MINION_ATTACK] = 0;
         array_MinionStats[minion_count][MINION_ATTACK_SPEED] = 2;
         array_MinionStats[minion_count][MINION_WEIGHT] = 2; //holds the line so other minions can pass
@@ -1548,7 +1715,7 @@ void assign_enemy_stats() {
 
 void level_1() {
     array_GameMap[2][0] = BLOCK_END;
-    array_GameMap[4][11] = BLOCK_SPAWN;
+    array_GameMap[2][11] = BLOCK_SPAWN;
     array_GameMap[4][7] = BLOCK_ENEMY;
         array_EnemyStats[0][ENEMY_ROW] = 4;
         array_EnemyStats[0][ENEMY_COL] = 7;
@@ -1587,15 +1754,16 @@ void level_3() {
 
 }
 
+/*Example on how to use Teleporter*/
 void level_4() {
     array_GameMap[2][5] = BLOCK_SPAWN;
     array_GameMap[4][2] = BLOCK_END;
 
+    /*Filler Blocks*/
     array_GameMap[1][0] = BLOCK_PRESENT;
     array_GameMap[1][1] = BLOCK_PRESENT;
     array_GameMap[3][1] = BLOCK_PRESENT;
     array_GameMap[4][1] = BLOCK_PRESENT;
-    array_GameMap[3][2] = BLOCK_PRESENT;
     array_GameMap[3][3] = BLOCK_PRESENT;
     array_GameMap[3][4] = BLOCK_PRESENT;
     array_GameMap[3][5] = BLOCK_PRESENT;
@@ -1609,16 +1777,35 @@ void level_4() {
     array_GameMap[0][9] = BLOCK_PRESENT;
     array_GameMap[4][10] = BLOCK_PRESENT;
     array_GameMap[4][11] = BLOCK_PRESENT;
-    /*
+
+    /*Enemies*/
+    array_GameMap[0][5] = BLOCK_ENEMY;
+    array_EnemyStats[0][ENEMY_ROW] = 0;
+    array_EnemyStats[0][ENEMY_COL] = 5;
+    array_EnemyStats[0][ENEMY_TYPE] = GUARD_ENEMY;
+
+    array_GameMap[4][6] = BLOCK_ENEMY;
+    array_EnemyStats[1][ENEMY_ROW] = 4;
+    array_EnemyStats[1][ENEMY_COL] = 6;
+    array_EnemyStats[1][ENEMY_TYPE] = GUARD_ENEMY;
+
+    array_GameMap[3][2] = BLOCK_TOWER_ENEMY;
+    array_EnemyStats[2][ENEMY_ROW] = 3;
+    array_EnemyStats[2][ENEMY_COL] = 2;
+    array_EnemyStats[2][ENEMY_TYPE] = SLOW_ENEMY;
+
+    /*Using Teleporter*/
+    initial_direction = UP;
+    
     level_has_teleporter = TRUE;
     array_GameMap[4][0] = BLOCK_TELEPORTER;
-    array_GameMap[0][10] = BLOCK_TELEPORTER;
-    */
+    array_GameMap[0][10] = BLOCK_TELEPORT_SPAWN; 
 }
 
 void level_5() {
 
 }
+
 void level_6() {
 
 }
