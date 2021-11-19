@@ -173,11 +173,11 @@ char base_counter[10];
 
 /*Levels*/
 void level_1(void);
-//void level_2(void);
-//void level_3(void);
-//void level_4(void);
-//void level_5(void);
-//void level_6(void);
+void level_2(void);
+void level_3(void);
+void level_4(void);
+void level_5(void);
+void level_6(void);
 int current_level;
 
 /*Timer and Pause button*/
@@ -928,7 +928,6 @@ void move_minion() {
                             int check_if_can_attack = check_minion_basic_attack_charge(i);
                             if (array_MinionStats[i][MINION_HP] > 0 && check_if_can_attack == 1) {
                                 array_EnemyStats[correct_enemy][ENEMY_HP] -= array_MinionStats[i][MINION_ATTACK];
-                                printf("I attack, and i should only be after ready\n");
 
                             }
                             /*Single targeting system*/
@@ -1188,9 +1187,8 @@ void minion_special_attack(int i, int current_row, int current_col) {
             printf("heal");
             for (int t = 0; t < MINION_MAX; ++t) {
                 if (array_MinionStats[t][MINION_HP] < full_health[i]) { //minion hp wont go higer than 100%
-                    array_MinionStats[t][MINION_HP] += 1;
+                    array_MinionStats[t][MINION_HP] += 50;
                 }
-                //insert code for whatever they can do here
             }
 
         }
@@ -1487,4 +1485,23 @@ void level_1() {
         /*Please be careful when adding a new enemy, change the number array_EnemyStats[3][ENEMY_TYPE] -> array_EnemyStats[4][ENEMY_TYPE]*/
     array_GameMap[4][6] = BLOCK_PRESENT;
     enemy_count = 5;
+}
+
+void level_2() {
+
+}
+
+void level_3() {
+
+}
+
+void level_4() {
+
+}
+
+void level_5() {
+
+}
+void level_6() {
+
 }
