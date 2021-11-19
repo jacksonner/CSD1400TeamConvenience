@@ -66,7 +66,7 @@ int array_MinionStats[MINION_MAX][MINION_TOTAL_STATS]; //MUST edit reset_map_and
 #define MINION_BASIC_ATTACK_SPEED 2 //this is attack speed in the main array lol...
 #define MINION_BASIC_CURRENT_CHARGE 3
 
-#define TOTAL_CHARGES 4
+#define TOTAL_CHARGES 2
 float array_MinionCurrentCharge[MINION_MAX][TOTAL_CHARGES];
 int check_minion_basic_attack_charge(int i); //checks if it is time for minion to attack
 
@@ -137,6 +137,7 @@ void renderminionhp_bar();
 /*render HP bar for enemies*/
 float enemy_max_hp;
 float enemy_hp_percentage;
+float enemy_hp_percentage;
 float default_hp_tower = 80.f;
 float array_Enemy_HP_BAR[ENEMY_MAX][1];
 void renderguardhp_bar(int i);
@@ -176,8 +177,8 @@ void level_1(void);
 void level_2(void);
 void level_3(void);
 void level_4(void);
-void level_5(void);
-void level_6(void);
+//void level_5(void);
+//void level_6(void);
 int current_level;
 
 /*Timer and Pause button*/
@@ -478,7 +479,7 @@ void lose_screen(void) {
             initialise_level();
             gIsPaused = FALSE;
             restart_level();
-
+            //CP_Image_Free(&lose_screen);
 
         }
 
@@ -598,10 +599,13 @@ void update_timer(void)
     elapsed_timer += test;  //For Countdown
     elapsed_timer2 += test; //For Money
     /*for the minion charged attacks*/
+
+    
     for (int i = 0; i < minion_count; i++) {
         array_MinionCurrentCharge[i][MINION_CURRENT_CHARGE] += test;
-        array_MinionCurrentCharge[i][MINION_BASIC_CURRENT_CHARGE] += test;
+        //array_MinionCurrentCharge[i][MINION_BASIC_CURRENT_CHARGE] += test;
     }
+    
 }
 
 void display_restart_button(void) {
@@ -979,7 +983,8 @@ void move_minion() {
                     else {
                         if (array_EnemyStats[correct_enemy][ENEMY_HP] > 0) {
                             array_MinionStats[i][MINION_DIRECTION] = STOP;
-                            int check_if_can_attack = check_minion_basic_attack_charge(i);
+                            //int check_if_can_attack = check_minion_basic_attack_charge(i);
+                            int check_if_can_attack = 1; //to be deleted once i get above function working
                             if (array_MinionStats[i][MINION_HP] > 0 && check_if_can_attack == 1) {
                                 array_EnemyStats[correct_enemy][ENEMY_HP] -= array_MinionStats[i][MINION_ATTACK];
 
@@ -1073,6 +1078,8 @@ void minion_dies_array_recycle(int dead_minion_number) {
     minion_count--;
 }
 
+/*There's issues with basic attack*/
+/*
 int check_minion_basic_attack_charge(int i) {
     if (array_MinionCurrentCharge[i][MINION_BASIC_CURRENT_CHARGE] >= array_MinionCurrentCharge[i][MINION_BASIC_ATTACK_SPEED]) {
         array_MinionCurrentCharge[i][MINION_BASIC_CURRENT_CHARGE] = 0;
@@ -1084,6 +1091,7 @@ int check_minion_basic_attack_charge(int i) {
         
     }
 }
+*/
 
 void minion_enter_base_counter() {
     for (int i = 0; i < MINION_MAX; i++) {
@@ -1374,7 +1382,7 @@ void assign_minion_stats() {
         array_MinionStats[minion_count][MINION_WEIGHT] = 1;
         array_MinionStats[minion_count][MINION_COST] = 30;
         array_MinionStats[minion_count][MINION_SIZE] = 50;
-        array_MinionCurrentCharge[minion_count][MINION_BASIC_ATTACK_SPEED] = 0.01f;
+        //array_MinionCurrentCharge[minion_count][MINION_BASIC_ATTACK_SPEED] = 0.01f;
     }
     if (array_MinionStats[minion_count][MINION_TYPE] == WARRIOR_MINION) {
         array_MinionStats[minion_count][MINION_HP] = 130;
@@ -1385,7 +1393,7 @@ void assign_minion_stats() {
         array_MinionStats[minion_count][MINION_COST] = 60;
         array_MinionStats[minion_count][MINION_SIZE] = 80;
         array_MinionCurrentCharge[minion_count][MINION_CHARGE_TIME] = 5; //one strong attack?
-        array_MinionCurrentCharge[minion_count][MINION_BASIC_ATTACK_SPEED] = 0.01f;
+       // array_MinionCurrentCharge[minion_count][MINION_BASIC_ATTACK_SPEED] = 0.01f;
     }
     if (array_MinionStats[minion_count][MINION_TYPE] == TANK_MINION) { //is tall so can attack tower
         array_MinionStats[minion_count][MINION_HP] = 240; 
@@ -1396,7 +1404,7 @@ void assign_minion_stats() {
         array_MinionStats[minion_count][MINION_COST] = 120;
         array_MinionStats[minion_count][MINION_SIZE] = 120;
         array_MinionCurrentCharge[minion_count][MINION_CHARGE_TIME] = 2;
-        array_MinionCurrentCharge[minion_count][MINION_BASIC_ATTACK_SPEED] = 0.01f;
+        //array_MinionCurrentCharge[minion_count][MINION_BASIC_ATTACK_SPEED] = 0.01f;
     }
     if (array_MinionStats[minion_count][MINION_TYPE] == WIZARD_MINION) {
         array_MinionStats[minion_count][MINION_HP] = 80;
@@ -1407,7 +1415,7 @@ void assign_minion_stats() {
         array_MinionStats[minion_count][MINION_COST] = 160;
         array_MinionStats[minion_count][MINION_SIZE] = 70;
         array_MinionCurrentCharge[minion_count][MINION_CHARGE_TIME] = 4;
-        array_MinionCurrentCharge[minion_count][MINION_BASIC_ATTACK_SPEED] = 0.01f;
+        //array_MinionCurrentCharge[minion_count][MINION_BASIC_ATTACK_SPEED] = 0.01f;
     }
     if (array_MinionStats[minion_count][MINION_TYPE] == HEALER_MINION) {
         array_MinionStats[minion_count][MINION_HP] = 120;
@@ -1419,7 +1427,7 @@ void assign_minion_stats() {
         array_MinionStats[minion_count][MINION_SIZE] = 60;
         array_MinionStats[minion_count][MINION_HEAL] = 20;
         array_MinionCurrentCharge[minion_count][MINION_CHARGE_TIME] = 3; //super healing???
-        array_MinionCurrentCharge[minion_count][MINION_BASIC_ATTACK_SPEED] = 0.01f;
+        //array_MinionCurrentCharge[minion_count][MINION_BASIC_ATTACK_SPEED] = 0.01f;
     }
 }
 
@@ -1550,7 +1558,32 @@ void level_3() {
 }
 
 void level_4() {
+    array_GameMap[2][5] = BLOCK_SPAWN;
+    array_GameMap[4][2] = BLOCK_END;
 
+    array_GameMap[1][0] = BLOCK_PRESENT;
+    array_GameMap[1][1] = BLOCK_PRESENT;
+    array_GameMap[3][1] = BLOCK_PRESENT;
+    array_GameMap[4][1] = BLOCK_PRESENT;
+    array_GameMap[3][2] = BLOCK_PRESENT;
+    array_GameMap[3][3] = BLOCK_PRESENT;
+    array_GameMap[3][4] = BLOCK_PRESENT;
+    array_GameMap[3][5] = BLOCK_PRESENT;
+    array_GameMap[3][6] = BLOCK_PRESENT;
+    array_GameMap[3][7] = BLOCK_PRESENT;
+    array_GameMap[1][4] = BLOCK_PRESENT;
+    array_GameMap[2][4] = BLOCK_PRESENT;
+    array_GameMap[2][8] = BLOCK_PRESENT;
+    array_GameMap[2][9] = BLOCK_PRESENT;
+    array_GameMap[1][9] = BLOCK_PRESENT;
+    array_GameMap[0][9] = BLOCK_PRESENT;
+    array_GameMap[4][10] = BLOCK_PRESENT;
+    array_GameMap[4][11] = BLOCK_PRESENT;
+    /*
+    level_has_teleporter = TRUE;
+    array_GameMap[4][0] = BLOCK_TELEPORTER;
+    array_GameMap[0][10] = BLOCK_TELEPORTER;
+    */
 }
 
 void level_5() {
