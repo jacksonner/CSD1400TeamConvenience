@@ -78,6 +78,7 @@ int teleport_spawn_X, teleport_spawn_Y;
 #define MINION_TOTAL_STATS 15
 int array_MinionStats[MINION_MAX][MINION_TOTAL_STATS]; //MUST edit reset_map_and_minions() when the array size is changed
 
+/*Minion Charged Attacks*/
 #define MINION_CHARGE_TIME 0
 #define MINION_CURRENT_CHARGE 1
 #define MINION_BASIC_ATTACK_SPEED 2 //this is attack speed in the main array lol...
@@ -124,6 +125,13 @@ int enemy_count;
 
 /*Used for checking if the minion will be blocked or not*/
 int array_isMinionBlocked[ENEMY_MAX][MINION_MAX];
+
+/*Enemy Charged Attacks*/
+#define ENEMY_BASIC_ATTACK_SPEED 0 //this is attack speed in the main array lol...
+#define ENEMY_BASIC_CURRENT_CHARGE 1
+#define TOTAL_ENEMY_CHARGES 2
+float array_EnemyCurrentCharge[ENEMY_MAX][TOTAL_ENEMY_CHARGES];
+int check_enemy_basic_attack_charge(int i);
 
 /*Types of Enemies*/
 #define GUARD_ENEMY 0 //block minions
@@ -193,8 +201,8 @@ void level_1(void);
 void level_2(void);
 void level_3(void);
 void level_4(void);
-//void level_5(void);
-//void level_6(void);
+void level_5(void);
+void level_6(void);
 int current_level;
 
 /*Timer and Pause button*/
@@ -626,7 +634,9 @@ void update_timer(void)
         array_MinionCurrentCharge[i][MINION_CURRENT_CHARGE] += test;
         array_MinionCurrentCharge[i][MINION_BASIC_CURRENT_CHARGE] += test;
     }
-    
+    for (int i = 0; i < ENEMY_MAX; i++) {
+        array_EnemyCurrentCharge[i][ENEMY_BASIC_CURRENT_CHARGE] += test;
+    }
 }
 
 void display_restart_button(void) {
@@ -756,17 +766,29 @@ void gameplay_screen_clicked(float x, float y) {
 
 /*Initialises level depending on the current level - TBC*/
 void initialise_level() {
-    //level_1();
-    level_4();
-    //chooses level to initialise
-    /*
+    current_level = 2;
     if (current_level == 1) {
         level_1();
     }
-    else if (current_level == 1) {
-        //level_2();
+    else if (current_level == 2) {
+        level_2();
     }
-    */
+    else if (current_level == 3) {
+        level_3();
+    }
+    else if (current_level == 4) {
+        level_4();
+    }
+    else if (current_level == 5) {
+        level_5();
+    }
+    else if (current_level == 6) {
+        level_6();
+    }
+    else if (current_level == 7) {
+
+    }
+    //and so on...
 
     setup_collaborative_diffusion_map();
     if (level_has_teleporter == TRUE) {
@@ -1088,17 +1110,20 @@ void move_minion() {
                                 array_EnemyStats[correct_enemy][ENEMY_HP] -= array_MinionStats[i][MINION_ATTACK];
                             }
                             /*Single targeting system*/
+                            int enemy_charged_up = check_enemy_basic_attack_charge(correct_enemy);
                             int previous_minion = i - 1;
-                            if (previous_minion >= 0 && array_MinionStats[previous_minion][MINION_HP] > 0) {
-                                array_MinionStats[previous_minion][MINION_HP] -= array_EnemyStats[correct_enemy][ENEMY_ATTACK];
+                            if (enemy_charged_up == 1) {
+                                if (previous_minion >= 0 && array_MinionStats[previous_minion][MINION_HP] > 0) {
+                                    array_MinionStats[previous_minion][MINION_HP] -= array_EnemyStats[correct_enemy][ENEMY_ATTACK];
+                                }
+                                else {
+                                    int new_minion = previous_minion + 1;
+                                    array_MinionStats[new_minion][MINION_HP] -= array_EnemyStats[correct_enemy][ENEMY_ATTACK];
+                                }
                             }
-                            else {
-                                int new_minion = previous_minion + 1;
-                                array_MinionStats[new_minion][MINION_HP] -= array_EnemyStats[correct_enemy][ENEMY_ATTACK];
-                            }
-
                             if (array_MinionStats[i][MINION_HP] <= 0) {
                                 array_EnemyStats[correct_enemy][ENEMY_CURRENT_MINIONS_ON_BLOCK] -= array_MinionStats[i][MINION_WEIGHT];
+                                
                                 if (array_isMinionBlocked[correct_enemy][i + 1] == 1) {
                                     array_isMinionBlocked[correct_enemy][i] = 1;
                                 }
@@ -1220,6 +1245,14 @@ void minion_dies_array_recycle(int dead_minion_number) {
 int check_minion_basic_attack_charge(int i) {
     if (array_MinionCurrentCharge[i][MINION_BASIC_CURRENT_CHARGE] >= array_MinionCurrentCharge[i][MINION_BASIC_ATTACK_SPEED]) {
         array_MinionCurrentCharge[i][MINION_BASIC_CURRENT_CHARGE] = 0;
+        return 1;
+    }
+    return 0;
+}
+
+int check_enemy_basic_attack_charge(int i) {
+    if (array_EnemyCurrentCharge[i][ENEMY_BASIC_CURRENT_CHARGE] >= array_EnemyCurrentCharge[i][ENEMY_BASIC_ATTACK_SPEED]) {
+        array_EnemyCurrentCharge[i][ENEMY_BASIC_CURRENT_CHARGE] = 0;
         return 1;
     }
     return 0;
@@ -1630,6 +1663,7 @@ void assign_enemy_stats() {
             array_EnemyStats[i][ENEMY_BLOCK] = 2;
             array_EnemyStats[i][ENEMY_SIZE] = BLOCK_SIZE / 2;
             array_EnemyStats[i][ENEMY_RANGE] = 1;
+            array_EnemyCurrentCharge[i][ENEMY_BASIC_ATTACK_SPEED] = 0.5f;
         }
         if (array_EnemyStats[i][ENEMY_TYPE] == DAMAGE_ENEMY) {
             array_EnemyStats[i][ENEMY_HP] = 100;
@@ -1638,6 +1672,7 @@ void assign_enemy_stats() {
             array_EnemyStats[i][ENEMY_BLOCK] = 2;
             array_EnemyStats[i][ENEMY_SIZE] = BLOCK_SIZE / 2;
             array_EnemyStats[i][ENEMY_RANGE] = 2;
+            array_EnemyCurrentCharge[i][ENEMY_BASIC_ATTACK_SPEED] = 0.5f;
         }
         if (array_EnemyStats[i][ENEMY_TYPE] == SLOW_ENEMY) {
             array_EnemyStats[i][ENEMY_HP] = 120;
@@ -1646,6 +1681,7 @@ void assign_enemy_stats() {
             array_EnemyStats[i][ENEMY_BLOCK] = 2;
             array_EnemyStats[i][ENEMY_SIZE] = BLOCK_SIZE / 2;
             array_EnemyStats[i][ENEMY_RANGE] = 1;
+            array_EnemyCurrentCharge[i][ENEMY_BASIC_ATTACK_SPEED] = 0.5f;
         }
         if (array_EnemyStats[i][ENEMY_TYPE] == HEALING_TOWER) {
             array_EnemyStats[i][ENEMY_HP] = 120;
@@ -1654,6 +1690,7 @@ void assign_enemy_stats() {
             array_EnemyStats[i][ENEMY_BLOCK] = 2;
             array_EnemyStats[i][ENEMY_SIZE] = BLOCK_SIZE / 2;
             array_EnemyStats[i][ENEMY_RANGE] = 2;
+            array_EnemyCurrentCharge[i][ENEMY_BASIC_ATTACK_SPEED] = 0.5f;
         }
         if (array_EnemyStats[i][ENEMY_TYPE] == RANGED_TOWER) {
             array_EnemyStats[i][ENEMY_HP] = 150;
@@ -1662,6 +1699,7 @@ void assign_enemy_stats() {
             array_EnemyStats[i][ENEMY_BLOCK] = 2;
             array_EnemyStats[i][ENEMY_SIZE] = BLOCK_SIZE / 2;
             array_EnemyStats[i][ENEMY_RANGE] = 4;
+            array_EnemyCurrentCharge[i][ENEMY_BASIC_ATTACK_SPEED] = 0.5f;
         }
         if (array_EnemyStats[i][ENEMY_TYPE] == BASE) {
             array_EnemyStats[i][ENEMY_HP] = 250;
@@ -1670,6 +1708,7 @@ void assign_enemy_stats() {
             array_EnemyStats[i][ENEMY_BLOCK] = 2;
             array_EnemyStats[i][ENEMY_SIZE] = BLOCK_SIZE / 2;
             array_EnemyStats[i][ENEMY_RANGE] = 1;
+            array_EnemyCurrentCharge[i][ENEMY_BASIC_ATTACK_SPEED] = 0.5f;
         }
     }
 }
@@ -1886,9 +1925,13 @@ void level_4() {
 }
 
 void level_5() {
-
+    array_GameMap[2][5] = BLOCK_SPAWN;
+    array_GameMap[4][2] = BLOCK_END;
+    /*placeholders, please change everything*/
 }
 
 void level_6() {
-
+    array_GameMap[2][5] = BLOCK_SPAWN;
+    array_GameMap[4][2] = BLOCK_END;
+    /*placeholders, please change everything*/
 }
