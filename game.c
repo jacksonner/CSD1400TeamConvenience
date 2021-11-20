@@ -269,6 +269,16 @@ float restart_textX, restart_textY, main_textX, main_textY;
 void lose_screen(void);
 CP_Image Lose_Screen = NULL;
 
+/*Level Selector Screen*/
+void level_selector_screen(void);
+float level1X, level1Y, level1_textX, level1_textY;
+float level2X, level2Y, level2_textX, level2_textY;
+float level3X, level3Y, level3_textY, level3_textY;
+float level4X, level4Y, level4_textY, level4_textY;
+float level5X, level5Y, level5_textY, level5_textY;
+float level6X, level6Y, level6_textY, level6_textY;
+CP_Image Level_Selector_Screen = NULL;
+
 /*Move Minion*/
 int initial_direction; //when setting up level, check for the initial direction to set this to
 void move_minion(void);
@@ -387,6 +397,10 @@ void game_update(void) {
         lose_screen();
 
     }
+    else if (Current_Gamestate == LEVEL_SELECTOR_SCREEN)
+    {
+        level_selector_screen();
+    }
 }
 
 void game_exit(void) {
@@ -434,6 +448,9 @@ void main_menu_clicked(float x, float y) {
     /*Play button clicked*/
     if (x >= start_game_buttonX && x <= (start_game_buttonX + button_width) &&
         y >= start_game_buttonY && y <= start_game_buttonY + button_height) {
+        
+        /*Game will start at level 1*/
+        current_level = 1; 
         Current_Gamestate = GAMEPLAY_SCREEN;
 
         /*Free image*/
@@ -451,7 +468,7 @@ void main_menu_clicked(float x, float y) {
     /*Level selector button clicked*/
     else if (x >= level_selectorX && x <= (level_selectorX + button_width) &&
         y >= level_selectorY && y <= level_selectorY + button_height) {
-        //Current_Gamestate = LEVEL_SELECTOR_SCREEN;
+        Current_Gamestate = LEVEL_SELECTOR_SCREEN;
         /*pending level_selector_screen completion*/
 
         CP_Image_Free(&main_menu_image);
@@ -522,6 +539,8 @@ void lose_screen(void) {
         {
             Current_Gamestate = GAMEPLAY_SCREEN;
             /*initialise for gameplay screen*/
+
+            CP_Image_Free(&Lose_Screen);
             minion_count = 0;
             reset_map_and_minions();
             initialise_level();
@@ -552,6 +571,7 @@ void lose_screen(void) {
         /*When clicked*/
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
         {
+            CP_Image_Free(&Lose_Screen);
             Current_Gamestate = MAIN_MENU_SCREEN;
             minion_count = 0;
             reset_map_and_minions();
@@ -561,6 +581,303 @@ void lose_screen(void) {
         }
     }
 }
+
+/*Level Selector Screen*/
+void level_selector_screen(void) {
+
+    float width = (float)CP_System_GetWindowWidth();
+    float height = (float)CP_System_GetWindowHeight();
+
+    Level_Selector_Screen = CP_Image_Load("./Assets/Level_Selector_Screen.jpg");
+    CP_Image_Draw(Level_Selector_Screen, width / 2, height / 2, width, height, 255);
+
+    /*Buttons*/
+    CP_Settings_Fill(COLOR_WHITE);
+
+    float quarter_blockY = (float)CP_System_GetDisplayHeight() / 2;
+    button_height = 80.f;
+    button_width = 300.f;
+
+    /*Level 1 Buttons*/
+    CP_Graphics_DrawRect(600, quarter_blockY, button_width, button_height);
+    /*Now Text*/
+    CP_Settings_TextSize(40);
+    CP_Settings_Fill(COLOR_BLACK);
+
+    level1_textY = quarter_blockY + 40;
+    CP_Font_DrawText("Level 1", 690, level1_textY);
+
+    /*Level 2 buttons*/
+    level2Y = quarter_blockY + 120;
+    CP_Settings_Fill(COLOR_WHITE);
+    CP_Graphics_DrawRect(600, level2Y, button_width, button_height);
+    /*Now Text*/
+    CP_Settings_TextSize(40);
+    CP_Settings_Fill(COLOR_BLACK);
+
+    level2_textY = level2Y + 40;
+    CP_Font_DrawText("Level 2", 690, level2_textY);
+
+    /*Level 3 buttons*/
+    level3Y = quarter_blockY + 240;
+    CP_Settings_Fill(COLOR_WHITE);
+    CP_Graphics_DrawRect(600, level3Y, button_width, button_height);
+    /*Now Text*/
+    CP_Settings_TextSize(40);
+    CP_Settings_Fill(COLOR_BLACK);
+
+    level3_textY = level3Y + 40;
+    CP_Font_DrawText("Level 3", 690, level3_textY);
+
+    /*Level 4 Buttons*/
+    level1Y = quarter_blockY + 120;
+    CP_Settings_Fill(COLOR_WHITE);
+    CP_Graphics_DrawRect(1000, quarter_blockY, button_width, button_height);
+    /*Now Text*/
+    CP_Settings_TextSize(40);
+    CP_Settings_Fill(COLOR_BLACK);
+
+    level1_textY = quarter_blockY + 40;
+    CP_Font_DrawText("Level 4", 1100, level1_textY);
+
+    /*Level 5 Buttons*/
+    level2Y = quarter_blockY + 120;
+    CP_Settings_Fill(COLOR_WHITE);
+    CP_Graphics_DrawRect(1000, level2Y, button_width, button_height);
+    /*Now Text*/
+    CP_Settings_TextSize(40);
+    CP_Settings_Fill(COLOR_BLACK);
+
+    level2_textY = level2Y + 40;
+    CP_Font_DrawText("Level 5", 1100, level2_textY);
+
+    /*Level 6 Buttons*/
+    level3Y = quarter_blockY + 240;
+    CP_Settings_Fill(COLOR_WHITE);
+    CP_Graphics_DrawRect(1000, level3Y, button_width, button_height);
+    /*Now Text*/
+    CP_Settings_TextSize(40);
+    CP_Settings_Fill(COLOR_BLACK);
+
+    level3_textY = level3Y + 40;
+    CP_Font_DrawText("Level 6", 1100, level3_textY);
+
+
+
+
+    float mouseX = (float)CP_Input_GetMouseX();
+    float mouseY = (float)CP_Input_GetMouseY();
+
+    /*Hovering on Level 1*/
+    if (mouseX >= 600 && mouseX <= (600 + button_width) &&
+        mouseY >= quarter_blockY && mouseY <= quarter_blockY + button_height) {
+
+        /*Drawing of buttons*/
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Graphics_DrawRect(600, quarter_blockY, button_width, button_height);
+        /*Now Text*/
+        CP_Settings_TextSize(40);
+        CP_Settings_Fill(COLOR_WHITE);
+        level1_textY = quarter_blockY + 40;
+        CP_Font_DrawText("Level 1", 690, level1_textY);
+
+        if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
+        {
+            /*Free image*/
+            CP_Image_Free(&Level_Selector_Screen);
+            current_level = 1;
+            Current_Gamestate = GAMEPLAY_SCREEN;
+
+            initialise_level();
+            minion_count = 0;
+
+
+            reset_map_and_minions();
+            gIsPaused = FALSE;
+            //minions_in_base = 0; Part of minion counter which has been commented out
+
+            //initialise_pause_and_timer_button();
+            restart_level();
+
+        }
+
+
+    }
+    /*Hovering on Level 2 Buttons*/
+    else if (mouseX >= 460 && mouseX <= (460 + button_width) && mouseY >= level2Y && mouseY <= level2Y + button_height)
+    {
+        /*Level 2 buttons*/
+        level2Y = quarter_blockY + 120;
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Graphics_DrawRect(600, level2Y, button_width, button_height);
+        /*Now Text*/
+        CP_Settings_TextSize(40);
+        CP_Settings_Fill(COLOR_WHITE);
+
+        level2_textY = level2Y + 40;
+        CP_Font_DrawText("Level 2", 690, level2_textY);
+
+        if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
+        {
+            CP_Image_Free(&Level_Selector_Screen);
+            current_level = 2;
+            Current_Gamestate = GAMEPLAY_SCREEN;
+
+            initialise_level();
+            minion_count = 0;
+            reset_map_and_minions();
+            gIsPaused = FALSE;
+            //minions_in_base = 0; Part of minion counter which has been commented out
+
+            //initialise_pause_and_timer_button();
+            restart_level();
+
+        }
+
+
+    }
+    /*Hovering on Level 3 Buttons*/
+    else if (mouseX >= 600 && mouseX <= (600 + button_width) && mouseY >= level3Y && mouseY <= level3Y + button_height)
+    {
+        level3Y = quarter_blockY + 240;
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Graphics_DrawRect(600, level3Y, button_width, button_height);
+        /*Now Text*/
+        CP_Settings_TextSize(40);
+        CP_Settings_Fill(COLOR_WHITE);
+
+        level3_textY = level3Y + 40;
+        CP_Font_DrawText("Level 3", 690, level3_textY);
+
+
+        if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
+        {
+            CP_Image_Free(&Level_Selector_Screen);
+            current_level = 3;
+            Current_Gamestate = GAMEPLAY_SCREEN;
+
+            initialise_level();
+            minion_count = 0;
+
+            reset_map_and_minions();
+            gIsPaused = FALSE;
+            //minions_in_base = 0; Part of minion counter which has been commented out
+
+            //initialise_pause_and_timer_button();
+            restart_level();
+
+        }
+
+    }
+    /*Hovering on level 4 Button*/
+    else if (mouseX >= 1000 && mouseX <= (1000 + button_width) && mouseY >= quarter_blockY && mouseY <= quarter_blockY + button_height)
+    {
+
+
+        /*Level 4 Buttons*/
+        level1Y = quarter_blockY + 120;
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Graphics_DrawRect(1000, quarter_blockY, button_width, button_height);
+        /*Now Text*/
+        CP_Settings_TextSize(40);
+        CP_Settings_Fill(COLOR_WHITE);
+
+        level1_textY = quarter_blockY + 40;
+        CP_Font_DrawText("Level 4", 1100, level1_textY);
+
+        if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
+        {
+            CP_Image_Free(&Level_Selector_Screen);
+            current_level = 4;
+            Current_Gamestate = GAMEPLAY_SCREEN;
+
+            initialise_level();
+            minion_count = 0;
+
+            reset_map_and_minions();
+            gIsPaused = FALSE;
+            //minions_in_base = 0; Part of minion counter which has been commented out
+
+            //initialise_pause_and_timer_button();
+            restart_level();
+
+        }
+
+    }
+    /*Hovering on level 5 Button*/
+    else if (mouseX >= 1000 && mouseX <= (1000 + button_width) && mouseY >= level2Y && mouseY <= level2Y + button_height) {
+        /*Level 5 Buttons*/
+        level2Y = quarter_blockY + 120;
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Graphics_DrawRect(1000, level2Y, button_width, button_height);
+        /*Now Text*/
+        CP_Settings_TextSize(40);
+        CP_Settings_Fill(COLOR_WHITE);
+
+        level2_textY = level2Y + 40;
+        CP_Font_DrawText("Level 5", 1100, level2_textY);
+
+        if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
+        {
+            CP_Image_Free(&Level_Selector_Screen);
+            current_level = 5;
+            Current_Gamestate = GAMEPLAY_SCREEN;
+
+            initialise_level();
+            minion_count = 0;
+
+            reset_map_and_minions();
+            gIsPaused = FALSE;
+            //minions_in_base = 0; Part of minion counter which has been commented out
+
+            //initialise_pause_and_timer_button();
+            restart_level();
+
+        }
+    }
+    /*Hovering on level 6 Button*/
+    else if (mouseX >= 1000 && mouseX <= (1000 + button_width) && mouseY >= level3Y && mouseY <= level3Y + button_height) {
+
+        /*Level 6 Buttons*/
+        level3Y = quarter_blockY + 240;
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Graphics_DrawRect(1000, level3Y, button_width, button_height);
+        /*Now Text*/
+        CP_Settings_TextSize(40);
+        CP_Settings_Fill(COLOR_WHITE);
+
+        level3_textY = level3Y + 40;
+        CP_Font_DrawText("Level 6", 1100, level3_textY);
+
+        if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
+        {
+            CP_Image_Free(&Level_Selector_Screen);
+            current_level = 6;
+            Current_Gamestate = GAMEPLAY_SCREEN;
+
+            initialise_level();
+            minion_count = 0;
+
+            reset_map_and_minions();
+            gIsPaused = FALSE;
+            //minions_in_base = 0; Part of minion counter which has been commented out
+
+            //initialise_pause_and_timer_button();
+            restart_level();
+
+        }
+
+
+    }
+
+
+
+
+
+}
+
+
+
 
 /*Updates the new origin depending on what the full screen size is*/
 void update_variables_and_make_screen_nice() {
@@ -784,7 +1101,7 @@ void gameplay_screen_clicked(float x, float y) {
 
 /*Initialises level depending on the current level - TBC*/
 void initialise_level() {
-    current_level = 4;
+
     if (current_level == 1) {
         level_1();
     }
