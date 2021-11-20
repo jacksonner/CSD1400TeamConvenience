@@ -1698,11 +1698,133 @@ void level_1() {
 }
 
 void level_2() {
+    array_GameMap[0][9] = BLOCK_SPAWN;
+    array_GameMap[4][1] = BLOCK_END;
 
+    /*Filler Blocks*/
+    array_GameMap[0][3] = BLOCK_PRESENT;
+    array_GameMap[0][5] = BLOCK_PRESENT;
+    array_GameMap[0][8] = BLOCK_PRESENT;
+    array_GameMap[1][5] = BLOCK_PRESENT;
+    array_GameMap[1][8] = BLOCK_PRESENT;
+    array_GameMap[3][3] = BLOCK_PRESENT;
+    array_GameMap[2][1] = BLOCK_PRESENT;
+    array_GameMap[2][5] = BLOCK_PRESENT;
+    array_GameMap[3][0] = BLOCK_PRESENT;
+    array_GameMap[3][9] = BLOCK_PRESENT;
+    array_GameMap[4][2] = BLOCK_PRESENT;
+
+    initial_direction = DOWN;
+    /*Enemies*/
+    array_GameMap[2][7] = BLOCK_ENEMY;
+    array_EnemyStats[0][ENEMY_ROW] = 2;
+    array_EnemyStats[0][ENEMY_COL] = 7;
+    array_EnemyStats[0][ENEMY_TYPE] = GUARD_ENEMY;
+
+    array_GameMap[3][4] = BLOCK_ENEMY;
+    array_EnemyStats[1][ENEMY_ROW] = 3;
+    array_EnemyStats[1][ENEMY_COL] = 4;
+    array_EnemyStats[1][ENEMY_TYPE] = GUARD_ENEMY;
+
+    array_GameMap[2][3] = BLOCK_TOWER_ENEMY;
+    array_EnemyStats[2][ENEMY_ROW] = 2;
+    array_EnemyStats[2][ENEMY_COL] = 3;
+    array_EnemyStats[2][ENEMY_TYPE] = SLOW_ENEMY;
+
+    array_GameMap[4][6] = BLOCK_TOWER_ENEMY;
+    array_EnemyStats[3][ENEMY_ROW] = 4;
+    array_EnemyStats[3][ENEMY_COL] = 6;
+    array_EnemyStats[3][ENEMY_TYPE] = DAMAGE_ENEMY;
+
+    array_GameMap[1][1] = BLOCK_TOWER_ENEMY;
+    array_EnemyStats[4][ENEMY_ROW] = 1;
+    array_EnemyStats[4][ENEMY_COL] = 1;
+    array_EnemyStats[4][ENEMY_TYPE] = DAMAGE_ENEMY;
+
+    array_GameMap[1][3] = BLOCK_ENEMY;
+    array_EnemyStats[5][ENEMY_ROW] = 1;
+    array_EnemyStats[5][ENEMY_COL] = 3;
+    array_EnemyStats[5][ENEMY_TYPE] = GUARD_ENEMY;
+
+    array_GameMap[3][1] = BLOCK_ENEMY;
+    array_EnemyStats[6][ENEMY_ROW] = 3;
+    array_EnemyStats[6][ENEMY_COL] = 1;
+    array_EnemyStats[6][ENEMY_TYPE] = GUARD_ENEMY;
 }
 
 void level_3() {
+    array_GameMap[0][10] = BLOCK_SPAWN;
+    array_GameMap[0][1] = BLOCK_END;
 
+    /*Filler Blocks*/
+    array_GameMap[0][3] = BLOCK_PRESENT;
+    array_GameMap[0][6] = BLOCK_PRESENT;
+    array_GameMap[1][2] = BLOCK_PRESENT;
+    array_GameMap[1][6] = BLOCK_PRESENT;
+    array_GameMap[1][8] = BLOCK_PRESENT;
+    array_GameMap[1][9] = BLOCK_PRESENT;
+    array_GameMap[1][10] = BLOCK_PRESENT;
+    array_GameMap[2][2] = BLOCK_PRESENT;
+    array_GameMap[2][6] = BLOCK_PRESENT;
+    array_GameMap[3][0] = BLOCK_PRESENT;
+    array_GameMap[3][4] = BLOCK_PRESENT;
+    array_GameMap[3][7] = BLOCK_PRESENT;
+    array_GameMap[3][8] = BLOCK_PRESENT;
+    array_GameMap[3][9] = BLOCK_PRESENT;
+    array_GameMap[4][4] = BLOCK_PRESENT;
+
+    initial_direction = LEFT;
+
+    /*Enemies*/
+    array_GameMap[1][1] = BLOCK_ENEMY;
+    array_EnemyStats[0][ENEMY_ROW] = 1;
+    array_EnemyStats[0][ENEMY_COL] = 1;
+    array_EnemyStats[0][ENEMY_TYPE] = GUARD_ENEMY;
+
+    array_GameMap[1][3] = BLOCK_ENEMY;
+    array_EnemyStats[1][ENEMY_ROW] = 1;
+    array_EnemyStats[1][ENEMY_COL] = 3;
+    array_EnemyStats[1][ENEMY_TYPE] = GUARD_ENEMY;
+
+    array_GameMap[2][7] = BLOCK_ENEMY;
+    array_EnemyStats[2][ENEMY_ROW] = 2;
+    array_EnemyStats[2][ENEMY_COL] = 7;
+    array_EnemyStats[2][ENEMY_TYPE] = GUARD_ENEMY;
+
+    array_GameMap[4][11] = BLOCK_ENEMY;
+    array_EnemyStats[3][ENEMY_ROW] = 4;
+    array_EnemyStats[3][ENEMY_COL] = 11;
+    array_EnemyStats[3][ENEMY_TYPE] = GUARD_ENEMY;
+
+    array_GameMap[0][4] = BLOCK_TOWER_ENEMY;
+    array_EnemyStats[4][ENEMY_ROW] = 0;
+    array_EnemyStats[4][ENEMY_COL] = 4;
+    array_EnemyStats[4][ENEMY_TYPE] = DAMAGE_ENEMY;
+
+    array_GameMap[3][2] = BLOCK_TOWER_ENEMY;
+    array_EnemyStats[5][ENEMY_ROW] = 3;
+    array_EnemyStats[5][ENEMY_COL] = 2;
+    array_EnemyStats[5][ENEMY_TYPE] = DAMAGE_ENEMY;
+
+    array_GameMap[3][10] = BLOCK_TOWER_ENEMY;
+    array_EnemyStats[6][ENEMY_ROW] = 3;
+    array_EnemyStats[6][ENEMY_COL] = 10;
+    array_EnemyStats[6][ENEMY_TYPE] = DAMAGE_ENEMY;
+
+    array_GameMap[2][4] = BLOCK_TOWER_ENEMY;
+    array_EnemyStats[7][ENEMY_ROW] = 2;
+    array_EnemyStats[7][ENEMY_COL] = 4;
+    array_EnemyStats[7][ENEMY_TYPE] = SLOW_ENEMY;
+
+    array_GameMap[0][2] = BLOCK_TOWER_ENEMY;
+    array_EnemyStats[8][ENEMY_ROW] = 0;
+    array_EnemyStats[8][ENEMY_COL] = 2;
+    array_EnemyStats[8][ENEMY_TYPE] = RANGED_TOWER;
+
+    array_GameMap[3][6] = BLOCK_TOWER_ENEMY;
+    array_EnemyStats[9][ENEMY_ROW] = 3;
+    array_EnemyStats[9][ENEMY_COL] = 6;
+    array_EnemyStats[9][ENEMY_TYPE] = RANGED_TOWER;
 }
 
 /*Example on how to use Teleporter*/
