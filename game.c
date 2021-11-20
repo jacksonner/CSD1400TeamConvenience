@@ -1154,15 +1154,25 @@ void healer_minion_basic_heal(int i) {
     int check_if_can_attack = check_minion_basic_attack_charge(i);
     if (check_if_can_attack == 1) {
         int minion_lowest_hp = 0;
+        float full_hp1, full_hp2;
+        full_hp1 = full_hp2 = 0;
         for (int j = 0; j < minion_count; j++) {
-            float percentage_hp1 = ((float)array_MinionStats[j][MINION_HP] / (float)find_full_hp(j)) * 100;
-            float percentage_minion_lowest_hp = ((float)array_MinionStats[minion_lowest_hp][MINION_HP] / find_full_hp(minion_lowest_hp)) * 100;
-            printf("this is happening, %f\n", percentage_minion_lowest_hp);
+            full_hp1 = (float)find_full_hp(j);
+            full_hp2 = (float)find_full_hp(minion_lowest_hp);
+            float percentage_hp1 = ((float)array_MinionStats[j][MINION_HP] / full_hp1) * 100;
+            float percentage_minion_lowest_hp = ((float)array_MinionStats[minion_lowest_hp][MINION_HP] / full_hp2) * 100;
             if (percentage_hp1 < percentage_minion_lowest_hp) {
                 minion_lowest_hp = j;
             }
         }
-        array_MinionStats[minion_lowest_hp][MINION_HP] += array_MinionStats[i][MINION_HEAL];
+        int check = (int)full_hp2 - array_MinionStats[minion_lowest_hp][MINION_HP];
+        //if the amount of hp missing is less than the amount to be healed, check is the total healable hp
+        if (check < array_MinionStats[i][MINION_HEAL]) {
+            array_MinionStats[minion_lowest_hp][MINION_HP] += check;
+        }
+        else {
+            array_MinionStats[minion_lowest_hp][MINION_HP] += array_MinionStats[i][MINION_HEAL];
+        }
     }
 }
 
