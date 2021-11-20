@@ -1313,7 +1313,12 @@ void minion_special_attack(int i, int current_row, int current_col) {
     int tank_range = 2, wizard_range = 3;
     int full_health[MINION_MAX];
     for (int n = 0; n < MINION_MAX; ++n) {
-        full_health[n] = array_MinionStats[n][MINION_HP];
+        full_health[n] = (array_MinionStats[n][MINION_TYPE] == SPAM_MINION) ? 50
+            : (array_MinionStats[n][MINION_TYPE] == WARRIOR_MINION) ? 130
+            : (array_MinionStats[n][MINION_TYPE] == TANK_MINION) ? 240
+            : (array_MinionStats[n][MINION_TYPE] == WIZARD_MINION) ? 80
+            : (array_MinionStats[n][MINION_TYPE] == HEALER_MINION) ? 120
+            : 0;
     }
     if (array_MinionCurrentCharge[i][MINION_CURRENT_CHARGE] >= array_MinionCurrentCharge[i][MINION_CHARGE_TIME]) {
         if (array_MinionStats[i][MINION_TYPE] == WARRIOR_MINION) {
@@ -1349,7 +1354,13 @@ void minion_special_attack(int i, int current_row, int current_col) {
         else if (array_MinionStats[i][MINION_TYPE] == HEALER_MINION) {
             for (int t = 0; t < minion_count; ++t) {
                 if (array_MinionStats[t][MINION_HP] < full_health[i]) { //minion hp wont go higer than 100%
-                    array_MinionStats[t][MINION_HP] += 50;
+                    int check = full_health[t] - array_MinionStats[t][MINION_HP];
+                    if (check < 50) {
+                        array_MinionStats[t][MINION_HP] += check; //so it doesnt overheal
+                    }
+                    else {
+                        array_MinionStats[t][MINION_HP] += 50;
+                    }
                 }
             }
 
