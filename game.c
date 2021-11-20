@@ -143,6 +143,7 @@ void enemy_special_attack();
 #define CHECKER 1
 float array_Enemy_Slow_Effect_Time[ENEMY_MAX][2];
 int array_isMinionSlowed[MINION_MAX][2];
+void render_enemy_special_attack_bar(int i);
 
 /*Types of Enemies*/
 #define GUARD_ENEMY 0 //block minions
@@ -762,7 +763,6 @@ void level_selector_screen(void) {
             reset_map_and_minions();
             gIsPaused = FALSE;
             //minions_in_base = 0; Part of minion counter which has been commented out
-
             //initialise_pause_and_timer_button();
             restart_level();
 
@@ -866,18 +866,8 @@ void level_selector_screen(void) {
             restart_level();
 
         }
-
-
     }
-
-
-
-
-
 }
-
-
-
 
 /*Updates the new origin depending on what the full screen size is*/
 void update_variables_and_make_screen_nice() {
@@ -1275,7 +1265,7 @@ void render_enemy() {
                     array_EnemyStats[which_enemy][ENEMY_COL_COORDINATES] = origin_map_coordinateY + BLOCK_SIZE * row + array_EnemyStats[which_enemy][ENEMY_SIZE];
                     
                     assign_enemy_color(which_enemy);
-                    
+                    render_enemy_special_attack_bar(which_enemy);
                     if (array_EnemyStats[which_enemy][ENEMY_TYPE] == DAMAGE_ENEMY)
                     {
                         projectile_logic((float)array_EnemyStats[which_enemy][ENEMY_ROW_COORDINATES], (float)array_EnemyStats[which_enemy][ENEMY_COL_COORDINATES]);
@@ -1536,9 +1526,17 @@ void healer_minion_basic_heal(int i) {
     }
 }
 
-void render_enemy_special_attack_bar() {
-
+void render_enemy_special_attack_bar(int i) {
+    float charge_percentage;
+    if (array_EnemyStats[i][ENEMY_TYPE] == HEALING_TOWER || array_EnemyStats[i][ENEMY_TYPE] == SLOW_ENEMY) {
+        charge_percentage = (array_EnemyCurrentCharge[i][ENEMY_CURRENT_CHARGE] / array_EnemyCurrentCharge[i][ENEMY_CHARGE_TIME]) * (float)default_hp_tower;
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Graphics_DrawRect((float)array_EnemyStats[i][ENEMY_ROW_COORDINATES] - 40, (float)array_EnemyStats[i][ENEMY_COL_COORDINATES] - 50, (float)default_hp_tower, (float)HP_BAR_HEIGHT-1);
+        CP_Settings_Fill(COLOR_WHITE);
+        CP_Graphics_DrawRect((float)array_EnemyStats[i][ENEMY_ROW_COORDINATES] - 40, (float)array_EnemyStats[i][ENEMY_COL_COORDINATES] - 50, charge_percentage, (float)HP_BAR_HEIGHT-1);
+    }
 }
+
 
 void enemy_special_attack() {
     int how_long_effect_is = 3;
@@ -1602,6 +1600,7 @@ void enemy_special_attack() {
 void minion_dies_array_recycle(int dead_minion_number) {
     int array_Temp_MinionStats[MINION_MAX][MINION_TOTAL_STATS];
     float array_Temp_MinionCharge[MINION_MAX][TOTAL_CHARGES];
+    int array_Temp_isMinionSlowed[MINION_MAX][2];
 
     for (int i = 0; i < dead_minion_number; i++) {
         for (int j = 0; j < MINION_TOTAL_STATS; j++) {
@@ -1613,15 +1612,28 @@ void minion_dies_array_recycle(int dead_minion_number) {
             array_Temp_MinionCharge[i][j] = array_MinionCurrentCharge[i][j];
         }
     }
+    for (int i = 0; i < dead_minion_number; i++) {
+        for (int j = 0; j < 2; j++) {
+            array_Temp_isMinionSlowed[i][j] = array_isMinionSlowed[i][j];
+        }
+    }
+
     int dead_min_num = dead_minion_number;
     for (int k = (dead_min_num + 1); k <= minion_count; k++, dead_min_num++) {
         for (int m = 0; m < MINION_TOTAL_STATS; m++) {
             array_Temp_MinionStats[dead_min_num][m] = array_MinionStats[k][m];
         }
     }
-    for (int k = (dead_minion_number + 1); k <= minion_count; k++, dead_minion_number++) {
+    dead_min_num = dead_minion_number;
+    for (int k = (dead_min_num + 1); k <= minion_count; k++, dead_min_num++) {
         for (int m = 0; m < TOTAL_CHARGES; m++) {
-            array_Temp_MinionCharge[dead_minion_number][m] = array_MinionCurrentCharge[k][m];
+            array_Temp_MinionCharge[dead_min_num][m] = array_MinionCurrentCharge[k][m];
+        }
+    }
+    dead_min_num = dead_minion_number;
+    for (int k = (dead_min_num + 1); k <= minion_count; k++, dead_min_num++) {
+        for (int m = 0; m < 2; m++) {
+            array_Temp_isMinionSlowed[dead_min_num][m] = array_isMinionSlowed[k][m];
         }
     }
     //Now we update the original array with the stored values
@@ -1635,6 +1647,12 @@ void minion_dies_array_recycle(int dead_minion_number) {
             array_MinionCurrentCharge[h][n] = array_Temp_MinionCharge[h][n];
         }
     }
+    for (int h = 0; h < minion_count; h++) {
+        for (int n = 0; n < 2; n++) {
+            array_isMinionSlowed[h][n] = array_Temp_isMinionSlowed[h][n];
+        }
+    }
+
     minion_count--;
 }
 
@@ -1759,16 +1777,16 @@ void render_special_current_charge() {
             float charge_percentage;
             if (array_MinionStats[i][MINION_HP] > 0) {
                 if (array_MinionStats[i][MINION_TYPE] == WARRIOR_MINION) {
-                    buffer_space = array_MinionStats[i][MINION_SIZE] / 2 + 6;
+                    buffer_space = array_MinionStats[i][MINION_SIZE] / 2 + 7;
                 }
                 else if (array_MinionStats[i][MINION_TYPE] == TANK_MINION) {
-                    buffer_space = array_MinionStats[i][MINION_SIZE] / 2 + 6;
+                    buffer_space = array_MinionStats[i][MINION_SIZE] / 2 + 7;
                 }
                 else if (array_MinionStats[i][MINION_TYPE] == WIZARD_MINION) {
-                    buffer_space = array_MinionStats[i][MINION_SIZE] / 2 + 6;
+                    buffer_space = array_MinionStats[i][MINION_SIZE] / 2 + 7;
                 }
                 else if (array_MinionStats[i][MINION_TYPE] == HEALER_MINION) {
-                    buffer_space = array_MinionStats[i][MINION_SIZE] / 2 + 6;
+                    buffer_space = array_MinionStats[i][MINION_SIZE] / 2 + 7;
                 }
                 charge_percentage = array_MinionCurrentCharge[i][MINION_CURRENT_CHARGE] / array_MinionCurrentCharge[i][MINION_CHARGE_TIME];
                 float charge_bar = charge_percentage * default_hp;
@@ -2146,9 +2164,9 @@ void level_1() {
         array_EnemyStats[1][ENEMY_ROW] = 3;
         array_EnemyStats[1][ENEMY_COL] = 3;
         array_EnemyStats[1][ENEMY_TYPE] = GUARD_ENEMY;
-    array_GameMap[3][0] = BLOCK_ENEMY;
+    array_GameMap[3][1] = BLOCK_ENEMY;
         array_EnemyStats[2][ENEMY_ROW] = 3;
-        array_EnemyStats[2][ENEMY_COL] = 0;
+        array_EnemyStats[2][ENEMY_COL] = 1;
         array_EnemyStats[2][ENEMY_TYPE] = GUARD_ENEMY;
     array_GameMap[3][8] = BLOCK_TOWER_ENEMY;
         array_EnemyStats[3][ENEMY_ROW] = 3;
@@ -2164,8 +2182,7 @@ void level_1() {
         array_EnemyStats[5][ENEMY_TYPE] = GUARD_ENEMY;
         /*Please be careful when adding a new enemy, change the number array_EnemyStats[3][ENEMY_TYPE] -> array_EnemyStats[4][ENEMY_TYPE]*/
     array_GameMap[4][6] = BLOCK_PRESENT;
-    enemy_count = 6;
-
+    initial_direction = LEFT;
 }
 
 void level_2() {
@@ -2229,6 +2246,7 @@ void level_3() {
 
     /*Filler Blocks*/
     array_GameMap[0][3] = BLOCK_PRESENT;
+    array_GameMap[0][11] = BLOCK_PRESENT;
     array_GameMap[0][6] = BLOCK_PRESENT;
     array_GameMap[1][2] = BLOCK_PRESENT;
     array_GameMap[1][6] = BLOCK_PRESENT;
