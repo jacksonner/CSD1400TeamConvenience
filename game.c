@@ -56,6 +56,7 @@ int teleport_spawn_X, teleport_spawn_Y;
 #define COLOR_DULLER_BLUE CP_Color_Create(0, 76, 153, 255)
 #define TRANSLUCENT_BLUE CP_Color_Create(204, 255, 255, 100)
 #define COLOR_DULL_GREEN CP_Color_Create(0, 153, 0, 255)
+#define COLOR_DARK_BLUE CP_Color_Create(0, 102, 204, 255)
 
 
 /*Minion Stats*/
@@ -194,6 +195,9 @@ int check_which_enemy(int row, int col);
 float restartX, restartY, restart_length, restart_width;
 void restart_level();
 void display_restart_button(void); //found in gameplay_screen
+
+/*Win Condition Related*/
+void render_win_progress();
 
 /**/
 #define FALSE 0
@@ -391,6 +395,9 @@ void game_update(void) {
             {
                 Current_Gamestate = LOSE_SCREEN;
             }
+            if (minions_in_base == 10) {
+                Current_Gamestate = WIN_SCREEN;
+            }
         }
     }
     else if (Current_Gamestate == LOSE_SCREEN)
@@ -401,6 +408,9 @@ void game_update(void) {
     else if (Current_Gamestate == LEVEL_SELECTOR_SCREEN)
     {
         level_selector_screen();
+    }
+    else if (Current_Gamestate == WIN_SCREEN) {
+        //TBC
     }
 }
 
@@ -462,7 +472,7 @@ void main_menu_clicked(float x, float y) {
         reset_map_and_minions();
         initialise_level();
         gIsPaused = FALSE;
-        //minions_in_base = 0; Part of minion counter which has been commented out
+        minions_in_base = 0; //Part of minion counter which has been commented out
 
         initialise_pause_and_timer_button();
     }
@@ -695,7 +705,6 @@ void level_selector_screen(void) {
 
             reset_map_and_minions();
             gIsPaused = FALSE;
-            //minions_in_base = 0; Part of minion counter which has been commented out
 
             //initialise_pause_and_timer_button();
             restart_level();
@@ -728,7 +737,6 @@ void level_selector_screen(void) {
             minion_count = 0;
             reset_map_and_minions();
             gIsPaused = FALSE;
-            //minions_in_base = 0; Part of minion counter which has been commented out
 
             //initialise_pause_and_timer_button();
             restart_level();
@@ -762,7 +770,6 @@ void level_selector_screen(void) {
 
             reset_map_and_minions();
             gIsPaused = FALSE;
-            //minions_in_base = 0; Part of minion counter which has been commented out
             //initialise_pause_and_timer_button();
             restart_level();
 
@@ -796,7 +803,6 @@ void level_selector_screen(void) {
 
             reset_map_and_minions();
             gIsPaused = FALSE;
-            //minions_in_base = 0; Part of minion counter which has been commented out
 
             //initialise_pause_and_timer_button();
             restart_level();
@@ -828,7 +834,6 @@ void level_selector_screen(void) {
 
             reset_map_and_minions();
             gIsPaused = FALSE;
-            //minions_in_base = 0; Part of minion counter which has been commented out
 
             //initialise_pause_and_timer_button();
             restart_level();
@@ -860,7 +865,6 @@ void level_selector_screen(void) {
 
             reset_map_and_minions();
             gIsPaused = FALSE;
-            //minions_in_base = 0; Part of minion counter which has been commented out
 
             //initialise_pause_and_timer_button();
             restart_level();
@@ -983,7 +987,7 @@ void restart_level(void) {
     reset_map_and_minions();
     initialise_level();
     gIsPaused = FALSE;
-    //minions_in_base = 0; Part of minion counter which has been commented out
+    minions_in_base = 0;
     initialise_pause_and_timer_button();
     money = 50;
     elapsed_timer = 0;
@@ -1035,7 +1039,7 @@ void gameplay_screen() {
     }
     CP_Settings_RectMode(CP_POSITION_CORNER);
     display_restart_button();
-
+    render_win_progress();
 }
 
 void gameplay_screen_clicked(float x, float y) {
@@ -1537,7 +1541,6 @@ void render_enemy_special_attack_bar(int i) {
     }
 }
 
-
 void enemy_special_attack() {
     int how_long_effect_is = 3;
     for (int i = 0; i < ENEMY_MAX; i++) {
@@ -1813,6 +1816,25 @@ void display_money_counter() {
     CP_Settings_TextSize(50);
     CP_Font_DrawText("Money: " , (counter_X - 150.f), (counter_Y + 55));
     CP_Font_DrawText(money_buffer, (counter_X + 40.f), (counter_Y + 55));
+}
+
+void render_win_progress() {
+    float width = 30;
+    float height = 40;
+    int x_coordinate = CP_System_GetWindowWidth() - origin_map_coordinateX - ((int)width * 10);
+    int y_coordinate = origin_map_coordinateY - 50;
+    //float percentage = ((float)minions_in_base / 10) * width;
+    int x = 0;
+    for (int i = 0; i < 10; i++) {
+        x = x_coordinate + ((int)width * i);
+        CP_Settings_Fill(COLOR_DARK_BLUE);
+        CP_Graphics_DrawRect((float)x, (float)y_coordinate, width, height);
+    }
+    for (int i = 0; i < minions_in_base; i++) {
+        x = x_coordinate + ((int)width * i);
+        CP_Settings_Fill(COLOR_WHITE);
+        CP_Graphics_DrawRect((float)x, (float)y_coordinate, width, height);
+    }
 }
 
 int find_full_hp(int n) {
