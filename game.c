@@ -164,6 +164,7 @@ void minion_dies_array_recycle(int i);
 /*Special attacks for minions*/
 void minion_special_attack(int i, int current_row, int current_col);
 void minion_attacking_towers(int i, int current_row, int current_col, int minion_range);
+void healer_minion_basic_heal(int i);
 
 /*checking surrounding squares for AOE attacks*/
 int array_enemy_to_attack[MINION_MAX][ENEMY_MAX];
@@ -253,6 +254,9 @@ CP_Image Lose_Screen = NULL;
 int initial_direction; //when setting up level, check for the initial direction to set this to
 void move_minion(void);
 int check_for_enemy(int minion); //returns 1 if there is an enemy on the minions' current position
+
+/*HP*/
+int find_full_hp(int i);
 
 /*Functions*/
 void reset_map_and_minions(void);
@@ -1052,6 +1056,9 @@ void move_minion() {
                 ? UP
                 : STOP;
         }
+        if (array_MinionStats[i][MINION_TYPE] == HEALER_MINION && array_MinionStats[i][MINION_HP] > 0) {
+            healer_minion_basic_heal(i);
+        }
         if (array_GameMap[current_boxROW][current_boxCOL] == BLOCK_ENEMY) {
             int row_enemy, col_enemy;
             row_enemy = current_boxROW;
@@ -1143,8 +1150,23 @@ void move_minion() {
     }
 }
 
-/*Should probably update this code to make it shorter lol*/
+void healer_minion_basic_heal(int i) {
+    int check_if_can_attack = check_minion_basic_attack_charge(i);
+    if (check_if_can_attack == 1) {
+        int minion_lowest_hp = 0;
+        for (int j = 0; j < minion_count; j++) {
+            float percentage_hp1 = ((float)array_MinionStats[j][MINION_HP] / (float)find_full_hp(j)) * 100;
+            float percentage_minion_lowest_hp = ((float)array_MinionStats[minion_lowest_hp][MINION_HP] / find_full_hp(minion_lowest_hp)) * 100;
+            printf("this is happening, %f\n", percentage_minion_lowest_hp);
+            if (percentage_hp1 < percentage_minion_lowest_hp) {
+                minion_lowest_hp = j;
+            }
+        }
+        array_MinionStats[minion_lowest_hp][MINION_HP] += array_MinionStats[i][MINION_HEAL];
+    }
+}
 
+/*Should probably update this code to make it shorter lol*/
 void minion_dies_array_recycle(int dead_minion_number) {
     int array_Temp_MinionStats[MINION_MAX][MINION_TOTAL_STATS];
     float array_Temp_MinionCharge[MINION_MAX][TOTAL_CHARGES];
@@ -1309,16 +1331,26 @@ void display_money_counter() {
     CP_Font_DrawText(money_buffer, (counter_X + 40.f), (counter_Y + 55));
 }
 
+int find_full_hp(int n) {
+    int full_hp = (array_MinionStats[n][MINION_TYPE] == SPAM_MINION)
+        ? 50
+        : (array_MinionStats[n][MINION_TYPE] == WARRIOR_MINION)
+        ? 130
+        : (array_MinionStats[n][MINION_TYPE] == TANK_MINION)
+        ? 240
+        : (array_MinionStats[n][MINION_TYPE] == WIZARD_MINION)
+        ? 80
+        : (array_MinionStats[n][MINION_TYPE] == HEALER_MINION)
+        ? 120
+        : 0;
+    return full_hp;
+}
+
 void minion_special_attack(int i, int current_row, int current_col) {
     int tank_range = 2, wizard_range = 3;
     int full_health[MINION_MAX];
     for (int n = 0; n < MINION_MAX; ++n) {
-        full_health[n] = (array_MinionStats[n][MINION_TYPE] == SPAM_MINION) ? 50
-            : (array_MinionStats[n][MINION_TYPE] == WARRIOR_MINION) ? 130
-            : (array_MinionStats[n][MINION_TYPE] == TANK_MINION) ? 240
-            : (array_MinionStats[n][MINION_TYPE] == WIZARD_MINION) ? 80
-            : (array_MinionStats[n][MINION_TYPE] == HEALER_MINION) ? 120
-            : 0;
+        full_health[n] = find_full_hp(n);
     }
     if (array_MinionCurrentCharge[i][MINION_CURRENT_CHARGE] >= array_MinionCurrentCharge[i][MINION_CHARGE_TIME]) {
         if (array_MinionStats[i][MINION_TYPE] == WARRIOR_MINION) {
@@ -1538,7 +1570,7 @@ void assign_minion_stats() {
         array_MinionStats[minion_count][MINION_SIZE] = 60;
         array_MinionStats[minion_count][MINION_HEAL] = 20;
         array_MinionCurrentCharge[minion_count][MINION_CHARGE_TIME] = 3; //super healing???
-        array_MinionCurrentCharge[minion_count][MINION_BASIC_ATTACK_SPEED] = 0.4f;
+        array_MinionCurrentCharge[minion_count][MINION_BASIC_ATTACK_SPEED] = 0.5f;
     }
 }
 
