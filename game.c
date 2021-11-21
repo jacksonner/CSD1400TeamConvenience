@@ -162,6 +162,7 @@ void render_enemy_special_attack_bar(int i);
 #define LOSE_SCREEN 3
 #define PAUSE_SCREEN 4 //like a translucent array with a giant play button?
 #define LEVEL_SELECTOR_SCREEN 5
+#define SETTING_SCREEN 6
 int Current_Gamestate;
 
 /*render HP bar for minions*/
@@ -228,8 +229,7 @@ int level_timer = 0;
 float test;
 float elapsed_timer;
 float elapsed_timer2;
-float elapsed_timer3;
-float gPauseButtonPositionX, gPauseButtonPositionY, gPauseButtonTextPositionX, gPauseButtonTextPositionY;
+float gPauseButtonPositionX, gPauseButtonPositionY, gPauseButtonTextPositionX, gPauseButtonTextPositionY, setting_buttonX, setting_buttonY;
 float gTimerPositionX, gTimerPositionY, gTimerButtonTextPositionX, gTimerButtonTextPositionY;
 float currentElapsedTime;
 static float totalElapsedTime;
@@ -262,7 +262,7 @@ int proj_count = 0;
 int BlockPositionX;
 int BlockPositionY;
 int minion_count;
-int spawn_row; 
+int spawn_row;
 int spawn_col;
 void update_variables_and_make_screen_nice(); //since it's full screen, need to update the various variables so everything still looks nice
 int is_Search = 1;
@@ -281,8 +281,8 @@ void gameplay_screen_clicked(float x, float y);
 
 /*Main Menu Screen*/
 float button_height, button_width;
-float level_selectorX, level_selectorY, start_game_buttonX, start_game_buttonY;
-float start_textX, start_textY, levels_textX, levels_textY;
+float level_selectorX, level_selectorY, start_game_buttonX, start_game_buttonY, settingX, settingY;
+float start_textX, start_textY, levels_textX, levels_textY, setting_textX, setting_textY;
 void main_menu_screen(void);
 void main_menu_clicked(float x, float y);
 static CP_Image main_menu_image;
@@ -294,6 +294,15 @@ float restart_textX, restart_textY, main_textX, main_textY;
 void lose_screen(void);
 CP_Image Lose_Screen = NULL;
 
+/*Win Screen*/
+void win_screen(void);
+float ButtonPositionX;
+float ButtonPositionY;
+float button_heightL, button_widthL;
+float restart_loseX, restart_loseY, main_loseX, main_loseY;
+float restart_textX, restart_textY, main_textX, main_textY;
+CP_Image Win_Screen = NULL;
+
 /*Level Selector Screen*/
 void level_selector_screen(void);
 float level1X, level1Y, level1_textX, level1_textY;
@@ -303,6 +312,14 @@ float level4X, level4Y, level4_textY, level4_textY;
 float level5X, level5Y, level5_textY, level5_textY;
 float level6X, level6Y, level6_textY, level6_textY;
 CP_Image Level_Selector_Screen = NULL;
+
+/*Setting Screen*/
+void setting_screen(void);
+void setting_screen_clicked(float x, float y);
+static CP_Image setting_image;
+float backX, backY, setting_width, setting_height;
+float back_width, back_height;
+int Previous_Gamestate;
 
 /*Move Minion*/
 int initial_direction; //when setting up level, check for the initial direction to set this to
@@ -316,6 +333,7 @@ int find_full_hp(int i);
 void reset_map_and_minions(void);
 void render_background(void); //for the gameplay_screen
 void gameplay_screen(void);
+
 void initialise_level(void); //TBC
 void setup_collaborative_diffusion_map(void); //ensure no backtracking
 void render_minion(void);
@@ -372,6 +390,8 @@ void game_update(void) {
         }
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
         {
+            setting_screen_clicked(CP_Input_GetMouseX(), CP_Input_GetMouseY());
+
             if (((CP_Input_GetMouseX() >= gPauseButtonPositionX) && (CP_Input_GetMouseX() <= pauseButtonLimitX)) &&
                 ((CP_Input_GetMouseY() >= gPauseButtonPositionY) && (CP_Input_GetMouseY() <= pauseButtonLimitY)))
             {
@@ -451,7 +471,11 @@ void game_update(void) {
         level_selector_screen();
     }
     else if (Current_Gamestate == WIN_SCREEN) {
-        //TBC
+
+        win_screen();
+    }
+    else if (Current_Gamestate == SETTING_SCREEN) {
+        setting_screen();
     }
 }
 
@@ -465,8 +489,8 @@ void main_menu_screen(void) {
     main_menu_image = CP_Image_Load("./Assets/bg_mainmenu2.png");
     //CP_Graphics_ClearBackground(COLOR_WHITE);
     static float middleX, middleY, width, height;
-    middleX = (float)(CP_System_GetWindowWidth()/2);
-    middleY = (float)(CP_System_GetWindowHeight()/2);
+    middleX = (float)(CP_System_GetWindowWidth() / 2);
+    middleY = (float)(CP_System_GetWindowHeight() / 2);
     width = (float)CP_Image_GetWidth(main_menu_image);
     height = (float)CP_Image_GetWidth(main_menu_image) * 0.6f;
     CP_Image_Draw(main_menu_image, middleX, middleY, width, height, 100);
@@ -481,17 +505,26 @@ void main_menu_screen(void) {
     start_game_buttonX = quarter_blockX;
     start_game_buttonY = 2.f * quarter_blockY + 0.1f * quarter_blockY;
     level_selectorY = start_game_buttonY + quarter_blockY * 0.8f;
+    settingX = 1600;
+    settingY = 1000.f;
     CP_Graphics_DrawRect(level_selectorX, level_selectorY, button_width, button_height);
     CP_Graphics_DrawRect(start_game_buttonX, start_game_buttonY, button_width, button_height);
+    setting_height = 60.f;
+    setting_width = 240.f;
+    CP_Graphics_DrawRect(settingX, settingY, setting_width, setting_height);
     /*Now Text*/
     CP_Settings_TextSize(80);
     CP_Settings_Fill(COLOR_BLACK);
     start_textX = start_game_buttonX + 50;
     start_textY = start_game_buttonY + 80;
     levels_textX = level_selectorX + 40;
-    levels_textY = level_selectorY + 80;  
-    CP_Font_DrawText("START", start_textX, start_textY);  
+    levels_textY = level_selectorY + 80;
+    setting_textX = settingX + 40;
+    setting_textY = settingY + 40;
+    CP_Font_DrawText("START", start_textX, start_textY);
     CP_Font_DrawText("LEVELS", levels_textX, levels_textY);
+    CP_Settings_TextSize(40);
+    CP_Font_DrawText("SETTING", setting_textX, setting_textY);
 }
 
 void main_menu_clicked(float x, float y) {
@@ -500,9 +533,9 @@ void main_menu_clicked(float x, float y) {
     /*Play button clicked*/
     if (x >= start_game_buttonX && x <= (start_game_buttonX + button_width) &&
         y >= start_game_buttonY && y <= start_game_buttonY + button_height) {
-        
+
         /*Game will start at level 1*/
-        current_level = 1; 
+        current_level = 1;
         Current_Gamestate = GAMEPLAY_SCREEN;
 
         /*Free image*/
@@ -512,6 +545,7 @@ void main_menu_clicked(float x, float y) {
         minion_count = 0;
         reset_map_and_minions();
         initialise_level();
+        restart_level();
         gIsPaused = FALSE;
         minions_in_base = 0; //Part of minion counter which has been commented out
 
@@ -526,11 +560,19 @@ void main_menu_clicked(float x, float y) {
         CP_Image_Free(&main_menu_image);
     }
 
+    /*Setting button clicked*/
+    else if (x >= settingX && x <= (settingX + setting_width) &&
+        y >= settingY && settingY <= settingY + setting_height) {
+        Current_Gamestate = SETTING_SCREEN;
+    }
+
 }
 
 void lose_screen(void) {
     float width = (float)CP_System_GetWindowWidth();
     float height = (float)CP_System_GetWindowHeight();
+    /*Lose Screen*/
+    Lose_Screen = CP_Image_Load("./Assets/Lose_Screen.jpg");
     /*Draw Image*/
     CP_Image_Draw(Lose_Screen, width / 2, height / 2, width, height, 255);
     /*Buttons*/
@@ -564,7 +606,7 @@ void lose_screen(void) {
         mouseY >= restart_loseY && mouseY <= restart_loseY + button_height) {
 
         CP_Image_Draw(Lose_Screen, width / 2, height / 2, width, height, 255);
-        
+
         /*Buttons*/
         //Hovering on Restart Button
         main_loseX = (quarter_blockX * 3) - button_width;
@@ -598,20 +640,19 @@ void lose_screen(void) {
             initialise_level();
             gIsPaused = FALSE;
             restart_level();
-            //CP_Image_Free(&lose_screen);
+
 
         }
 
     }
-    else if (mouseX >= main_loseX && mouseX <= (main_loseX + button_width) &&
-        mouseY >= main_loseY && mouseY <= main_loseY + button_height) 
+    else if (mouseX >= main_loseX && mouseX <= (main_loseX + button_width) && mouseY >= main_loseY && mouseY <= main_loseY + button_height)
     {
         //Hovering on Main menu Button
         CP_Settings_Fill(COLOR_BLACK);
         CP_Graphics_DrawRect(main_loseX, main_loseY, button_width, button_height);
         CP_Settings_Fill(COLOR_WHITE);
         CP_Graphics_DrawRect(restart_loseX, restart_loseY, button_width, button_height);
-        
+
         /*Text for Buttons*/
         CP_Settings_TextSize(60);
         CP_Settings_Fill(COLOR_BLACK);
@@ -625,13 +666,114 @@ void lose_screen(void) {
         {
             CP_Image_Free(&Lose_Screen);
             Current_Gamestate = MAIN_MENU_SCREEN;
+
+
+        }
+    }
+}
+void win_screen(void) {
+
+    float width = (float)CP_System_GetWindowWidth();
+    float height = (float)CP_System_GetWindowHeight();
+    /*Load Image*/
+    Win_Screen = CP_Image_Load("./Assets/Win_Screen.jpg");
+    CP_Image_Draw(Win_Screen, width / 2, height / 2, width, height, 255);
+
+    /*Buttons*/
+    CP_Settings_Fill(COLOR_WHITE);
+    float quarter_blockX = (float)CP_System_GetDisplayWidth() / 4;
+    float quarter_blockY = (float)CP_System_GetDisplayHeight() / 4;
+    button_height = 120.f;
+    button_width = 300.f;
+    main_loseX = (quarter_blockX * 3) - button_width;
+    restart_loseX = quarter_blockX;
+    main_loseY = restart_loseY = quarter_blockY * 2.8f;
+    CP_Graphics_DrawRect(main_loseX, main_loseY, button_width, button_height);
+    CP_Graphics_DrawRect(restart_loseX, restart_loseY, button_width, button_height);
+    /*Now Text*/
+    CP_Settings_TextSize(50);
+    CP_Settings_Fill(COLOR_BLACK);
+    restart_textX = restart_loseX + 40;
+    restart_textY = restart_loseY + 80;
+    main_textX = main_loseX + 35;
+    main_textY = main_loseY + 75;
+    CP_Font_DrawText("MAIN MENU", restart_textX, restart_textY);
+    CP_Settings_TextSize(50);
+    CP_Font_DrawText("NEXT LEVEL", main_textX, main_textY);
+
+
+    float mouseX = (float)CP_Input_GetMouseX();
+    float mouseY = (float)CP_Input_GetMouseY();
+
+    if (mouseX >= restart_loseX && mouseX <= (restart_loseX + button_width) &&
+        mouseY >= restart_loseY && mouseY <= restart_loseY + button_height) {
+
+        CP_Image_Draw(Win_Screen, width / 2, height / 2, width, height, 255);
+
+        //Hovering on Main Menu Button
+
+        CP_Settings_Fill(COLOR_WHITE);
+        CP_Graphics_DrawRect(main_loseX, main_loseY, button_width, button_height);
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Graphics_DrawRect(restart_loseX, restart_loseY, button_width, button_height);
+
+        /*Text*/
+
+        CP_Settings_TextSize(50);
+        CP_Settings_Fill(COLOR_WHITE);
+        CP_Font_DrawText("MAIN MENU", restart_textX, restart_textY);
+        CP_Settings_TextSize(50);
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Font_DrawText("NEXT LEVEL", main_textX, main_textY);
+
+        //When clicked, return back to main menu screen
+        if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
+        {
+            CP_Image_Free(&Win_Screen);
+            Current_Gamestate = MAIN_MENU_SCREEN;
+
+
+        }
+
+    }
+    else if (mouseX >= main_loseX && mouseX <= (main_loseX + button_width) && mouseY >= main_loseY && mouseY <= main_loseY + button_height) {
+
+        //Hovering on Next Level Button
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Graphics_DrawRect(main_loseX, main_loseY, button_width, button_height);
+        CP_Settings_Fill(COLOR_WHITE);
+        CP_Graphics_DrawRect(restart_loseX, restart_loseY, button_width, button_height);
+
+
+        CP_Settings_TextSize(50);
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Font_DrawText("MAIN MENU", restart_textX, restart_textY);
+        CP_Settings_TextSize(50);
+        CP_Settings_Fill(COLOR_WHITE);
+        CP_Font_DrawText("NEXT LEVEL", main_textX, main_textY);
+
+
+
+        //When clicked, return back to gameplay screen
+        if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
+        {
+            CP_Image_Free(&Win_Screen);
+            current_level++; //Go to the next level
+
+            Current_Gamestate = GAMEPLAY_SCREEN;
+
+            /*initialise for gameplay screen*/
             minion_count = 0;
             reset_map_and_minions();
             initialise_level();
-            elapsed_timer = 0;
-            elapsed_timer2 = 0;
+            gIsPaused = FALSE;
+            restart_level();
         }
+
+
     }
+
+
 }
 
 /*Level Selector Screen*/
@@ -647,22 +789,28 @@ void level_selector_screen(void) {
     CP_Settings_Fill(COLOR_WHITE);
 
     float quarter_blockY = (float)CP_System_GetDisplayHeight() / 2;
+
+
     button_height = 80.f;
     button_width = 300.f;
 
     /*Level 1 Buttons*/
-    CP_Graphics_DrawRect(600, quarter_blockY, button_width, button_height);
+    level1X = 600;
+    level1Y = quarter_blockY;
+    CP_Graphics_DrawRect(level1X, quarter_blockY, button_width, button_height);
+
     /*Now Text*/
     CP_Settings_TextSize(40);
     CP_Settings_Fill(COLOR_BLACK);
-
+    level1_textX = 690;
     level1_textY = quarter_blockY + 40;
-    CP_Font_DrawText("Level 1", 690, level1_textY);
+    CP_Font_DrawText("Level 1", level1_textX, level1_textY);
 
     /*Level 2 buttons*/
+    level2X = 600;
     level2Y = quarter_blockY + 120;
     CP_Settings_Fill(COLOR_WHITE);
-    CP_Graphics_DrawRect(600, level2Y, button_width, button_height);
+    CP_Graphics_DrawRect(level2X, level2Y, button_width, button_height);
     /*Now Text*/
     CP_Settings_TextSize(40);
     CP_Settings_Fill(COLOR_BLACK);
@@ -714,6 +862,32 @@ void level_selector_screen(void) {
     level3_textY = level3Y + 40;
     CP_Font_DrawText("Level 6", 1100, level3_textY);
 
+    /*Screen Settings Button*/
+
+    button_height = 60.f;
+    button_width = 240.f;
+    level3Y = quarter_blockY + 240;
+    CP_Settings_Fill(COLOR_WHITE);
+    CP_Graphics_DrawRect(1600, level3Y + 200, button_width, button_height);
+    CP_Settings_TextSize(40);
+    CP_Settings_Fill(COLOR_BLACK);
+
+    level3_textY = level3Y + 240;
+    CP_Font_DrawText("Settings", 1620, level3_textY);
+
+    /*Back to Menu Button*/
+    button_height = 60.f;
+    button_width = 150.f;
+    float back_buttonY = 10;
+    float back_buttonX = 10;
+    CP_Settings_Fill(COLOR_WHITE);
+    CP_Graphics_DrawRect(back_buttonX, back_buttonY, button_width, button_height);
+    CP_Settings_TextSize(40);
+    CP_Settings_Fill(COLOR_BLACK);
+
+    back_buttonY = back_buttonY + 40;
+    CP_Font_DrawText("Back", 30, back_buttonY);
+
 
 
 
@@ -721,12 +895,15 @@ void level_selector_screen(void) {
     float mouseY = (float)CP_Input_GetMouseY();
 
     /*Hovering on Level 1*/
-    if (mouseX >= 600 && mouseX <= (600 + button_width) &&
-        mouseY >= quarter_blockY && mouseY <= quarter_blockY + button_height) {
+    if (mouseX >= 600 && mouseX <= 900 &&
+        mouseY >= 540 && mouseY <= 615 ) {
+
+        button_height = 80.f;
+        button_width = 300.f;
 
         /*Drawing of buttons*/
         CP_Settings_Fill(COLOR_BLACK);
-        CP_Graphics_DrawRect(600, quarter_blockY, button_width, button_height);
+        CP_Graphics_DrawRect(600, 540, button_width, button_height);
         /*Now Text*/
         CP_Settings_TextSize(40);
         CP_Settings_Fill(COLOR_WHITE);
@@ -755,12 +932,15 @@ void level_selector_screen(void) {
 
     }
     /*Hovering on Level 2 Buttons*/
-    else if (mouseX >= 460 && mouseX <= (460 + button_width) && mouseY >= level2Y && mouseY <= level2Y + button_height)
+    else if (mouseX >= 600 && mouseX <= 900 && mouseY >= level2Y && mouseY <= 740)
     {
+        button_height = 80.f;
+        button_width = 300.f;
         /*Level 2 buttons*/
+        level2X = 600;
         level2Y = quarter_blockY + 120;
         CP_Settings_Fill(COLOR_BLACK);
-        CP_Graphics_DrawRect(600, level2Y, button_width, button_height);
+        CP_Graphics_DrawRect(level2X, level2Y, button_width, button_height);
         /*Now Text*/
         CP_Settings_TextSize(40);
         CP_Settings_Fill(COLOR_WHITE);
@@ -787,8 +967,10 @@ void level_selector_screen(void) {
 
     }
     /*Hovering on Level 3 Buttons*/
-    else if (mouseX >= 600 && mouseX <= (600 + button_width) && mouseY >= level3Y && mouseY <= level3Y + button_height)
+    else if (mouseX >= 600 && mouseX <= 900 && mouseY >= level3Y && mouseY <= 855)
     {
+        button_height = 80.f;
+        button_width = 300.f;
         level3Y = quarter_blockY + 240;
         CP_Settings_Fill(COLOR_BLACK);
         CP_Graphics_DrawRect(600, level3Y, button_width, button_height);
@@ -818,10 +1000,12 @@ void level_selector_screen(void) {
 
     }
     /*Hovering on level 4 Button*/
-    else if (mouseX >= 1000 && mouseX <= (1000 + button_width) && mouseY >= quarter_blockY && mouseY <= quarter_blockY + button_height)
+    else if (mouseX >= 1000 && mouseX <= 1310 && mouseY >= quarter_blockY && mouseY <= 620)
     {
 
 
+        button_height = 80.f;
+        button_width = 300.f;
         /*Level 4 Buttons*/
         level1Y = quarter_blockY + 120;
         CP_Settings_Fill(COLOR_BLACK);
@@ -852,8 +1036,11 @@ void level_selector_screen(void) {
 
     }
     /*Hovering on level 5 Button*/
-    else if (mouseX >= 1000 && mouseX <= (1000 + button_width) && mouseY >= level2Y && mouseY <= level2Y + button_height) {
+    else if (mouseX >= 1000 && mouseX <= 1300 && mouseY >= level2Y && mouseY <= 735) {
         /*Level 5 Buttons*/
+
+        button_height = 80.f;
+        button_width = 300.f;
         level2Y = quarter_blockY + 120;
         CP_Settings_Fill(COLOR_BLACK);
         CP_Graphics_DrawRect(1000, level2Y, button_width, button_height);
@@ -882,8 +1069,10 @@ void level_selector_screen(void) {
         }
     }
     /*Hovering on level 6 Button*/
-    else if (mouseX >= 1000 && mouseX <= (1000 + button_width) && mouseY >= level3Y && mouseY <= level3Y + button_height) {
+    else if (mouseX >= 1000 && mouseX <= 1310 && mouseY >= level3Y && mouseY <= 855) {
 
+        button_height = 80.f;
+        button_width = 300.f;
         /*Level 6 Buttons*/
         level3Y = quarter_blockY + 240;
         CP_Settings_Fill(COLOR_BLACK);
@@ -911,6 +1100,168 @@ void level_selector_screen(void) {
             restart_level();
 
         }
+
+    }
+
+    //Hovering on Setting Screen
+    else if ((mouseX >= 1600 && mouseX <= 1840 && mouseY >= level3Y + 200 && mouseY <= 1040 ))
+    {
+        button_height = 60.f;
+        button_width = 240.f;
+        level3Y = quarter_blockY + 240;
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Graphics_DrawRect(1600, level3Y + 200, button_width, button_height);
+        CP_Settings_TextSize(40);
+        CP_Settings_Fill(COLOR_WHITE);
+
+        level3_textY = level3Y + 240;
+        CP_Font_DrawText("Settings", 1620, level3_textY);
+
+        if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
+        {
+
+            //Current_Gamestate = SETTING_SCREEN;
+        }
+
+    }
+    //Hovering on Back Button
+    else if ((mouseX >= 10 && mouseX <= (10 + button_width) && mouseY >= 10 && mouseY <= 10 + button_height))
+    {
+
+
+        button_height = 60.f;
+        button_width = 150.f;
+
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Graphics_DrawRect(10, 10, button_width, button_height);
+        CP_Settings_TextSize(40);
+        CP_Settings_Fill(COLOR_WHITE);
+
+        back_buttonY = back_buttonY + 40;
+        CP_Font_DrawText("Back", 30, 50);
+
+        if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
+        {
+
+            Current_Gamestate = MAIN_MENU_SCREEN;
+
+
+        }
+
+
+
+    }
+
+
+
+}
+
+void setting_screen(void) {
+
+    setting_image = CP_Image_Load("./Assets/bg_mainmenu.png"); //temp image
+    //CP_Graphics_ClearBackground(COLOR_WHITE);
+    static float middleX, middleY, width, height;
+    middleX = (float)(CP_System_GetWindowWidth() / 2);
+    middleY = (float)(CP_System_GetWindowHeight() / 2);
+    width = (float)CP_Image_GetWidth(setting_image);
+    height = (float)CP_Image_GetWidth(setting_image) * 0.6f;
+    CP_Image_Draw(setting_image, middleX, middleY, width, height, 100);
+
+    float startX = (float)CP_System_GetDisplayWidth() / 3;
+    float startY = (float)CP_System_GetDisplayHeight() / 5;
+    float option_textX = startX + 20.f;
+    float option_textY = startY + 20.f;
+
+    button_height = 120.f;
+    button_width = 300.f;
+
+    backX = 10.f;
+    backY = 10.f;
+    back_height = 80.f;
+    back_width = 200.f;
+
+    /*options buttons*/
+    CP_Settings_Fill(COLOR_WHITE);
+    CP_Graphics_DrawRect(startX, startY, button_width, button_height); //main menu
+    CP_Graphics_DrawRect(startX, startY * 2, button_width, button_height); //level selection
+    CP_Graphics_DrawRect(startX, startY * 3, button_width, button_height); //hordepedia?
+    CP_Graphics_DrawRect(startX, startY * 4, button_width, button_height); //music?
+
+    /*back button*/
+    CP_Graphics_DrawRect(backX, backY, back_width, back_height);
+
+    /*options text*/
+    CP_Settings_TextSize(60);
+    CP_Settings_Fill(COLOR_BLACK);
+    CP_Font_DrawText("MAIN MENU", option_textX, option_textY + 60);
+    CP_Font_DrawText("LEVEL", option_textX, option_textY * 2 + 40);
+    CP_Font_DrawText("HELP", option_textX, option_textY * 3 + 20);
+    CP_Font_DrawText("BGM?", option_textX, option_textY * 4);
+
+    /*back text*/
+    CP_Settings_TextSize(50);
+    CP_Font_DrawText("BACK", 40.f, 60.f);
+
+    float mouseX = (float)CP_Input_GetMouseX();
+    float mouseY = (float)CP_Input_GetMouseY();
+
+
+    Previous_Gamestate = Current_Gamestate;
+
+    if (mouseX >= startX && mouseX <= (startX + button_width) &&
+        mouseY >= startY && mouseY <= startY + button_height) {
+
+        if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
+            Current_Gamestate = MAIN_MENU_SCREEN;
+        }
+    }
+
+    if (mouseX >= startX && mouseX <= (startX + button_width) &&
+        mouseY >= startY && mouseY <= startY * 2 + button_height) {
+        if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
+            Current_Gamestate = LEVEL_SELECTOR_SCREEN;
+        }
+
+    }
+    /*
+    if (mouseX >= startX && mouseX <= (startX + button_width) &&
+        mouseY >= startY && mouseY <= startY * 3 + button_height) {
+    }
+
+    if (mouseX >= startX && mouseX <= (startX + button_width) &&
+        mouseY >= startY && mouseY <= startY * 4 + button_height) {
+    } */
+
+    if (mouseX >= backX && mouseX <= (backX + back_width) &&
+        mouseY >= backY && mouseY <= backY + back_height) {
+        if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
+            Current_Gamestate = Previous_Gamestate;
+        }
+    }
+
+}
+
+
+void setting_screen_clicked(float x, float y) {
+
+    /*Free image*/
+    CP_Image_Free(&setting_image);
+
+
+    if (Current_Gamestate == MAIN_MENU_SCREEN) {
+        if (x >= settingX && x <= (settingX + button_width) &&
+            y >= settingY && y <= settingY + button_height) {
+            Current_Gamestate = SETTING_SCREEN;
+        }
+    }
+
+    if (Current_Gamestate == GAMEPLAY_SCREEN) {
+        if (x >= setting_buttonX && x <= (setting_buttonX + button_width) &&
+            y >= setting_buttonY && y <= setting_buttonY + button_height) {
+            gIsPaused = TRUE;
+            Current_Gamestate = SETTING_SCREEN;
+        }
+
     }
 }
 
@@ -964,6 +1315,8 @@ void initialise_pause_and_timer_button(void) {
     gPauseButtonTextPositionY = gPauseButtonPositionY + 30.f;
     pauseButtonLimitX = gPauseButtonPositionX + 100.f;
     pauseButtonLimitY = gPauseButtonPositionY + 50.f;
+    setting_buttonX = gPauseButtonPositionX + 250.f;
+    setting_buttonY = gPauseButtonPositionY - 30.f;
 }
 
 void draw_timer_and_pause_button(void) {
@@ -971,6 +1324,7 @@ void draw_timer_and_pause_button(void) {
     CP_Settings_Fill(COLOR_WHITE);
     CP_Graphics_DrawRect(gPauseButtonPositionX, gPauseButtonPositionY, 100.f, 50.f);
     CP_Graphics_DrawRect(gTimerPositionX, gTimerPositionY, 100.f, 50.f);
+    CP_Graphics_DrawRect(setting_buttonX, setting_buttonY, 200.f, 80.f);
     CP_Settings_Fill(COLOR_BLACK);
     CP_Settings_TextSize(35);
     CP_Font_DrawText(buffer, gTimerButtonTextPositionX, gTimerButtonTextPositionY);
@@ -984,7 +1338,8 @@ void draw_timer_and_pause_button(void) {
         CP_Settings_TextSize(30);
         CP_Font_DrawText("Pause", gPauseButtonTextPositionX, gPauseButtonTextPositionY);
     }
-
+    CP_Settings_TextSize(50);
+    CP_Font_DrawText("SETTING", (setting_buttonX + 10.f), (setting_buttonY + 50.f));
 }
 
 void start_timer(void) {
@@ -998,7 +1353,7 @@ void update_timer(void)
     elapsed_timer3 += test;
     /*for the minion charged attacks*/
 
-    
+
     for (int i = 0; i < minion_count; i++) {
         array_MinionCurrentCharge[i][MINION_CURRENT_CHARGE] += test;
         array_MinionCurrentCharge[i][MINION_BASIC_CURRENT_CHARGE] += test;
@@ -1012,7 +1367,7 @@ void update_timer(void)
 
 void display_restart_button(void) {
     restartX = (float)origin_map_coordinateX + 15;
-    restartY = 900; 
+    restartY = 900;
     restart_length = 80;
     restart_width = 50;
     /*Button*/
@@ -1046,18 +1401,18 @@ void gameplay_screen() {
     box_length = MAP_GRID_COLS * BLOCK_SIZE;
     box_width = BLOCK_SIZE + BLOCK_SIZE / 2;
     options_boxX = origin_map_coordinateX;
-    options_boxY = origin_map_coordinateY + (MAP_GRID_ROWS * BLOCK_SIZE) ;
+    options_boxY = origin_map_coordinateY + (MAP_GRID_ROWS * BLOCK_SIZE);
     CP_Settings_Fill(COLOR_WHITE);
     CP_Graphics_DrawRect((float)options_boxX, (float)options_boxY, (float)box_length, (float)box_width);
     minion_buttons_width = BLOCK_SIZE + BLOCK_SIZE / 2;
     minion_buttons_height = BLOCK_SIZE;
     for (int i = 1; i < 6; i++) {
-        minion_boxX = options_boxX + (i * minion_buttons_width) - minion_buttons_width/2;
+        minion_boxX = options_boxX + (i * minion_buttons_width) - minion_buttons_width / 2;
         minion_boxY = options_boxY + (box_width / 4) - 20; //minion_boxY remains constant throughout
         CP_Graphics_DrawRect((float)minion_boxX, (float)minion_boxY, (float)minion_buttons_width, (float)minion_buttons_height);
     }
     float minion_costboxY = (float)minion_boxY + 100.f;
-    float minion_costbox_height =  50;
+    float minion_costbox_height = 50;
     /*Render minion pictures here BEFORE THE COST BOXES*/
     //
     //
@@ -1068,7 +1423,7 @@ void gameplay_screen() {
         CP_Graphics_DrawRect((float)minion_boxX, minion_costboxY, (float)minion_buttons_width, minion_costbox_height);
         CP_Settings_Fill(COLOR_BLACK);
         CP_Settings_TextSize(35);
-        CP_Font_DrawText( (i == 0 
+        CP_Font_DrawText((i == 0
             ? "30"
             : i == 1
             ? "60"
@@ -1104,7 +1459,7 @@ void gameplay_screen_clicked(float x, float y) {
                 array_MinionStats[minion_count][MINION_TYPE] = WARRIOR_MINION;
                 assign_minion_stats(); //maybe can throw this function call in render_minion
             }
-            
+
         }
         else if (x >= (origin_first_boxX + 2 * minion_buttons_width) && x < (origin_first_boxX + 3 * minion_buttons_width)) { //Create Tank Minion
             if (money >= 120 && minion_count < MINION_MAX)
@@ -1207,8 +1562,8 @@ void setup_teleport_diffusion_map() {
             else if (array_GameMap[row][col] == BLOCK_TELEPORT_SPAWN) {
                 teleport_spawn_row = row;
                 teleport_spawn_col = col;
-                teleport_spawn_X = origin_map_coordinateX + BLOCK_SIZE * col + BLOCK_SIZE/2;
-                teleport_spawn_Y = origin_map_coordinateY + BLOCK_SIZE * row + BLOCK_SIZE/2;
+                teleport_spawn_X = origin_map_coordinateX + BLOCK_SIZE * col + BLOCK_SIZE / 2;
+                teleport_spawn_Y = origin_map_coordinateY + BLOCK_SIZE * row + BLOCK_SIZE / 2;
             }
         }
     }
@@ -1311,7 +1666,7 @@ void render_enemy() {
                     renderguardhp_bar(which_enemy);
                     array_EnemyStats[which_enemy][ENEMY_ROW_COORDINATES] = origin_map_coordinateX + BLOCK_SIZE * col + array_EnemyStats[which_enemy][ENEMY_SIZE];
                     array_EnemyStats[which_enemy][ENEMY_COL_COORDINATES] = origin_map_coordinateY + BLOCK_SIZE * row + array_EnemyStats[which_enemy][ENEMY_SIZE];
-                    
+
                     assign_enemy_color(which_enemy);
                     render_enemy_special_attack_bar(which_enemy);
                 }
@@ -1478,8 +1833,8 @@ void render_minion() {
     for (int row = 0; row < MAP_GRID_ROWS; ++row) {
         for (int col = 0; col < MAP_GRID_COLS; ++col) {
             if (array_GameMap[row][col] == BLOCK_SPAWN) {
-                int SpawnX = origin_map_coordinateX + (BLOCK_SIZE * col) + (BLOCK_SIZE/2);
-                int SpawnY = origin_map_coordinateY + (BLOCK_SIZE * row) + (BLOCK_SIZE/2); //makes it spawn in the middle of the spawn block
+                int SpawnX = origin_map_coordinateX + (BLOCK_SIZE * col) + (BLOCK_SIZE / 2);
+                int SpawnY = origin_map_coordinateY + (BLOCK_SIZE * row) + (BLOCK_SIZE / 2); //makes it spawn in the middle of the spawn block
                 if (minion_count < 7) {
                     array_MinionStats[minion_count][X] = SpawnX;
                     array_MinionStats[minion_count][Y] = SpawnY;
@@ -1516,7 +1871,7 @@ void move_minion() {
         if (array_MinionStats[i][MINION_TRAVEL_DIST] < BLOCK_SIZE) {
             array_MinionStats[i][MINION_DIRECTION] = array_MinionStats[i][MINION_PAST_DIRECTION];
         }
-        else if (level_has_teleporter == TRUE && array_MinionStats[i][MINION_TELEPORTED] == FALSE 
+        else if (level_has_teleporter == TRUE && array_MinionStats[i][MINION_TELEPORTED] == FALSE
             && array_MinionStats[i][MINION_TRAVEL_DIST] >= BLOCK_SIZE) {
             array_MinionStats[i][MINION_TRAVEL_DIST] = 0;
             array_MinionStats[i][MINION_DIRECTION] = //i'm pretty sure these conditions aren't working tbh
@@ -1542,9 +1897,9 @@ void move_minion() {
                 ? UP
                 : STOP;
         }
-        else if (array_MinionStats[i][MINION_TRAVEL_DIST] >= BLOCK_SIZE){
+        else if (array_MinionStats[i][MINION_TRAVEL_DIST] >= BLOCK_SIZE) {
             array_MinionStats[i][MINION_TRAVEL_DIST] = 0;
-            array_MinionStats[i][MINION_DIRECTION] = 
+            array_MinionStats[i][MINION_DIRECTION] =
                 (current_boxCOL + 1 < MAP_GRID_COLS && array_Collaborative_DiffusionMap[current_boxROW][current_boxCOL + 1][0] > array_Collaborative_DiffusionMap[current_boxROW][current_boxCOL][0]
                     && array_GameMap[current_boxROW][current_boxCOL + 1] != BLOCK_TOWER_ENEMY && array_GameMap[current_boxROW][current_boxCOL + 1] != BLOCK_PRESENT
                     && (array_GameMap[current_boxROW][current_boxCOL + 1] == BLOCK_ENEMY || array_GameMap[current_boxROW][current_boxCOL + 1] == BLOCK_EMPTY
@@ -1612,7 +1967,7 @@ void move_minion() {
                             }
                             if (array_MinionStats[i][MINION_HP] <= 0) {
                                 array_EnemyStats[correct_enemy][ENEMY_CURRENT_MINIONS_ON_BLOCK] -= array_MinionStats[i][MINION_WEIGHT];
-                                
+
                                 if (array_isMinionBlocked[correct_enemy][i + 1] == 1) {
                                     array_isMinionBlocked[correct_enemy][i] = 1;
                                 }
@@ -1695,9 +2050,9 @@ void render_enemy_special_attack_bar(int i) {
     if (array_EnemyStats[i][ENEMY_TYPE] == HEALING_TOWER || array_EnemyStats[i][ENEMY_TYPE] == SLOW_ENEMY) {
         charge_percentage = (array_EnemyCurrentCharge[i][ENEMY_CURRENT_CHARGE] / array_EnemyCurrentCharge[i][ENEMY_CHARGE_TIME]) * (float)default_hp_tower;
         CP_Settings_Fill(COLOR_BLACK);
-        CP_Graphics_DrawRect((float)array_EnemyStats[i][ENEMY_ROW_COORDINATES] - 40, (float)array_EnemyStats[i][ENEMY_COL_COORDINATES] - 50, (float)default_hp_tower, (float)HP_BAR_HEIGHT-1);
+        CP_Graphics_DrawRect((float)array_EnemyStats[i][ENEMY_ROW_COORDINATES] - 40, (float)array_EnemyStats[i][ENEMY_COL_COORDINATES] - 50, (float)default_hp_tower, (float)HP_BAR_HEIGHT - 1);
         CP_Settings_Fill(COLOR_WHITE);
-        CP_Graphics_DrawRect((float)array_EnemyStats[i][ENEMY_ROW_COORDINATES] - 40, (float)array_EnemyStats[i][ENEMY_COL_COORDINATES] - 50, charge_percentage, (float)HP_BAR_HEIGHT-1);
+        CP_Graphics_DrawRect((float)array_EnemyStats[i][ENEMY_ROW_COORDINATES] - 40, (float)array_EnemyStats[i][ENEMY_COL_COORDINATES] - 50, charge_percentage, (float)HP_BAR_HEIGHT - 1);
     }
 }
 
@@ -1713,7 +2068,7 @@ void enemy_special_attack() {
                 //code for the healing
             }
             array_EnemyCurrentCharge[i][ENEMY_CURRENT_CHARGE] = 0;
-        }    
+        }
         //The Slow Minion's Special Attack is here
         if (array_EnemyStats[i][ENEMY_TYPE] == SLOW_ENEMY && array_Enemy_Slow_Effect_Time[i][CHECKER] == TRUE) {
             if (array_Enemy_Slow_Effect_Time[i][EFFECT_TIMER] >= how_long_effect_is) {
@@ -1847,7 +2202,7 @@ void minion_enter_base_counter() {
             array_MinionStats[i][MINION_HP] = 0; //so essentially the minion dies
             minion_dies_array_recycle(i);
         }
-    }  
+    }
 }
 
 /*
@@ -1974,7 +2329,7 @@ void display_money_counter() {
     CP_Graphics_DrawRect(counter_X, counter_Y, counter_width, counter_height);
     CP_Settings_Fill(COLOR_BLACK);
     CP_Settings_TextSize(50);
-    CP_Font_DrawText("Money: " , (counter_X - 150.f), (counter_Y + 55));
+    CP_Font_DrawText("Money: ", (counter_X - 150.f), (counter_Y + 55));
     CP_Font_DrawText(money_buffer, (counter_X + 40.f), (counter_Y + 55));
 }
 
@@ -2019,7 +2374,7 @@ void minion_special_attack(int i, int current_row, int current_col) {
             //insert code for whatever they can do here
         }
         else if (array_MinionStats[i][MINION_TYPE] == TANK_MINION) { //restores HP and attack tower
-            
+
             //array_MinionStats[i][MINION_SIZE] += 20;
             if (array_MinionStats[i][MINION_HP] < 140) {
                 array_MinionStats[i][MINION_HP] += 100;
@@ -2028,7 +2383,7 @@ void minion_special_attack(int i, int current_row, int current_col) {
                 int hp_restored = 240 - array_MinionStats[i][MINION_HP];
                 array_MinionStats[i][MINION_HP] += hp_restored;
             }
-            
+
             minion_attacking_towers(i, current_row, current_col, tank_range);
             for (int t = 0; t < ENEMY_MAX; t++) {
                 if (array_enemy_to_attack[i][t] == 1) {
@@ -2203,7 +2558,7 @@ void assign_minion_stats() {
         array_MinionCurrentCharge[minion_count][MINION_BASIC_ATTACK_SPEED] = 0.7f;
     }
     if (array_MinionStats[minion_count][MINION_TYPE] == TANK_MINION) { //is tall so can attack tower
-        array_MinionStats[minion_count][MINION_HP] = 240; 
+        array_MinionStats[minion_count][MINION_HP] = 240;
         array_MinionStats[minion_count][MINION_MOVEMENT_SPEED] = 3; //original speed was 3
         array_MinionStats[minion_count][MINION_ATTACK] = 1;
         array_MinionStats[minion_count][MINION_ATTACK_SPEED] = 2;
@@ -2257,22 +2612,22 @@ void assign_enemy_color(int i) {
 }
 
 /*probably going to be removed in the final product*/
-void assign_minion_color(int i) { 
-        if (array_MinionStats[i][MINION_TYPE] == SPAM_MINION) {
-            CP_Settings_Fill(COLOR_BLUE);
-        }
-        else if (array_MinionStats[i][MINION_TYPE] == WARRIOR_MINION) {
-            CP_Settings_Fill(COLOR_SEAGREEN);
-        }
-        else if (array_MinionStats[i][MINION_TYPE] == TANK_MINION) {
-            CP_Settings_Fill(COLOR_BROWN);
-        }
-        else if (array_MinionStats[i][MINION_TYPE] == WIZARD_MINION) {
-            CP_Settings_Fill(COLOR_CYAN);
-        }
-        else if (array_MinionStats[i][MINION_TYPE] == HEALER_MINION) {
-            CP_Settings_Fill(COLOR_PURPLE);
-        }
+void assign_minion_color(int i) {
+    if (array_MinionStats[i][MINION_TYPE] == SPAM_MINION) {
+        CP_Settings_Fill(COLOR_BLUE);
+    }
+    else if (array_MinionStats[i][MINION_TYPE] == WARRIOR_MINION) {
+        CP_Settings_Fill(COLOR_SEAGREEN);
+    }
+    else if (array_MinionStats[i][MINION_TYPE] == TANK_MINION) {
+        CP_Settings_Fill(COLOR_BROWN);
+    }
+    else if (array_MinionStats[i][MINION_TYPE] == WIZARD_MINION) {
+        CP_Settings_Fill(COLOR_CYAN);
+    }
+    else if (array_MinionStats[i][MINION_TYPE] == HEALER_MINION) {
+        CP_Settings_Fill(COLOR_PURPLE);
+    }
 }
 
 void assign_enemy_stats() {
@@ -2339,30 +2694,30 @@ void level_1() {
     array_GameMap[2][0] = BLOCK_END;
     array_GameMap[2][11] = BLOCK_SPAWN;
     array_GameMap[4][7] = BLOCK_ENEMY;
-        array_EnemyStats[0][ENEMY_ROW] = 4;
-        array_EnemyStats[0][ENEMY_COL] = 7;
-        array_EnemyStats[0][ENEMY_TYPE] = GUARD_ENEMY;
+    array_EnemyStats[0][ENEMY_ROW] = 4;
+    array_EnemyStats[0][ENEMY_COL] = 7;
+    array_EnemyStats[0][ENEMY_TYPE] = GUARD_ENEMY;
     array_GameMap[3][3] = BLOCK_ENEMY;
-        array_EnemyStats[1][ENEMY_ROW] = 3;
-        array_EnemyStats[1][ENEMY_COL] = 3;
-        array_EnemyStats[1][ENEMY_TYPE] = GUARD_ENEMY;
+    array_EnemyStats[1][ENEMY_ROW] = 3;
+    array_EnemyStats[1][ENEMY_COL] = 3;
+    array_EnemyStats[1][ENEMY_TYPE] = GUARD_ENEMY;
     array_GameMap[3][1] = BLOCK_ENEMY;
-        array_EnemyStats[2][ENEMY_ROW] = 3;
-        array_EnemyStats[2][ENEMY_COL] = 1;
-        array_EnemyStats[2][ENEMY_TYPE] = GUARD_ENEMY;
+    array_EnemyStats[2][ENEMY_ROW] = 3;
+    array_EnemyStats[2][ENEMY_COL] = 1;
+    array_EnemyStats[2][ENEMY_TYPE] = GUARD_ENEMY;
     array_GameMap[3][8] = BLOCK_TOWER_ENEMY;
-        array_EnemyStats[3][ENEMY_ROW] = 3;
-        array_EnemyStats[3][ENEMY_COL] = 8;
-        array_EnemyStats[3][ENEMY_TYPE] = DAMAGE_ENEMY;
+    array_EnemyStats[3][ENEMY_ROW] = 3;
+    array_EnemyStats[3][ENEMY_COL] = 8;
+    array_EnemyStats[3][ENEMY_TYPE] = DAMAGE_ENEMY;
     array_GameMap[2][5] = BLOCK_TOWER_ENEMY;
-        array_EnemyStats[4][ENEMY_ROW] = 2;
-        array_EnemyStats[4][ENEMY_COL] = 5;
-        array_EnemyStats[4][ENEMY_TYPE] = SLOW_ENEMY;
+    array_EnemyStats[4][ENEMY_ROW] = 2;
+    array_EnemyStats[4][ENEMY_COL] = 5;
+    array_EnemyStats[4][ENEMY_TYPE] = SLOW_ENEMY;
     array_GameMap[4][8] = BLOCK_ENEMY;
-        array_EnemyStats[5][ENEMY_ROW] = 4;
-        array_EnemyStats[5][ENEMY_COL] = 8;
-        array_EnemyStats[5][ENEMY_TYPE] = GUARD_ENEMY;
-        /*Please be careful when adding a new enemy, change the number array_EnemyStats[3][ENEMY_TYPE] -> array_EnemyStats[4][ENEMY_TYPE]*/
+    array_EnemyStats[5][ENEMY_ROW] = 4;
+    array_EnemyStats[5][ENEMY_COL] = 8;
+    array_EnemyStats[5][ENEMY_TYPE] = GUARD_ENEMY;
+    /*Please be careful when adding a new enemy, change the number array_EnemyStats[3][ENEMY_TYPE] -> array_EnemyStats[4][ENEMY_TYPE]*/
     array_GameMap[4][6] = BLOCK_PRESENT;
     initial_direction = LEFT;
 }
@@ -2553,10 +2908,10 @@ void level_4() {
 
     /*Using Teleporter*/
     initial_direction = UP;
-    
+
     level_has_teleporter = TRUE;
     array_GameMap[4][0] = BLOCK_TELEPORTER;
-    array_GameMap[0][10] = BLOCK_TELEPORT_SPAWN; 
+    array_GameMap[0][10] = BLOCK_TELEPORT_SPAWN;
 }
 
 void level_5() {
