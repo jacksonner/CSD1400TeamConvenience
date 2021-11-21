@@ -241,23 +241,6 @@ void update_timer(void);
 void initialise_pause_and_timer_button(void);
 void draw_timer_and_pause_button(void);
 
-/*Projectile Variables*/
-#define PROJ_MAX 5
-#define PROJ_X 0
-#define PROJ_Y 1
-#define PROJ_SPEED 2
-#define IS_ALIVE 3
-#define PROJ_SIZE 20
-#define PROJ_STATS 5
-float projectile[PROJ_MAX][PROJ_STATS];
-int l_time = 0;
-void projectile_move(int i);
-void projectile_recycle(int dead_minion);
-int array_target[MINION_MAX][2];
-int in_range = 0;
-int proj_count = 0;
-
-
 /*Variables*/
 int BlockPositionX;
 int BlockPositionY;
@@ -265,8 +248,6 @@ int minion_count;
 int spawn_row;
 int spawn_col;
 void update_variables_and_make_screen_nice(); //since it's full screen, need to update the various variables so everything still looks nice
-int is_Search = 1;
-int target_lock = 0;
 
 /*Money Code*/
 void display_money_counter(void);
@@ -341,9 +322,8 @@ void assign_minion_stats(void);
 void assign_enemy_stats(void);
 void render_enemy(void);
 void assign_minion_color(int i);
-void projectile_logic(void);
-void projectile_render(int i);
-void projectile_colliding(int i);
+void projectile_logic(float x_coord, float y_coord);
+void projectile_render(float x_coord, float y_coord);
 void assign_enemy_color(int i);
 
 void game_init(void) {
@@ -351,9 +331,8 @@ void game_init(void) {
     CP_System_SetFrameRate(60.0f);
 
     /*Initialising variables for Fullscreen etc.*/
-    //CP_System_Fullscreen();
-    CP_System_SetWindowSize(1920, 1080);
-    update_variables_and_make_screen_nice(); 
+    CP_System_Fullscreen();
+    update_variables_and_make_screen_nice();
 
     /*Initialise to Main_Menu*/
     Current_Gamestate = MAIN_MENU_SCREEN;
@@ -367,8 +346,7 @@ void game_init(void) {
     totalElapsedTime = 0;
     totalElapsedTime += currentElapsedTime;
 
-    /*Lose Screen*/
-    Lose_Screen = CP_Image_Load("./Assets/Lose_Screen.jpg");
+
 }
 
 void game_update(void) {
@@ -405,7 +383,6 @@ void game_update(void) {
                 CP_Graphics_DrawCircle((float)array_MinionStats[i][X], (float)array_MinionStats[i][Y], (float)array_MinionStats[i][MINION_SIZE]);
                 renderminionhp_bar();
                 render_special_current_charge();
-                CP_Graphics_DrawRect((float)projectile[i][X], (float)projectile[i][Y], PROJ_SIZE, PROJ_SIZE);
             }
             if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
                 if (CP_Input_GetMouseY() >= restartY && (CP_Input_GetMouseY() <= (restartY + restart_width)) && (CP_Input_GetMouseX() >= restartX && (CP_Input_GetMouseX() <= (restartX + restart_length)))) {
@@ -438,24 +415,6 @@ void game_update(void) {
             {
                 Current_Gamestate = LOSE_SCREEN;
             }
-            for (int i = 0; i < PROJ_MAX; i++)
-            {
-                //if (projectile[i][IS_ALIVE] == 1)
-                {
-                    projectile_logic();
-                    //projectile_move(i);
-                    //projectile_colliding(i);
-                    //projectile_render(i);
-                    printf("proj max left: %f\nminion max right: %f\n", (float)(projectile[0][X] - (PROJ_SIZE / 2)), (float)(array_MinionStats[0][X] + (array_MinionStats[0][MINION_SIZE] / 2)));
-                    printf("%f and %f and %f\n", projectile[0][X], projectile[0][Y], projectile[0][IS_ALIVE]);
-                    printf("%d and %d\n\n", in_range,is_Search);
-                }
-            }
-            for (int i = 0; i < PROJ_MAX; i++)
-            {
-                projectile_render(i);
-            }
-
             if (minions_in_base == 10) {
                 Current_Gamestate = WIN_SCREEN;
             }
@@ -1450,7 +1409,6 @@ void update_timer(void)
 {
     elapsed_timer += test;  //For Countdown
     elapsed_timer2 += test; //For Money
-    elapsed_timer3 += test;
     /*for the minion charged attacks*/
 
 
@@ -1489,8 +1447,6 @@ void restart_level(void) {
     money = 50;
     elapsed_timer = 0;
     elapsed_timer2 = 0;
-    elapsed_timer3 = 0;
-    l_time = 0;
     draw_timer_and_pause_button();
     display_money_counter();
 }
@@ -1769,6 +1725,10 @@ void render_enemy() {
 
                     assign_enemy_color(which_enemy);
                     render_enemy_special_attack_bar(which_enemy);
+                    if (array_EnemyStats[which_enemy][ENEMY_TYPE] == DAMAGE_ENEMY)
+                    {
+                        projectile_logic((float)array_EnemyStats[which_enemy][ENEMY_ROW_COORDINATES], (float)array_EnemyStats[which_enemy][ENEMY_COL_COORDINATES]);
+                    }
                 }
                 else if (array_EnemyStats[which_enemy][ENEMY_HP] <= 0) {
                     if (array_EnemyStats[which_enemy][ENEMY_TYPE] == GUARD_ENEMY) {
@@ -1786,149 +1746,29 @@ void render_enemy() {
     }
 }
 
-void projectile_logic()
+void projectile_logic(float x_coord, float y_coord)
 {
-    for (int row = 0; row < MAP_GRID_ROWS; ++row) {
-        for (int col = 0; col < MAP_GRID_COLS; ++col) {
-            if (array_GameMap[row][col] == BLOCK_ENEMY || array_GameMap[row][col] == BLOCK_TOWER_ENEMY) {
-                int which_enemy = check_which_enemy(row, col);
-                array_EnemyStats[which_enemy][ENEMY_ROW_COORDINATES] = origin_map_coordinateX + BLOCK_SIZE * col + array_EnemyStats[which_enemy][ENEMY_SIZE];
-                array_EnemyStats[which_enemy][ENEMY_COL_COORDINATES] = origin_map_coordinateY + BLOCK_SIZE * row + array_EnemyStats[which_enemy][ENEMY_SIZE];
-                float first_pos = ((float)array_EnemyStats[which_enemy][ENEMY_ROW_COORDINATES] / array_EnemyStats[which_enemy][ENEMY_COL]);
-                float second_pos = ((float)array_EnemyStats[which_enemy][ENEMY_COL_COORDINATES] / array_EnemyStats[which_enemy][ENEMY_ROW]);
-                float right_limit = (float)array_EnemyStats[which_enemy][ENEMY_ROW_COORDINATES] + first_pos + first_pos/2;
-                float left_limit = (float)array_EnemyStats[which_enemy][ENEMY_ROW_COORDINATES] - first_pos - first_pos / 2;
-                float top_limit = (float)array_EnemyStats[which_enemy][ENEMY_COL_COORDINATES] - second_pos - second_pos / 2;
-                float bot_limit = (float)array_EnemyStats[which_enemy][ENEMY_COL_COORDINATES] + second_pos + second_pos / 2;
+    float right_limit = x_coord + (x_coord / 8);
+    float left_limit = x_coord - (x_coord / 8);
+    //float top_limit = y_coord + (y_coord / 4);
+    float bot_limit = y_coord - (y_coord / 4);
 
-                if (array_EnemyStats[which_enemy][ENEMY_TYPE] == DAMAGE_ENEMY)
-                {
 
-                    if (minion_count > 0)
-                    {
-                        if (target_lock == 0)
-                        {
-                            is_Search = 1;
-                        }
-                        else if (target_lock == 1)
-                        {
-                            is_Search = 0;
-                        }
-                        if (is_Search == 1)
-                        {
-                            for (int i = 0; i < minion_count; i++)
-                            {
-                                projectile[i][X] = (float)array_EnemyStats[which_enemy][ENEMY_ROW_COORDINATES];
-                                projectile[i][Y] = (float)array_EnemyStats[which_enemy][ENEMY_COL_COORDINATES];
-                                
-                                //projectile_render(i);
-                                //float closest_minionX = 0, closest_minionY = 0;
-                                if (((array_MinionStats[i][X]) <= right_limit &&
-                                    ((array_MinionStats[i][X]) >= left_limit)) &&
-                                    (array_MinionStats[i][Y] >=top_limit &&
-                                    array_MinionStats[i][Y] <= bot_limit))
-                                {
-                                    array_target[i][X] = array_MinionStats[i][X];
-                                    array_target[i][Y] = array_MinionStats[i][Y];
-                                    if (proj_count < PROJ_MAX)
-                                    {
-                                        projectile[proj_count][IS_ALIVE] = 1;
-                                        proj_count++;
-                                    }
-                                    //projectile[proj_count][IS_ALIVE] = 1;
-                                    in_range = 1;
-                                    //if (proj_count < PROJ_MAX)
-                                    //{
-                                        projectile_move(i);
-                                        projectile_colliding(i);
-                                    //}
-                                    
-                                    if (projectile[i][IS_ALIVE] == 0)
-                                    {
-                                        projectile_recycle(i);
-                                    }
-                                }
-                                else
-                                {
-                                    in_range = 0;
-                                    proj_count = 0;
-                                }
-                            }
-                            //target_lock = 1;
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-void projectile_recycle(int dead_proj)
-{
-    float temp_proj_array[PROJ_MAX][PROJ_STATS];
-    for (int i = 0; i < dead_proj; i++)
+    if ((float)array_MinionStats[0][X] <= right_limit && (float)array_MinionStats[0][X] >= left_limit)
     {
-        for (int x = 0; x < PROJ_STATS; x++)
+        if ((float)array_MinionStats[0][Y] >= bot_limit)
         {
-            temp_proj_array[i][x] = projectile[i][x];
-        }
-    }
-    int dead_proj_num = dead_proj;
-    for (int k = (dead_proj_num + 1); k <= dead_proj; k++, dead_proj_num++) {
-        for (int m = 0; m < PROJ_STATS; m++) {
-            temp_proj_array[dead_proj_num][m] = projectile[k][m];
-        }
-    }
-    for (int h = 0; h < proj_count; h++) {
-        for (int n = 0; n < PROJ_STATS; n++) {
-            projectile[h][n] = temp_proj_array[h][n];
-        }
-    }
-    proj_count--;
-}
-void projectile_colliding(int i)
-{
-    float min_limit_right = (float)array_MinionStats[i][X] + (((float)array_MinionStats[i][MINION_SIZE] / 16) * 5);
-    float min_limit_left = (float)array_MinionStats[i][X] - (((float)array_MinionStats[i][MINION_SIZE] / 16) * 5);
-    float min_limit_bot = (float)array_MinionStats[i][Y] + (((float)array_MinionStats[i][MINION_SIZE] / 16) * 5);
-    float min_limit_top = (float)array_MinionStats[i][Y] - (((float)array_MinionStats[i][MINION_SIZE] / 16) * 5);
-    float proj_limit_right = (float)projectile[i][X] + (float)PROJ_SIZE / 2;
-    float proj_limit_left = (float)projectile[i][X] - (float)PROJ_SIZE / 2;
-    float proj_limit_bot = (float)projectile[i][Y] + (float)PROJ_SIZE / 2;
-    float proj_limit_top = (float)projectile[i][Y] - (float)PROJ_SIZE / 2;
-    if (proj_limit_left <= min_limit_right && proj_limit_right >= min_limit_left)
-    {
-        if (proj_limit_top <= min_limit_bot && proj_limit_bot >= min_limit_top)
-        {
-                projectile[i][IS_ALIVE] = 0;
-                //int attacked = 0;
-                array_MinionStats[i][MINION_HP] -= 10;
-                
-        }
-    }
-}
-void projectile_render(int i)
-{
-    CP_Settings_Fill(COLOR_GREEN);
-    //CP_Graphics_DrawRect(20.f, 20.f, 20, 20);
-    if (in_range == 1)
-    {
-        if (projectile[i][IS_ALIVE] == 1)
-        {
-            CP_Graphics_DrawRect(projectile[i][X], projectile[i][Y], PROJ_SIZE, PROJ_SIZE);
+            projectile_render(x_coord, y_coord);
         }
     }
 }
 
-void projectile_move(int i)
+void projectile_render(float x_coord, float y_coord)
 {
-    float vectorX = (float)array_target[i][X];
-    float vectorY = (float)array_target[i][Y];
-    l_time++;
-    projectile[i][X] = projectile[i][X] + (l_time * ((vectorX - projectile[i][X]) / 100));
-    projectile[i][Y] = projectile[i][Y] + (l_time * ((vectorY - projectile[i][Y]) / 100));
+    CP_Graphics_DrawRect(x_coord, y_coord, 4, 4);
 
 }
-    
+
 void render_minion() {
     for (int row = 0; row < MAP_GRID_ROWS; ++row) {
         for (int col = 0; col < MAP_GRID_COLS; ++col) {
