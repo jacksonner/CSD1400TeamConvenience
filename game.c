@@ -294,7 +294,7 @@ float level5X, level5Y, level5_textY, level5_textY;
 float level6X, level6Y, level6_textY, level6_textY;
 CP_Image Level_Selector_Screen = NULL;
 
-/*Setting Screen*/
+/*Setting Screen*/ //comment so it let me commit
 void setting_screen(void);
 void setting_screen_clicked(float x, float y);
 static CP_Image setting_image;
