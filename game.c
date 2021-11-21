@@ -294,6 +294,11 @@ float level5X, level5Y, level5_textY, level5_textY;
 float level6X, level6Y, level6_textY, level6_textY;
 CP_Image Level_Selector_Screen = NULL;
 
+/*Setting Screen*/
+void setting_screen(void);
+void setting_screen_clicked(float x, float y);
+static CP_Image setting_image;
+
 /*Move Minion*/
 int initial_direction; //when setting up level, check for the initial direction to set this to
 void move_minion(void);
@@ -306,8 +311,7 @@ int find_full_hp(int i);
 void reset_map_and_minions(void);
 void render_background(void); //for the gameplay_screen
 void gameplay_screen(void);
-void setting_screen(void);
-void setting_screen_clicked(float x, float y);
+
 void initialise_level(void); //TBC
 void setup_collaborative_diffusion_map(void); //ensure no backtracking
 void render_minion(void);
@@ -1105,6 +1109,16 @@ void level_selector_screen(void) {
 }
 
 void setting_screen(void) {
+
+    setting_image = CP_Image_Load("./Assets/bg_mainmenu.png"); //temp image
+    //CP_Graphics_ClearBackground(COLOR_WHITE);
+    static float middleX, middleY, width, height;
+    middleX = (float)(CP_System_GetWindowWidth() / 2);
+    middleY = (float)(CP_System_GetWindowHeight() / 2);
+    width = (float)CP_Image_GetWidth(setting_image);
+    height = (float)CP_Image_GetWidth(setting_image) * 0.6f;
+    CP_Image_Draw(setting_image, middleX, middleY, width, height, 100);
+    
     float startX = (float)CP_System_GetDisplayWidth() / 3;
     float startY = (float)CP_System_GetDisplayHeight() / 5;
     float option_textX = startX + 20.f;
@@ -1162,6 +1176,10 @@ void setting_screen(void) {
 
 
 void setting_screen_clicked(float x, float y) {
+
+    /*Free image*/
+    CP_Image_Free(&setting_image);
+
     if (Current_Gamestate == MAIN_MENU_SCREEN) {
         if (x >= settingX && x <= (settingX + button_width) &&
             y >= settingY && y <= settingY + button_height) {
