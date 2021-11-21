@@ -162,7 +162,7 @@ void render_enemy_special_attack_bar(int i);
 #define LOSE_SCREEN 3
 #define PAUSE_SCREEN 4 //like a translucent array with a giant play button?
 #define LEVEL_SELECTOR_SCREEN 5
-#define SETTINGS_SCREEN 6
+#define SETTING_SCREEN 6
 int Current_Gamestate;
 
 /*render HP bar for minions*/
@@ -229,7 +229,7 @@ int level_timer = 0;
 float test;
 float elapsed_timer;
 float elapsed_timer2;
-float gPauseButtonPositionX, gPauseButtonPositionY, gPauseButtonTextPositionX, gPauseButtonTextPositionY;
+float gPauseButtonPositionX, gPauseButtonPositionY, gPauseButtonTextPositionX, gPauseButtonTextPositionY, setting_buttonX, setting_buttonY;
 float gTimerPositionX, gTimerPositionY, gTimerButtonTextPositionX, gTimerButtonTextPositionY;
 float currentElapsedTime;
 static float totalElapsedTime;
@@ -262,8 +262,8 @@ void gameplay_screen_clicked(float x, float y);
 
 /*Main Menu Screen*/
 float button_height, button_width;
-float level_selectorX, level_selectorY, start_game_buttonX, start_game_buttonY;
-float start_textX, start_textY, levels_textX, levels_textY;
+float level_selectorX, level_selectorY, start_game_buttonX, start_game_buttonY, settingX, settingY;
+float start_textX, start_textY, levels_textX, levels_textY, setting_textX, setting_textY;
 void main_menu_screen(void);
 void main_menu_clicked(float x, float y);
 static CP_Image main_menu_image;
@@ -306,6 +306,8 @@ int find_full_hp(int i);
 void reset_map_and_minions(void);
 void render_background(void); //for the gameplay_screen
 void gameplay_screen(void);
+void setting_screen(void);
+void setting_screen_clicked(float x, float y);
 void initialise_level(void); //TBC
 void setup_collaborative_diffusion_map(void); //ensure no backtracking
 void render_minion(void);
@@ -359,6 +361,8 @@ void game_update(void) {
         }
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
         {
+            setting_screen_clicked(CP_Input_GetMouseX(), CP_Input_GetMouseY());
+
             if (((CP_Input_GetMouseX() >= gPauseButtonPositionX) && (CP_Input_GetMouseX() <= pauseButtonLimitX)) &&
                 ((CP_Input_GetMouseY() >= gPauseButtonPositionY) && (CP_Input_GetMouseY() <= pauseButtonLimitY)))
             {
@@ -422,8 +426,8 @@ void game_update(void) {
 
         win_screen();
     }
-    else if (Current_Gamestate == SETTINGS_SCREEN) {
-        //setting_screen();
+    else if (Current_Gamestate == SETTING_SCREEN) {
+        setting_screen();
     }
 }
 
@@ -453,8 +457,11 @@ void main_menu_screen(void) {
     start_game_buttonX = quarter_blockX;
     start_game_buttonY = 2.f * quarter_blockY + 0.1f * quarter_blockY;
     level_selectorY = start_game_buttonY + quarter_blockY * 0.8f;
+    settingX = quarter_blockX;
+    settingY = start_game_buttonY - quarter_blockY * 0.8f;
     CP_Graphics_DrawRect(level_selectorX, level_selectorY, button_width, button_height);
     CP_Graphics_DrawRect(start_game_buttonX, start_game_buttonY, button_width, button_height);
+    CP_Graphics_DrawRect(settingX, settingY, button_width, button_height);
     /*Now Text*/
     CP_Settings_TextSize(80);
     CP_Settings_Fill(COLOR_BLACK);
@@ -462,8 +469,11 @@ void main_menu_screen(void) {
     start_textY = start_game_buttonY + 80;
     levels_textX = level_selectorX + 40;
     levels_textY = level_selectorY + 80;
+    setting_textX = settingX + 40;
+    setting_textY = settingY + 80;
     CP_Font_DrawText("START", start_textX, start_textY);
     CP_Font_DrawText("LEVELS", levels_textX, levels_textY);
+    CP_Font_DrawText("SETTING", setting_textX, setting_textY);
 }
 
 void main_menu_clicked(float x, float y) {
@@ -496,6 +506,12 @@ void main_menu_clicked(float x, float y) {
         /*pending level_selector_screen completion*/
 
         CP_Image_Free(&main_menu_image);
+    }
+
+    /*Setting button clicked*/
+    else if (x >= settingX && x <= (settingX + button_width) &&
+        y >= settingY && settingY <= level_selectorY + button_height) {
+        Current_Gamestate = SETTING_SCREEN;
     }
 
 }
@@ -1088,6 +1104,81 @@ void level_selector_screen(void) {
 
 }
 
+void setting_screen(void) {
+    float startX = (float)CP_System_GetDisplayWidth() / 3;
+    float startY = (float)CP_System_GetDisplayHeight() / 5;
+    float option_textX = startX + 20.f;
+    float option_textY = startY + 20.f;
+
+    button_height = 120.f;
+    button_width = 300.f;
+
+    /*options buttons*/
+    CP_Settings_Fill(COLOR_WHITE);
+    CP_Graphics_DrawRect(startX, startY, button_width, button_height); //main menu
+    CP_Graphics_DrawRect(startX, startY * 2, button_width, button_height); //level selection
+    CP_Graphics_DrawRect(startX, startY * 3, button_width, button_height); //hordepedia?
+    CP_Graphics_DrawRect(startX, startY * 4, button_width, button_height); //music?
+
+     /*options text*/
+    CP_Settings_TextSize(60);
+    CP_Settings_Fill(COLOR_BLACK);
+    CP_Font_DrawText("MAIN MENU", option_textX, option_textY + 60);
+    CP_Font_DrawText("LEVEL", option_textX, option_textY * 2 + 40);
+    CP_Font_DrawText("HELP", option_textX, option_textY * 3 + 20);
+    CP_Font_DrawText("BGM?", option_textX, option_textY * 4);
+
+    float mouseX = (float)CP_Input_GetMouseX();
+    float mouseY = (float)CP_Input_GetMouseY();
+
+
+
+
+    if (mouseX >= startX && mouseX <= (startX + button_width) &&
+        mouseY >= startY && mouseY <= startY + button_height) {
+
+        if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
+            Current_Gamestate = MAIN_MENU_SCREEN;
+        }
+    }
+
+    if (mouseX >= startX && mouseX <= (startX + button_width) &&
+        mouseY >= startY && mouseY <= startY * 2 + button_height) {
+        if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
+            Current_Gamestate = LEVEL_SELECTOR_SCREEN;
+        }
+
+    }
+    /*
+    if (mouseX >= startX && mouseX <= (startX + button_width) &&
+        mouseY >= startY && mouseY <= startY * 3 + button_height) {
+    }
+
+    if (mouseX >= startX && mouseX <= (startX + button_width) &&
+        mouseY >= startY && mouseY <= startY * 4 + button_height) {
+    } */
+
+}
+
+
+void setting_screen_clicked(float x, float y) {
+    if (Current_Gamestate == MAIN_MENU_SCREEN) {
+        if (x >= settingX && x <= (settingX + button_width) &&
+            y >= settingY && y <= settingY + button_height) {
+            Current_Gamestate = SETTING_SCREEN;
+        }
+    }
+
+    if (Current_Gamestate == GAMEPLAY_SCREEN) {
+        if (x >= setting_buttonX && x <= (setting_buttonX + button_width) &&
+            y >= setting_buttonY && y <= setting_buttonY + button_height) {
+            gIsPaused = TRUE;
+            Current_Gamestate = SETTING_SCREEN;
+        }
+
+    }
+}
+
 /*Updates the new origin depending on what the full screen size is*/
 void update_variables_and_make_screen_nice() {
     int map_border_width, window_width, window_height; //map_border_height;
@@ -1138,6 +1229,8 @@ void initialise_pause_and_timer_button(void) {
     gPauseButtonTextPositionY = gPauseButtonPositionY + 30.f;
     pauseButtonLimitX = gPauseButtonPositionX + 100.f;
     pauseButtonLimitY = gPauseButtonPositionY + 50.f;
+    setting_buttonX = gPauseButtonPositionX + 250.f;
+    setting_buttonY = gPauseButtonPositionY - 30.f;
 }
 
 void draw_timer_and_pause_button(void) {
@@ -1145,6 +1238,7 @@ void draw_timer_and_pause_button(void) {
     CP_Settings_Fill(COLOR_WHITE);
     CP_Graphics_DrawRect(gPauseButtonPositionX, gPauseButtonPositionY, 100.f, 50.f);
     CP_Graphics_DrawRect(gTimerPositionX, gTimerPositionY, 100.f, 50.f);
+    CP_Graphics_DrawRect(setting_buttonX, setting_buttonY, 200.f, 80.f);
     CP_Settings_Fill(COLOR_BLACK);
     CP_Settings_TextSize(35);
     CP_Font_DrawText(buffer, gTimerButtonTextPositionX, gTimerButtonTextPositionY);
@@ -1158,7 +1252,8 @@ void draw_timer_and_pause_button(void) {
         CP_Settings_TextSize(30);
         CP_Font_DrawText("Pause", gPauseButtonTextPositionX, gPauseButtonTextPositionY);
     }
-
+    CP_Settings_TextSize(50);
+    CP_Font_DrawText("SETTING", (setting_buttonX + 10.f), (setting_buttonY + 50.f));
 }
 
 void start_timer(void) {
