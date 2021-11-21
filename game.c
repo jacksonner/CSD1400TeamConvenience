@@ -498,6 +498,7 @@ void main_menu_clicked(float x, float y) {
         minion_count = 0;
         reset_map_and_minions();
         initialise_level();
+        restart_level();
         gIsPaused = FALSE;
         minions_in_base = 0; //Part of minion counter which has been commented out
 
@@ -623,7 +624,6 @@ void lose_screen(void) {
         }
     }
 }
-
 void win_screen(void) {
 
     float width = (float)CP_System_GetWindowWidth();
@@ -644,15 +644,15 @@ void win_screen(void) {
     CP_Graphics_DrawRect(main_loseX, main_loseY, button_width, button_height);
     CP_Graphics_DrawRect(restart_loseX, restart_loseY, button_width, button_height);
     /*Now Text*/
-    CP_Settings_TextSize(60);
+    CP_Settings_TextSize(50);
     CP_Settings_Fill(COLOR_BLACK);
     restart_textX = restart_loseX + 40;
     restart_textY = restart_loseY + 80;
     main_textX = main_loseX + 35;
     main_textY = main_loseY + 75;
-    CP_Font_DrawText("RESTART", restart_textX, restart_textY);
+    CP_Font_DrawText("MAIN MENU", restart_textX, restart_textY);
     CP_Settings_TextSize(50);
-    CP_Font_DrawText("MAIN MENU", main_textX, main_textY);
+    CP_Font_DrawText("NEXT LEVEL", main_textX, main_textY);
 
 
     float mouseX = (float)CP_Input_GetMouseX();
@@ -663,7 +663,7 @@ void win_screen(void) {
 
         CP_Image_Draw(Win_Screen, width / 2, height / 2, width, height, 255);
 
-        //Hovering on Restart Button
+        //Hovering on Main Menu Button
 
         CP_Settings_Fill(COLOR_WHITE);
         CP_Graphics_DrawRect(main_loseX, main_loseY, button_width, button_height);
@@ -672,28 +672,18 @@ void win_screen(void) {
 
         /*Text*/
 
-        CP_Settings_TextSize(60);
+        CP_Settings_TextSize(50);
         CP_Settings_Fill(COLOR_WHITE);
-        CP_Font_DrawText("RESTART", restart_textX, restart_textY);
+        CP_Font_DrawText("MAIN MENU", restart_textX, restart_textY);
         CP_Settings_TextSize(50);
         CP_Settings_Fill(COLOR_BLACK);
-        CP_Font_DrawText("MAIN MENU", main_textX, main_textY);
+        CP_Font_DrawText("NEXT LEVEL", main_textX, main_textY);
 
-        //When clicked, return back to gameplay screen
+        //When clicked, return back to main menu screen
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
         {
             CP_Image_Free(&Win_Screen);
-            Current_Gamestate = GAMEPLAY_SCREEN;
-
-            /*initialise for gameplay screen*/
-            minion_count = 0;
-            reset_map_and_minions();
-            initialise_level();
-            gIsPaused = FALSE;
-            //minions_in_base = 0; Part of minion counter which has been commented out
-
-            //initialise_pause_and_timer_button();
-            restart_level();
+            Current_Gamestate = MAIN_MENU_SCREEN;
 
 
         }
@@ -701,31 +691,40 @@ void win_screen(void) {
     }
     else if (mouseX >= main_loseX && mouseX <= (main_loseX + button_width) && mouseY >= main_loseY && mouseY <= main_loseY + button_height) {
 
-        //Hovering on Main Menu Button
+        //Hovering on Next Level Button
         CP_Settings_Fill(COLOR_BLACK);
         CP_Graphics_DrawRect(main_loseX, main_loseY, button_width, button_height);
         CP_Settings_Fill(COLOR_WHITE);
         CP_Graphics_DrawRect(restart_loseX, restart_loseY, button_width, button_height);
 
 
-        CP_Settings_TextSize(60);
+        CP_Settings_TextSize(50);
         CP_Settings_Fill(COLOR_BLACK);
-        CP_Font_DrawText("RESTART", restart_textX, restart_textY);
+        CP_Font_DrawText("MAIN MENU", restart_textX, restart_textY);
         CP_Settings_TextSize(50);
         CP_Settings_Fill(COLOR_WHITE);
-        CP_Font_DrawText("MAIN MENU", main_textX, main_textY);
+        CP_Font_DrawText("NEXT LEVEL", main_textX, main_textY);
 
+
+
+        //When clicked, return back to gameplay screen
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
         {
             CP_Image_Free(&Win_Screen);
-            Current_Gamestate = MAIN_MENU_SCREEN;
+            current_level++; //Go to the next level
 
+            Current_Gamestate = GAMEPLAY_SCREEN;
 
-
+            /*initialise for gameplay screen*/
+            minion_count = 0;
+            reset_map_and_minions();
+            initialise_level();
+            gIsPaused = FALSE;
+            restart_level();
         }
+
+
     }
-
-
 
 
 }
