@@ -1275,6 +1275,10 @@ void level_selector_screen(void) {
                 Current_Gamestate = SETTING_SCREEN;
             }
 
+            else {
+                Current_Gamestate = SETTING_SCREEN;
+            }
+
 
         }
 
@@ -1381,6 +1385,10 @@ void setting_screen(void) {
             else if (Previous_Gamestate == GAMEPLAY_SCREEN) {
                 Current_Gamestate = GAMEPLAY_SCREEN;
 
+            }
+
+            else {
+                Current_Gamestate = LEVEL_SELECTOR_SCREEN;
             }
         }
     }
