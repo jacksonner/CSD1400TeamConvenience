@@ -58,6 +58,7 @@ int teleport_spawn_X, teleport_spawn_Y;
 #define COLOR_DULL_GREEN CP_Color_Create(0, 153, 0, 255)
 #define COLOR_DARK_BLUE CP_Color_Create(0, 102, 204, 255)
 #define COLOR_YELLOW CP_Color_Create(255, 255, 0, 255)
+#define COLOR_TURQUOISE CP_Color_Create(99, 212, 178, 255)
 
 /*Minion Stats*/
 #define X 0 //x-coordinates
@@ -2612,7 +2613,7 @@ void assign_enemy_color(int i) {
         CP_Settings_Fill(COLOR_BLUE);
     }
     if (array_EnemyStats[i][ENEMY_TYPE] == SLOW_ENEMY) {
-        CP_Settings_Fill(COLOR_CYAN);
+        CP_Settings_Fill(COLOR_TURQUOISE);
     }
     if (array_EnemyStats[i][ENEMY_TYPE] == HEALING_TOWER) {
         CP_Settings_Fill(COLOR_DULL_GREEN);
