@@ -59,7 +59,6 @@ int teleport_spawn_X, teleport_spawn_Y;
 #define COLOR_DARK_BLUE CP_Color_Create(0, 102, 204, 255)
 #define COLOR_YELLOW CP_Color_Create(255, 255, 0, 255)
 
-
 /*Minion Stats*/
 #define X 0 //x-coordinates
 #define Y 1 //y-coordinates
@@ -147,6 +146,10 @@ float array_Enemy_Slow_Effect_Time[ENEMY_MAX][2];
 int array_isMinionSlowed[ENEMY_MAX][MINION_MAX][2];
 void render_enemy_special_attack_bar(int i);
 int find_enemy_full_hp(int j);
+
+/*Enemy Single Targetting*/
+int array_isMinionAttacked[ENEMY_MAX][MINION_MAX];
+int is_minion_being_attacked(int enemy, int minion);
 
 /*Types of Enemies*/
 #define GUARD_ENEMY 0 //block minions
@@ -677,6 +680,7 @@ void lose_screen(void) {
         }
     }
 }
+
 void win_screen(void) {
 
     float width = (float)CP_System_GetWindowWidth();
@@ -1254,7 +1258,6 @@ void setting_screen(void) {
     }
 
 }
-
 
 void setting_screen_clicked(float x, float y) {
 
@@ -2098,6 +2101,16 @@ void move_minion() {
                             }
                             /*Single targeting system*/
                             int enemy_charged_up = check_enemy_basic_attack_charge(correct_enemy);
+                            int can_attack = is_minion_being_attacked(correct_enemy, i);
+                            if (enemy_charged_up == 1 && can_attack == 1) {
+                                if (array_MinionStats[i][MINION_HP] > 0) {
+                                    array_MinionStats[i][MINION_HP] -= array_EnemyStats[correct_enemy][ENEMY_ATTACK];
+                                }
+                                else if (array_MinionStats[i][MINION_HP] <= 0) {
+                                    array_isMinionAttacked[correct_enemy][i] = 0;
+                                }
+                            }
+                            /*
                             int previous_minion = i - 1;
                             if (enemy_charged_up == 1) {
                                 if (previous_minion >= 0 && array_MinionStats[previous_minion][MINION_HP] > 0) {
@@ -2108,6 +2121,7 @@ void move_minion() {
                                     array_MinionStats[new_minion][MINION_HP] -= array_EnemyStats[correct_enemy][ENEMY_ATTACK];
                                 }
                             }
+                            */
                             if (array_MinionStats[i][MINION_HP] <= 0) {
                                 array_EnemyStats[correct_enemy][ENEMY_CURRENT_MINIONS_ON_BLOCK] -= array_MinionStats[i][MINION_WEIGHT];
 
@@ -2157,6 +2171,21 @@ void move_minion() {
             CP_Graphics_DrawCircle((float)array_MinionStats[i][X], (float)array_MinionStats[i][Y], (float)array_MinionStats[i][MINION_SIZE]);
         }
     }
+}
+
+/*Check if the current minion is the one to be attacked by the enemy*/
+int is_minion_being_attacked(int enemy, int minion) {
+    if (array_isMinionAttacked[enemy][minion] == 1) {
+        return 1;
+    }
+    for (int i = 0; i < MINION_MAX; i++) {
+        if (array_isMinionAttacked[enemy][i] == 1) {
+            return 0;
+        }
+    }
+    //if nothing == 1, that means that enemy is currently not attacking any minion
+    array_isMinionAttacked[enemy][minion] = 1;
+    return 1;
 }
 
 void healer_minion_basic_heal(int i) {
@@ -2285,6 +2314,9 @@ void minion_dies_array_recycle(int dead_minion_number) {
     float array_Temp_MinionCharge[MINION_MAX][TOTAL_CHARGES];
     int array_Temp_isMinionSlowed[ENEMY_MAX][MINION_MAX][2];
 
+    for (int i = 0; i < ENEMY_MAX; i++) {
+        array_isMinionAttacked[i][dead_minion_number] = 0;
+    }
     for (int i = 0; i < dead_minion_number; i++) {
         for (int j = 0; j < MINION_TOTAL_STATS; j++) {
             array_Temp_MinionStats[i][j] = array_MinionStats[i][j];
@@ -2460,7 +2492,8 @@ void renderguardhp_bar(int i) {
 
 void render_special_current_charge() {
     for (int i = 0; i < MINION_MAX; i++) {
-        if (array_MinionStats[i][MINION_TYPE] != SPAM_MINION) {
+        if (array_MinionStats[i][MINION_TYPE] != SPAM_MINION && array_MinionStats[i][MINION_TYPE]  != WARRIOR_MINION) {
+            //ADDED THE != WARRIOR_MINION
             int buffer_space = 0;
             float charge_percentage;
             if (array_MinionStats[i][MINION_HP] > 0) {
@@ -3145,11 +3178,11 @@ void level_4() {
     array_GameMap[3][3] = BLOCK_PRESENT;
     array_GameMap[3][5] = BLOCK_PRESENT;
     array_GameMap[3][6] = BLOCK_PRESENT;
-    array_GameMap[3][7] = BLOCK_PRESENT;
-    array_GameMap[1][4] = BLOCK_PRESENT;
+    //array_GameMap[3][7] = BLOCK_PRESENT;
+    //array_GameMap[1][4] = BLOCK_PRESENT;
     array_GameMap[2][4] = BLOCK_PRESENT;
     array_GameMap[2][8] = BLOCK_PRESENT;
-    array_GameMap[2][9] = BLOCK_PRESENT;
+    //array_GameMap[2][9] = BLOCK_PRESENT;
     array_GameMap[1][9] = BLOCK_PRESENT;
     array_GameMap[0][9] = BLOCK_PRESENT;
     array_GameMap[4][11] = BLOCK_PRESENT;
@@ -3183,8 +3216,27 @@ void level_4() {
     array_GameMap[2][2] = BLOCK_ENEMY;
     array_EnemyStats[5][ENEMY_ROW] = 2;
     array_EnemyStats[5][ENEMY_COL] = 2;
-    array_EnemyStats[0][ENEMY_TYPE] = GUARD_ENEMY;
+    array_EnemyStats[5][ENEMY_TYPE] = GUARD_ENEMY;
 
+    array_GameMap[3][7] = BLOCK_TOWER_ENEMY;
+    array_EnemyStats[6][ENEMY_ROW] = 3;
+    array_EnemyStats[6][ENEMY_COL] = 7;
+    array_EnemyStats[6][ENEMY_TYPE] = DAMAGE_ENEMY;
+
+    array_GameMap[2][9] = BLOCK_TOWER_ENEMY;
+    array_EnemyStats[7][ENEMY_ROW] = 2;
+    array_EnemyStats[7][ENEMY_COL] = 9;
+    array_EnemyStats[7][ENEMY_TYPE] = SLOW_ENEMY;
+
+    array_GameMap[3][8] = BLOCK_ENEMY;
+    array_EnemyStats[8][ENEMY_ROW] = 3;
+    array_EnemyStats[8][ENEMY_COL] = 8;
+    array_EnemyStats[8][ENEMY_TYPE] = GUARD_ENEMY;
+
+    array_GameMap[1][4] = BLOCK_TOWER_ENEMY;
+    array_EnemyStats[9][ENEMY_ROW] = 1;
+    array_EnemyStats[9][ENEMY_COL] = 4;
+    array_EnemyStats[9][ENEMY_TYPE] = DAMAGE_ENEMY;
     
     initial_direction = UP;
 
@@ -3262,6 +3314,11 @@ void level_5() {
     array_EnemyStats[8][ENEMY_ROW] = 2;
     array_EnemyStats[8][ENEMY_COL] = 2;
     array_EnemyStats[8][ENEMY_TYPE] = GUARD_ENEMY;
+
+    array_GameMap[3][2] = BLOCK_ENEMY;
+    array_EnemyStats[9][ENEMY_ROW] = 3;
+    array_EnemyStats[9][ENEMY_COL] = 2;
+    array_EnemyStats[9][ENEMY_TYPE] = GUARD_ENEMY;
 
     /*Using Teleporter*/
     level_has_teleporter = TRUE;
