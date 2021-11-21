@@ -295,6 +295,7 @@ static CP_Image guide_image1;
 static CP_Image guide_image2;
 static CP_Image guide_image3;
 int current_guide;
+void help_screen();
 
 /*Main Menu Screen*/
 float button_height, button_width;
@@ -530,8 +531,9 @@ void game_update(void) {
             }
             for (int i = 0; i < PROJ_MAX; i++)
             {
-                //if (projectile[i][IS_ALIVE] == 1)
-                {
+                if (check_projectile_basic_attack_charge(i) == 1) {
+                    //if (projectile[i][IS_ALIVE] == 1)
+                    //{
                     projectile_logic();
                     //projectile_move(i);
                     //projectile_colliding(i);
@@ -539,6 +541,7 @@ void game_update(void) {
                     //printf("proj max left: %f\nminion max right: %f\n", (float)(projectile[0][X] - (PROJ_SIZE / 2)), (float)(array_MinionStats[0][X] + (array_MinionStats[0][MINION_SIZE] / 2)));
                     //printf("%f and %f and %f\n", projectile[0][X], projectile[0][Y], projectile[0][IS_ALIVE]);
                     //printf("%d and %d\n\n", in_range,is_Search);
+                //}
                 }
             }
             
@@ -1821,7 +1824,7 @@ void render_enemy() {
 
                     assign_enemy_color(which_enemy);
                     render_enemy_special_attack_bar(which_enemy);
-                    if (array_EnemyStats[which_enemy][ENEMY_TYPE] == DAMAGE_ENEMY)
+                    if (array_EnemyStats[which_enemy][ENEMY_TYPE] == DAMAGE_ENEMY && check_projectile_basic_attack_charge(which_enemy) == 1)
                     {
                         projectile_logic();
                     }
@@ -1856,12 +1859,10 @@ void projectile_logic()
                 float left_limit = (float)array_EnemyStats[which_enemy][ENEMY_ROW_COORDINATES] - first_pos - first_pos / 2;
                 float top_limit = (float)array_EnemyStats[which_enemy][ENEMY_COL_COORDINATES] - second_pos - second_pos / 2;
                 float bot_limit = (float)array_EnemyStats[which_enemy][ENEMY_COL_COORDINATES] + second_pos + second_pos / 2;
-
                 if (array_GameMap[row][col] == BLOCK_TOWER_ENEMY)
                     //array_GameMap[row][col] == BLOCK_TOWER_ENEMY
                     //array_EnemyStats[which_enemy][ENEMY_TYPE] == DAMAGE_ENEMY
                 {
-
                     if (minion_count > 0)
                     {
                         if (target_lock == 0)
@@ -2897,8 +2898,8 @@ void assign_enemy_stats() {
         }
         if (array_EnemyStats[i][ENEMY_TYPE] == DAMAGE_ENEMY) {
             array_EnemyStats[i][ENEMY_HP] = 100;
-            array_EnemyStats[i][ENEMY_ATTACK] = 30;
-            array_EnemyStats[i][ENEMY_ATTACK_SPEED] = 2;
+            array_EnemyStats[i][ENEMY_ATTACK] = 5;
+            array_EnemyStats[i][ENEMY_ATTACK_SPEED] = 5;
             array_EnemyStats[i][ENEMY_BLOCK] = 2;
             array_EnemyStats[i][ENEMY_SIZE] = BLOCK_SIZE / 2;
             array_EnemyStats[i][ENEMY_RANGE] = 2;
