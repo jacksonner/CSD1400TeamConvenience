@@ -274,6 +274,15 @@ float restart_textX, restart_textY, main_textX, main_textY;
 void lose_screen(void);
 CP_Image Lose_Screen = NULL;
 
+/*Win Screen*/
+void win_screen(void);
+float ButtonPositionX;
+float ButtonPositionY;
+float button_heightL, button_widthL;
+float restart_loseX, restart_loseY, main_loseX, main_loseY;
+float restart_textX, restart_textY, main_textX, main_textY;
+CP_Image Win_Screen = NULL;
+
 /*Level Selector Screen*/
 void level_selector_screen(void);
 float level1X, level1Y, level1_textX, level1_textY;
@@ -327,8 +336,7 @@ void game_init(void) {
     totalElapsedTime = 0;
     totalElapsedTime += currentElapsedTime;
 
-    /*Lose Screen*/
-    Lose_Screen = CP_Image_Load("./Assets/Lose_Screen.jpg");
+
 }
 
 void game_update(void) {
@@ -410,7 +418,8 @@ void game_update(void) {
         level_selector_screen();
     }
     else if (Current_Gamestate == WIN_SCREEN) {
-        //TBC
+        
+        win_screen();
     }
 }
 
@@ -478,7 +487,7 @@ void main_menu_clicked(float x, float y) {
     }
     /*Level selector button clicked*/
     else if (x >= level_selectorX && x <= (level_selectorX + button_width) &&
-        y >= level_selectorY && y <= level_selectorY + button_height) {
+       y >= level_selectorY && y <= level_selectorY + button_height) {
         Current_Gamestate = LEVEL_SELECTOR_SCREEN;
         /*pending level_selector_screen completion*/
 
@@ -490,6 +499,8 @@ void main_menu_clicked(float x, float y) {
 void lose_screen(void) {
     float width = (float)CP_System_GetWindowWidth();
     float height = (float)CP_System_GetWindowHeight();
+    /*Lose Screen*/
+    Lose_Screen = CP_Image_Load("./Assets/Lose_Screen.jpg");
     /*Draw Image*/
     CP_Image_Draw(Lose_Screen, width / 2, height / 2, width, height, 255);
     /*Buttons*/
@@ -557,13 +568,12 @@ void lose_screen(void) {
             initialise_level();
             gIsPaused = FALSE;
             restart_level();
-            //CP_Image_Free(&lose_screen);
+
 
         }
 
     }
-    else if (mouseX >= main_loseX && mouseX <= (main_loseX + button_width) &&
-        mouseY >= main_loseY && mouseY <= main_loseY + button_height) 
+    else if (mouseX >= main_loseX && mouseX <= (main_loseX + button_width) && mouseY >= main_loseY && mouseY <= main_loseY + button_height) 
     {
         //Hovering on Main menu Button
         CP_Settings_Fill(COLOR_BLACK);
@@ -584,13 +594,116 @@ void lose_screen(void) {
         {
             CP_Image_Free(&Lose_Screen);
             Current_Gamestate = MAIN_MENU_SCREEN;
+
+
+        }
+    }
+}
+
+void win_screen(void) {
+
+    float width = (float)CP_System_GetWindowWidth();
+    float height = (float)CP_System_GetWindowHeight();
+    /*Load Image*/
+    Win_Screen = CP_Image_Load("./Assets/Win_Screen.jpg");
+    CP_Image_Draw(Win_Screen, width / 2, height / 2, width, height, 255);
+
+    /*Buttons*/
+    CP_Settings_Fill(COLOR_WHITE);
+    float quarter_blockX = (float)CP_System_GetDisplayWidth() / 4;
+    float quarter_blockY = (float)CP_System_GetDisplayHeight() / 4;
+    button_height = 120.f;
+    button_width = 300.f;
+    main_loseX = (quarter_blockX * 3) - button_width;
+    restart_loseX = quarter_blockX;
+    main_loseY = restart_loseY = quarter_blockY * 2.8f;
+    CP_Graphics_DrawRect(main_loseX, main_loseY, button_width, button_height);
+    CP_Graphics_DrawRect(restart_loseX, restart_loseY, button_width, button_height);
+    /*Now Text*/
+    CP_Settings_TextSize(60);
+    CP_Settings_Fill(COLOR_BLACK);
+    restart_textX = restart_loseX + 40;
+    restart_textY = restart_loseY + 80;
+    main_textX = main_loseX + 35;
+    main_textY = main_loseY + 75;
+    CP_Font_DrawText("RESTART", restart_textX, restart_textY);
+    CP_Settings_TextSize(50);
+    CP_Font_DrawText("MAIN MENU", main_textX, main_textY);
+
+
+    float mouseX = (float)CP_Input_GetMouseX();
+    float mouseY = (float)CP_Input_GetMouseY();
+
+    if (mouseX >= restart_loseX && mouseX <= (restart_loseX + button_width) &&
+        mouseY >= restart_loseY && mouseY <= restart_loseY + button_height) {
+
+        CP_Image_Draw(Win_Screen, width / 2, height / 2, width, height, 255);
+
+        //Hovering on Restart Button
+
+        CP_Settings_Fill(COLOR_WHITE);
+        CP_Graphics_DrawRect(main_loseX, main_loseY, button_width, button_height);
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Graphics_DrawRect(restart_loseX, restart_loseY, button_width, button_height);
+        
+        /*Text*/
+
+        CP_Settings_TextSize(60);
+        CP_Settings_Fill(COLOR_WHITE);
+        CP_Font_DrawText("RESTART", restart_textX, restart_textY);
+        CP_Settings_TextSize(50);
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Font_DrawText("MAIN MENU", main_textX, main_textY);
+
+        //When clicked, return back to gameplay screen
+        if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
+        {
+            CP_Image_Free(&Win_Screen);
+            Current_Gamestate = GAMEPLAY_SCREEN;
+
+            /*initialise for gameplay screen*/
             minion_count = 0;
             reset_map_and_minions();
             initialise_level();
-            elapsed_timer = 0;
-            elapsed_timer2 = 0;
+            gIsPaused = FALSE;
+            //minions_in_base = 0; Part of minion counter which has been commented out
+
+            //initialise_pause_and_timer_button();
+            restart_level();
+
+
+        }
+
+    }
+    else if (mouseX >= main_loseX && mouseX <= (main_loseX + button_width) && mouseY >= main_loseY && mouseY <= main_loseY + button_height) {
+
+        //Hovering on Main Menu Button
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Graphics_DrawRect(main_loseX, main_loseY, button_width, button_height);
+        CP_Settings_Fill(COLOR_WHITE);
+        CP_Graphics_DrawRect(restart_loseX, restart_loseY, button_width, button_height);
+
+
+        CP_Settings_TextSize(60);
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Font_DrawText("RESTART", restart_textX, restart_textY);
+        CP_Settings_TextSize(50);
+        CP_Settings_Fill(COLOR_WHITE);
+        CP_Font_DrawText("MAIN MENU", main_textX, main_textY);
+
+        if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
+        {
+            CP_Image_Free(&Win_Screen);
+            Current_Gamestate = MAIN_MENU_SCREEN;
+
+
+
         }
     }
+
+
+
+
 }
 
 /*Level Selector Screen*/
