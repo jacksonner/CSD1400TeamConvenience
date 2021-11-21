@@ -742,7 +742,7 @@ void level_selector_screen(void) {
     CP_Settings_Fill(COLOR_WHITE);
 
     float quarter_blockY = (float)CP_System_GetDisplayHeight() / 2;
-   
+
 
     button_height = 80.f;
     button_width = 300.f;
@@ -751,6 +751,7 @@ void level_selector_screen(void) {
     level1X = 600;
     level1Y = quarter_blockY;
     CP_Graphics_DrawRect(level1X, quarter_blockY, button_width, button_height);
+
     /*Now Text*/
     CP_Settings_TextSize(40);
     CP_Settings_Fill(COLOR_BLACK);
@@ -847,8 +848,9 @@ void level_selector_screen(void) {
     float mouseY = (float)CP_Input_GetMouseY();
 
     /*Hovering on Level 1*/
-    if (mouseX >= 600 && mouseX <= (600 + button_width) &&
-        mouseY >= quarter_blockY && mouseY <= quarter_blockY + button_height) {
+    if (mouseX >= 600 && mouseX <= 900 &&
+        mouseY >= 540 && mouseY <= 615 ) {
+
         button_height = 80.f;
         button_width = 300.f;
 
@@ -883,7 +885,7 @@ void level_selector_screen(void) {
 
     }
     /*Hovering on Level 2 Buttons*/
-    else if (mouseX >= 600 && mouseX <= (600 + button_width) && mouseY >= level2Y && mouseY <= level2Y + button_height)
+    else if (mouseX >= 600 && mouseX <= 900 && mouseY >= level2Y && mouseY <= 740)
     {
         button_height = 80.f;
         button_width = 300.f;
@@ -918,7 +920,7 @@ void level_selector_screen(void) {
 
     }
     /*Hovering on Level 3 Buttons*/
-    else if (mouseX >= 600 && mouseX <= (600 + button_width) && mouseY >= level3Y && mouseY <= level3Y + button_height)
+    else if (mouseX >= 600 && mouseX <= 900 && mouseY >= level3Y && mouseY <= 855)
     {
         button_height = 80.f;
         button_width = 300.f;
@@ -951,12 +953,12 @@ void level_selector_screen(void) {
 
     }
     /*Hovering on level 4 Button*/
-    else if (mouseX >= 1000 && mouseX <= (1000 + button_width) && mouseY >= quarter_blockY && mouseY <= quarter_blockY + button_height)
+    else if (mouseX >= 1000 && mouseX <= 1310 && mouseY >= quarter_blockY && mouseY <= 620)
     {
 
 
-         button_height = 80.f;
-         button_width = 300.f;
+        button_height = 80.f;
+        button_width = 300.f;
         /*Level 4 Buttons*/
         level1Y = quarter_blockY + 120;
         CP_Settings_Fill(COLOR_BLACK);
@@ -987,7 +989,7 @@ void level_selector_screen(void) {
 
     }
     /*Hovering on level 5 Button*/
-    else if (mouseX >= 1000 && mouseX <= (1000 + button_width) && mouseY >= level2Y && mouseY <= level2Y + button_height) {
+    else if (mouseX >= 1000 && mouseX <= 1300 && mouseY >= level2Y && mouseY <= 735) {
         /*Level 5 Buttons*/
 
         button_height = 80.f;
@@ -1020,7 +1022,7 @@ void level_selector_screen(void) {
         }
     }
     /*Hovering on level 6 Button*/
-    else if (mouseX >= 1000 && mouseX <= (1000 + button_width) && mouseY >= level3Y && mouseY <= level3Y + button_height) {
+    else if (mouseX >= 1000 && mouseX <= 1310 && mouseY >= level3Y && mouseY <= 855) {
 
         button_height = 80.f;
         button_width = 300.f;
@@ -1055,24 +1057,24 @@ void level_selector_screen(void) {
     }
 
     //Hovering on Setting Screen
-    else if ((mouseX >= 1600 && mouseX <= (1600 + button_width) && mouseY >= level3Y + 200 && mouseY <= level3Y + 200 + button_height))
+    else if ((mouseX >= 1600 && mouseX <= 1840 && mouseY >= level3Y + 200 && mouseY <= 1040 ))
     {
-    button_height = 60.f;
-    button_width = 240.f;
-    level3Y = quarter_blockY + 240;
-    CP_Settings_Fill(COLOR_BLACK);
-    CP_Graphics_DrawRect(1600, level3Y + 200, button_width, button_height);
-    CP_Settings_TextSize(40);
-    CP_Settings_Fill(COLOR_WHITE);
+        button_height = 60.f;
+        button_width = 240.f;
+        level3Y = quarter_blockY + 240;
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Graphics_DrawRect(1600, level3Y + 200, button_width, button_height);
+        CP_Settings_TextSize(40);
+        CP_Settings_Fill(COLOR_WHITE);
 
-    level3_textY = level3Y + 240;
-    CP_Font_DrawText("Settings", 1620, level3_textY);
+        level3_textY = level3Y + 240;
+        CP_Font_DrawText("Settings", 1620, level3_textY);
 
-       if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
-       {
+        if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
+        {
 
-        //Current_Gamestate = SETTING_SCREEN;
-       }
+            //Current_Gamestate = SETTING_SCREEN;
+        }
 
     }
     //Hovering on Back Button
@@ -1080,24 +1082,24 @@ void level_selector_screen(void) {
     {
 
 
-    button_height = 60.f;
-    button_width = 150.f;
+        button_height = 60.f;
+        button_width = 150.f;
 
-    CP_Settings_Fill(COLOR_BLACK);
-    CP_Graphics_DrawRect(10, 10, button_width, button_height);
-    CP_Settings_TextSize(40);
-    CP_Settings_Fill(COLOR_WHITE);
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Graphics_DrawRect(10, 10, button_width, button_height);
+        CP_Settings_TextSize(40);
+        CP_Settings_Fill(COLOR_WHITE);
 
-    back_buttonY = back_buttonY + 40;
-    CP_Font_DrawText("Back", 30, 50);
+        back_buttonY = back_buttonY + 40;
+        CP_Font_DrawText("Back", 30, 50);
 
-      if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
-      {
+        if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
+        {
 
-        Current_Gamestate = MAIN_MENU_SCREEN;
+            Current_Gamestate = MAIN_MENU_SCREEN;
 
 
-      }
+        }
 
 
 
@@ -1117,7 +1119,7 @@ void setting_screen(void) {
     width = (float)CP_Image_GetWidth(setting_image);
     height = (float)CP_Image_GetWidth(setting_image) * 0.6f;
     CP_Image_Draw(setting_image, middleX, middleY, width, height, 100);
-    
+
     float startX = (float)CP_System_GetDisplayWidth() / 3;
     float startY = (float)CP_System_GetDisplayHeight() / 5;
     float option_textX = startX + 20.f;
