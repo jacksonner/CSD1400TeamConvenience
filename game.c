@@ -1902,21 +1902,21 @@ void projectile_logic()
                                 //projectile_render(i);
                                 //float closest_minionX = 0, closest_minionY = 0;
 
-                                //int check_projectile_attack = check_projectile_basic_attack_charge(i);
+                                int check_projectile_attack = check_projectile_basic_attack_charge(i);
                                 if (proj_count < PROJ_MAX)
                                 {
-                                    projectile[i][IS_ALIVE] = 1;
-                                    proj_count++;
+                                    if (check_projectile_attack == 1)
+                                    {
+                                        projectile[i][IS_ALIVE] = 1;
+                                        proj_count++;
+                                    }
                                 }
                                 //projectile[proj_count][IS_ALIVE] = 1;
                                 if (proj_count > 0)
                                 {
                                     array_target[i][X] = array_MinionStats[i][X];
                                     array_target[i][Y] = array_MinionStats[i][Y];
-                                    //if (check_projectile_attack == 1)
-                                    //{
-                                        projectile_move(i);
-                                    //}
+                                    projectile_move(i);
                                     projectile_colliding(i);
 
                                 }
@@ -1992,7 +1992,7 @@ void projectile_colliding(int i)
         {
             projectile[i][IS_ALIVE] = 0;
             //int attacked = 0;
-                array_MinionStats[i][MINION_HP] -= array_EnemyStats[i][ENEMY_ATTACK];
+            array_MinionStats[i][MINION_HP] -= array_EnemyStats[i][ENEMY_ATTACK];
             //array_MinionStats[i][MINION_HP] -= 1;
 
         }
