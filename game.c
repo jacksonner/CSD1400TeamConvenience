@@ -1144,8 +1144,6 @@ void setting_screen(void) {
     float mouseY = (float)CP_Input_GetMouseY();
 
 
-
-
     if (mouseX >= startX && mouseX <= (startX + button_width) &&
         mouseY >= startY && mouseY <= startY + button_height) {
 
@@ -1153,7 +1151,6 @@ void setting_screen(void) {
             Current_Gamestate = MAIN_MENU_SCREEN;
         }
     }
-
     if (mouseX >= startX && mouseX <= (startX + button_width) &&
         mouseY >= startY && mouseY <= startY * 2 + button_height) {
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
