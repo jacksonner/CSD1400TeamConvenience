@@ -332,6 +332,7 @@ static CP_Image setting_image;
 float backX, backY, setting_width, setting_height;
 float back_width, back_height;
 int Previous_Gamestate;
+int setting_popup;
 
 /*Move Minion*/
 int initial_direction; //when setting up level, check for the initial direction to set this to
@@ -420,6 +421,79 @@ void game_update(void) {
             if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
                 if (CP_Input_GetMouseY() >= restartY && (CP_Input_GetMouseY() <= (restartY + restart_width)) && (CP_Input_GetMouseX() >= restartX && (CP_Input_GetMouseX() <= (restartX + restart_length)))) {
                     restart_level();
+                }
+            }
+            if (setting_popup == TRUE) {
+                setting_image = CP_Image_Load("./Assets/bg_mainmenu.png"); //temp image
+
+                static float middleX, middleY, width, height;
+                middleX = (float)(CP_System_GetWindowWidth() / 2);
+                middleY = (float)(CP_System_GetWindowHeight() / 2);
+                width = (float)CP_Image_GetWidth(setting_image);
+                height = (float)CP_Image_GetWidth(setting_image) * 0.6f;
+                CP_Image_Draw(setting_image, middleX, middleY, width, height, 300);
+                float startX = (float)CP_System_GetDisplayWidth() / 4;
+                float startY = (float)CP_System_GetDisplayHeight() / 5;
+                float option_textX = startX + 20.f;
+                float option_textY = startY + 20.f;
+
+                button_height = 120.f;
+                button_width = 300.f;
+
+                backX = 10.f;
+                backY = 10.f;
+                back_height = 80.f;
+                back_width = 200.f;
+
+                float mouseX = (float)CP_Input_GetMouseX();
+                float mouseY = (float)CP_Input_GetMouseY();
+
+                /*options buttons*/
+                CP_Settings_Fill(COLOR_WHITE);
+                CP_Graphics_DrawRect(startX, startY * 3, button_width, button_height); //main menu
+                CP_Graphics_DrawRect(startX, startY * 4, button_width, button_height); //level selection
+                CP_Graphics_DrawRect(startX * 2, startY * 3, button_width, button_height); //hordepedia?
+                CP_Graphics_DrawRect(startX * 2, startY * 4, button_width, button_height); //music?
+
+                /*back button*/
+                CP_Graphics_DrawRect(backX, backY, back_width, back_height);
+
+                /*options text*/
+                CP_Settings_TextSize(60);
+                CP_Settings_Fill(COLOR_BLACK);
+                CP_Font_DrawText("MAIN MENU", option_textX, option_textY * 3 + 20);
+                CP_Font_DrawText("LEVEL", option_textX, option_textY * 4);
+                CP_Font_DrawText("HELP", option_textX * 2, option_textY * 3 + 20);
+                CP_Font_DrawText("BGM?", option_textX * 2, option_textY * 4);
+
+                /*back text*/
+                CP_Settings_TextSize(50);
+                CP_Font_DrawText("BACK", 40.f, 60.f);
+
+                if (mouseX >= startX && mouseX <= (startX + button_width) &&
+                    mouseY >= startY * 3 && mouseY <= startY * 3 + button_height) {
+
+                    if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
+                        Current_Gamestate = MAIN_MENU_SCREEN;
+                    }
+                }
+
+                else if (mouseX >= startX && mouseX <= (startX + button_width) &&
+                    mouseY >= startY * 4 && mouseY <= startY * 4 + button_height) {
+                    if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
+                        Current_Gamestate = LEVEL_SELECTOR_SCREEN;
+                    }
+
+                }
+
+                else   if (mouseX >= backX && mouseX <= (backX + back_width) &&
+                    mouseY >= backY && mouseY <= backY + back_height) {
+                    if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
+
+                        CP_Image_Free(&setting_image);
+                        gIsPaused = FALSE;
+                        setting_popup = FALSE;
+                    }
                 }
             }
         }
@@ -1268,6 +1342,7 @@ void setting_screen_clicked(float x, float y) {
     /*Free image*/
     CP_Image_Free(&setting_image);
 
+
     if (Current_Gamestate == MAIN_MENU_SCREEN) {
         if (x >= settingX && x <= (settingX + setting_width) &&
             y >= settingY && y <= settingY + setting_height) {
@@ -1275,86 +1350,19 @@ void setting_screen_clicked(float x, float y) {
         }
     }
 
+    else if (Current_Gamestate == LEVEL_SELECTOR_SCREEN) {
+        if (x >= 1600 && x <= (1600 + button_width) &&
+            y >= level3Y && y <= level3Y + button_height) {
+            Current_Gamestate = SETTING_SCREEN;
+            // CP_Graphics_DrawRect(1600, level3Y + 200, button_width, button_height);
+        }
+    }
+
     else if (Current_Gamestate == GAMEPLAY_SCREEN) {
         if (x >= setting_buttonX && x <= (setting_buttonX + button_width) &&
             y >= setting_buttonY && y <= setting_buttonY + button_height) {
             gIsPaused = TRUE;
-            float startX = (float)CP_System_GetDisplayWidth() / 3;
-            float startY = (float)CP_System_GetDisplayHeight() / 5;
-            float option_textX = startX + 20.f;
-            float option_textY = startY + 20.f;
-
-            button_height = 120.f;
-            button_width = 300.f;
-
-            backX = 10.f;
-            backY = 10.f;
-            back_height = 80.f;
-            back_width = 200.f;
-
-            /*options buttons*/
-            CP_Settings_Fill(COLOR_WHITE);
-            CP_Graphics_DrawRect(startX, startY, button_width, button_height); //main menu
-            CP_Graphics_DrawRect(startX, startY * 2, button_width, button_height); //level selection
-            CP_Graphics_DrawRect(startX, startY * 3, button_width, button_height); //hordepedia?
-            CP_Graphics_DrawRect(startX, startY * 4, button_width, button_height); //music?
-
-            /*back button*/
-            CP_Graphics_DrawRect(backX, backY, back_width, back_height);
-
-            /*options text*/
-            CP_Settings_TextSize(60);
-            CP_Settings_Fill(COLOR_BLACK);
-            CP_Font_DrawText("MAIN MENU", option_textX, option_textY + 60);
-            CP_Font_DrawText("LEVEL", option_textX, option_textY * 2 + 40);
-            CP_Font_DrawText("HELP", option_textX, option_textY * 3 + 20);
-            CP_Font_DrawText("BGM?", option_textX, option_textY * 4);
-
-            /*back text*/
-            CP_Settings_TextSize(50);
-            CP_Font_DrawText("BACK", 40.f, 60.f);
-
-            float mouseX = (float)CP_Input_GetMouseX();
-            float mouseY = (float)CP_Input_GetMouseY();
-
-
-     if (Current_Gamestate == GAMEPLAY_SCREEN) {
-        Previous_Gamestate = GAMEPLAY_SCREEN;
-    }
-
-
-    if (mouseX >= startX && mouseX <= (startX + button_width) &&
-        mouseY >= startY && mouseY <= startY + button_height) {
-
-        if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
-            Current_Gamestate = MAIN_MENU_SCREEN;
-        }
-    }
-
-    else if (mouseX >= startX && mouseX <= (startX + button_width) &&
-        mouseY >= startY && mouseY <= startY * 2 + button_height) {
-        if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
-            Current_Gamestate = LEVEL_SELECTOR_SCREEN;
-        }
-
-    }
-
-            if (mouseX >= backX && mouseX <= (backX + back_width) &&
-                mouseY >= backY && mouseY <= backY + back_height) {
-                if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
-
-                    CP_Image_Free(&setting_image);
-                    gIsPaused = FALSE;
-                }
-            }
-        }
-
-        else if (Current_Gamestate == LEVEL_SELECTOR_SCREEN) {
-            if (x >= 1600 && x <= (1600 + button_width) &&
-                y >= level3Y && y <= level3Y + button_height) {
-                Current_Gamestate = SETTING_SCREEN;
-                // CP_Graphics_DrawRect(1600, level3Y + 200, button_width, button_height);
-            }
+            setting_popup = TRUE;
         }
     }
 }
