@@ -1923,7 +1923,7 @@ void projectile_logic()
                                     }
                                 }
                                 //projectile[proj_count][IS_ALIVE] = 1;
-                                if (proj_count > 0)
+                                if (proj_count > 0 && proj_count <= PROJ_MAX)
                                 {
                                     array_target[i][X] = array_MinionStats[i][X];
                                     array_target[i][Y] = array_MinionStats[i][Y];
@@ -3367,7 +3367,7 @@ void level_6() {
     array_EnemyStats[1][ENEMY_TYPE] = DAMAGE_ENEMY;
 
     array_GameMap[3][1] = BLOCK_TOWER_ENEMY;
-    array_EnemyStats[2][ENEMY_ROW] = 4;
+    array_EnemyStats[2][ENEMY_ROW] = 3;
     array_EnemyStats[2][ENEMY_COL] = 1;
     array_EnemyStats[2][ENEMY_TYPE] = SLOW_ENEMY;
 
