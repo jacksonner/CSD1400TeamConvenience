@@ -257,10 +257,13 @@ float projectile[PROJ_MAX][PROJ_STATS];
 int l_time = 0;
 void projectile_move(int i);
 void projectile_recycle(int dead_minion);
+void projectile_colliding(int i);
 int check_projectile_basic_attack_charge(int i);
 int array_target[MINION_MAX][2];
 int in_range = 0;
 int proj_count = 0;
+int target_lock = 0;
+int is_Search = 0;
 
 
 /*Variables*/
@@ -344,8 +347,8 @@ void assign_minion_stats(void);
 void assign_enemy_stats(void);
 void render_enemy(void);
 void assign_minion_color(int i);
-void projectile_logic(float x_coord, float y_coord);
-void projectile_render(float x_coord, float y_coord);
+void projectile_logic();
+void projectile_render(int i);
 void assign_enemy_color(int i);
 
 void game_init(void) {
@@ -1776,7 +1779,7 @@ void render_enemy() {
                     render_enemy_special_attack_bar(which_enemy);
                     if (array_EnemyStats[which_enemy][ENEMY_TYPE] == DAMAGE_ENEMY)
                     {
-                        projectile_logic((float)array_EnemyStats[which_enemy][ENEMY_ROW_COORDINATES], (float)array_EnemyStats[which_enemy][ENEMY_COL_COORDINATES]);
+                        projectile_logic();
                     }
                 }
                 else if (array_EnemyStats[which_enemy][ENEMY_HP] <= 0) {
@@ -1795,7 +1798,7 @@ void render_enemy() {
     }
 }
 
-void projectile_logic(float x_coord, float y_coord)
+void projectile_logic()
 {
     for (int row = 0; row < MAP_GRID_ROWS; ++row) {
         for (int col = 0; col < MAP_GRID_COLS; ++col) {
@@ -1952,7 +1955,7 @@ void projectile_render(int i)
     //CP_Graphics_DrawRect(20.f, 20.f, 20, 20);
     if (in_range == 1)
     {
-        if ((projectile[i][IS_ALIVE] == 1) && (proj_count > 0))
+        if ((projectile[i][IS_ALIVE] == 1) && (minion_count > 0))
         {
             CP_Graphics_DrawRect(projectile[i][X], projectile[i][Y], PROJ_SIZE, PROJ_SIZE);
         }
