@@ -257,8 +257,11 @@ void draw_timer_and_pause_button(void);
 #define PROJ_SIZE 20
 #define PROJ_RELOAD 4
 #define PROJ_CHARGE 5
-#define PROJ_STATS 7
+#define PROJ_CHARGE_TIME 6
+#define PROJ_TOTAL_CHARGE 7
+#define PROJ_STATS 8
 float projectile[PROJ_MAX][PROJ_STATS];
+float projectile_charge[PROJ_MAX][PROJ_TOTAL_CHARGE];
 int l_time = 0;
 void projectile_move(int i);
 void projectile_recycle(int dead_minion);
@@ -340,6 +343,9 @@ float back_width, back_height;
 int Previous_Gamestate;
 int setting_popup;
 
+/*Help Screen*/
+void help_screen(void);
+
 /*Move Minion*/
 int initial_direction; //when setting up level, check for the initial direction to set this to
 void move_minion(void);
@@ -369,7 +375,8 @@ void game_init(void) {
     CP_System_SetFrameRate(60.0f);
 
     /*Initialising variables for Fullscreen etc.*/
-    CP_System_Fullscreen();
+    //CP_System_Fullscreen();
+    CP_System_SetWindowSize(1920, 1080);
     update_variables_and_make_screen_nice();
 
     /*Initialise to Main_Menu*/
@@ -1455,7 +1462,7 @@ void initialise_pause_and_timer_button(void) {
     pauseButtonLimitX = gPauseButtonPositionX + 100.f;
     pauseButtonLimitY = gPauseButtonPositionY + 50.f;
     setting_buttonX = gPauseButtonPositionX + 250.f;
-    setting_buttonY = gPauseButtonPositionY - 30.f;
+    setting_buttonY = gPauseButtonPositionY + 30.f;
 }
 
 void draw_timer_and_pause_button(void) {
@@ -1463,7 +1470,8 @@ void draw_timer_and_pause_button(void) {
     CP_Settings_Fill(COLOR_WHITE);
     CP_Graphics_DrawRect(gPauseButtonPositionX, gPauseButtonPositionY, 100.f, 50.f);
     CP_Graphics_DrawRect(gTimerPositionX, gTimerPositionY, 100.f, 50.f);
-    CP_Graphics_DrawRect(setting_buttonX, setting_buttonY, 200.f, 80.f);
+    CP_Graphics_DrawRect(setting_buttonX, setting_buttonY, 180.f, 40.f);
+    CP_Graphics_DrawCircle(setting_buttonX + 230.f, setting_buttonY + 20.f, 40.f);
     CP_Settings_Fill(COLOR_BLACK);
     CP_Settings_TextSize(35);
     CP_Font_DrawText(buffer, gTimerButtonTextPositionX, gTimerButtonTextPositionY);
@@ -1477,8 +1485,10 @@ void draw_timer_and_pause_button(void) {
         CP_Settings_TextSize(30);
         CP_Font_DrawText("Pause", gPauseButtonTextPositionX, gPauseButtonTextPositionY);
     }
-    CP_Settings_TextSize(50);
-    CP_Font_DrawText("SETTING", (setting_buttonX + 10.f), (setting_buttonY + 50.f));
+    CP_Settings_TextSize(40);
+    CP_Font_DrawText("SETTING", (setting_buttonX + 10.f), (setting_buttonY + 29.f));
+    CP_Font_DrawText("?", (setting_buttonX + 222.f), (setting_buttonY + 29.f));
+
 }
 
 void start_timer(void) {
@@ -1631,6 +1641,11 @@ void gameplay_screen_clicked(float x, float y) {
     }
     if (y >= restartY && (y <= (restartY + restart_width)) && (x >= restartX && (x <= (restartX + restart_length)))) {
         restart_level();
+    }
+
+    if (x >= setting_buttonX + 210.f && x <= setting_buttonX + 250.f &&
+        y >= setting_buttonY && y <= setting_buttonY + 40.f) {
+        Current_Gamestate = HELP_SCREEN;
     }
 }
 
@@ -1902,18 +1917,18 @@ void projectile_logic()
                                 //int check_projectile_attack = check_projectile_basic_attack_charge(i);
                                 if (proj_count < PROJ_MAX)
                                 {
-                                    //if (check_projectile_attack == 1)
-                                    //{
                                     projectile[i][IS_ALIVE] = 1;
                                     proj_count++;
-                                    //}
                                 }
                                 //projectile[proj_count][IS_ALIVE] = 1;
                                 if (proj_count > 0)
                                 {
                                     array_target[i][X] = array_MinionStats[i][X];
                                     array_target[i][Y] = array_MinionStats[i][Y];
-                                    projectile_move(i);
+                                    //if (check_projectile_attack == 1)
+                                    //{
+                                        projectile_move(i);
+                                    //}
                                     projectile_colliding(i);
 
                                 }
@@ -1942,7 +1957,7 @@ void projectile_logic()
 }
 
 int check_projectile_basic_attack_charge(int i) {
-    if (projectile[i][PROJ_CHARGE] >= array_EnemyStats[i][ENEMY_ATTACK_SPEED]) {
+    if (projectile[i][PROJ_CHARGE] >= projectile[i][PROJ_CHARGE_TIME]) {
         projectile[i][PROJ_CHARGE] = 0;
         return 1;
     }
@@ -2904,6 +2919,7 @@ void assign_enemy_stats() {
             array_EnemyStats[i][ENEMY_SIZE] = BLOCK_SIZE / 2;
             array_EnemyStats[i][ENEMY_RANGE] = 2;
             array_EnemyStats[i][PROJ_CHARGE] = 0;
+            array_EnemyStats[i][PROJ_CHARGE_TIME] = 3;
             array_EnemyCurrentCharge[i][ENEMY_BASIC_ATTACK_SPEED] = 0.5f;
         }
         if (array_EnemyStats[i][ENEMY_TYPE] == SLOW_ENEMY) {
@@ -2913,6 +2929,8 @@ void assign_enemy_stats() {
             array_EnemyStats[i][ENEMY_BLOCK] = 2;
             array_EnemyStats[i][ENEMY_SIZE] = BLOCK_SIZE / 2;
             array_EnemyStats[i][ENEMY_RANGE] = 1;
+            array_EnemyStats[i][PROJ_CHARGE] = 0;
+            array_EnemyStats[i][PROJ_CHARGE_TIME] = 3;
             array_EnemyCurrentCharge[i][ENEMY_BASIC_ATTACK_SPEED] = 0.5f;
             array_EnemyCurrentCharge[i][ENEMY_CHARGE_TIME] = 4.f;
         }
@@ -2934,6 +2952,7 @@ void assign_enemy_stats() {
             array_EnemyStats[i][ENEMY_SIZE] = BLOCK_SIZE / 2;
             array_EnemyStats[i][ENEMY_RANGE] = 4;
             array_EnemyStats[i][PROJ_CHARGE] = 0;
+            array_EnemyStats[i][PROJ_CHARGE_TIME] = 3;
             array_EnemyCurrentCharge[i][ENEMY_BASIC_ATTACK_SPEED] = 0.5f;
         }
         if (array_EnemyStats[i][ENEMY_TYPE] == BASE) {
@@ -3013,65 +3032,6 @@ void level_1() {
     
     initial_direction = DOWN;
     level_has_teleporter = FALSE;
-    /*
-    array_GameMap[0][0] = BLOCK_END;
-    array_GameMap[0][11] = BLOCK_SPAWN;
-    array_GameMap[2][0] = BLOCK_PRESENT;
-    array_GameMap[4][0] = BLOCK_PRESENT;
-    array_GameMap[0][1] = BLOCK_PRESENT;
-    array_GameMap[0][2] = BLOCK_PRESENT;
-    array_GameMap[1][2] = BLOCK_PRESENT;
-    array_GameMap[2][2] = BLOCK_PRESENT;
-    array_GameMap[3][2] = BLOCK_PRESENT;
-    array_GameMap[3][3] = BLOCK_PRESENT;
-    array_GameMap[1][5] = BLOCK_PRESENT;
-    array_GameMap[2][5] = BLOCK_PRESENT;
-    array_GameMap[3][5] = BLOCK_PRESENT;
-    array_GameMap[1][7] = BLOCK_PRESENT;
-    array_GameMap[3][7] = BLOCK_PRESENT;
-    array_GameMap[1][8] = BLOCK_PRESENT;
-    array_GameMap[3][9] = BLOCK_PRESENT;
-    array_GameMap[0][10] = BLOCK_PRESENT;
-    array_GameMap[1][10] = BLOCK_PRESENT;
-    array_GameMap[3][10] = BLOCK_PRESENT;
-
-
-    array_GameMap[4][2] = BLOCK_ENEMY;
-    array_EnemyStats[1][ENEMY_ROW] = 4;
-    array_EnemyStats[1][ENEMY_COL] = 2;
-    array_EnemyStats[1][ENEMY_TYPE] = GUARD_ENEMY;
-    array_GameMap[1][3] = BLOCK_ENEMY;
-    array_EnemyStats[2][ENEMY_ROW] = 1;
-    array_EnemyStats[2][ENEMY_COL] = 3;
-    array_EnemyStats[2][ENEMY_TYPE] = GUARD_ENEMY;
-    array_GameMap[0][6] = BLOCK_ENEMY;
-    array_EnemyStats[4][ENEMY_ROW] = 0;
-    array_EnemyStats[4][ENEMY_COL] = 6;
-    array_EnemyStats[4][ENEMY_TYPE] = GUARD_ENEMY;
-    array_GameMap[4][8] = BLOCK_ENEMY;
-    array_EnemyStats[7][ENEMY_ROW] = 4;
-    array_EnemyStats[7][ENEMY_COL] = 8;
-    array_EnemyStats[7][ENEMY_TYPE] = GUARD_ENEMY;
-
-    array_GameMap[4][5] = BLOCK_TOWER_ENEMY;
-    array_EnemyStats[3][ENEMY_ROW] = 4;
-    array_EnemyStats[3][ENEMY_COL] = 5;
-    array_EnemyStats[3][ENEMY_TYPE] = DAMAGE_ENEMY;
-    array_GameMap[1][6] = BLOCK_TOWER_ENEMY;
-    array_EnemyStats[5][ENEMY_ROW] = 1;
-    array_EnemyStats[5][ENEMY_COL] = 6;
-    array_EnemyStats[5][ENEMY_TYPE] = DAMAGE_ENEMY;
-    array_GameMap[3][8] = BLOCK_TOWER_ENEMY;
-    array_EnemyStats[6][ENEMY_ROW] = 3;
-    array_EnemyStats[6][ENEMY_COL] = 8;
-    array_EnemyStats[6][ENEMY_TYPE] = DAMAGE_ENEMY;
-    array_GameMap[2][10] = BLOCK_TOWER_ENEMY;
-    array_EnemyStats[8][ENEMY_ROW] = 2;
-    array_EnemyStats[8][ENEMY_COL] = 10;
-    array_EnemyStats[8][ENEMY_TYPE] = DAMAGE_ENEMY;
-
-    initial_direction = DOWN;
-    */
 }
 
 void level_2() {
@@ -3375,5 +3335,85 @@ void level_5() {
 }
 
 void level_6() {
+    array_GameMap[0][11] = BLOCK_SPAWN;
+    array_GameMap[3][11] = BLOCK_END;
+
+    /*Filler Blocks*/
+    array_GameMap[3][0] = BLOCK_PRESENT;
+    array_GameMap[4][0] = BLOCK_PRESENT;
+    array_GameMap[4][1] = BLOCK_PRESENT;
+    array_GameMap[1][2] = BLOCK_PRESENT;
+    array_GameMap[3][3] = BLOCK_PRESENT;
+    array_GameMap[1][4] = BLOCK_PRESENT;
+    array_GameMap[3][5] = BLOCK_PRESENT;
+    array_GameMap[1][6] = BLOCK_PRESENT;
+    array_GameMap[3][7] = BLOCK_PRESENT;
+    array_GameMap[0][9] = BLOCK_PRESENT;
+    array_GameMap[1][9] = BLOCK_PRESENT;
+    array_GameMap[2][9] = BLOCK_PRESENT;
+    array_GameMap[3][9] = BLOCK_PRESENT;
+    array_GameMap[2][11] = BLOCK_PRESENT;
+    array_GameMap[1][11] = BLOCK_PRESENT;
     
+
+    /*Enemies*/
+    array_GameMap[1][0] = BLOCK_ENEMY;
+    array_EnemyStats[0][ENEMY_ROW] = 1;
+    array_EnemyStats[0][ENEMY_COL] = 0;
+    array_EnemyStats[0][ENEMY_TYPE] = GUARD_ENEMY;
+
+    array_GameMap[3][0] = BLOCK_TOWER_ENEMY;
+    array_EnemyStats[1][ENEMY_ROW] = 3;
+    array_EnemyStats[1][ENEMY_COL] = 0;
+    array_EnemyStats[1][ENEMY_TYPE] = DAMAGE_ENEMY;
+
+    array_GameMap[3][1] = BLOCK_TOWER_ENEMY;
+    array_EnemyStats[2][ENEMY_ROW] = 4;
+    array_EnemyStats[2][ENEMY_COL] = 1;
+    array_EnemyStats[2][ENEMY_TYPE] = SLOW_ENEMY;
+
+    array_GameMap[1][3] = BLOCK_TOWER_ENEMY;
+    array_EnemyStats[3][ENEMY_ROW] = 1;
+    array_EnemyStats[3][ENEMY_COL] = 3;
+    array_EnemyStats[3][ENEMY_TYPE] = DAMAGE_ENEMY;
+
+    array_GameMap[3][4] = BLOCK_TOWER_ENEMY;
+    array_EnemyStats[4][ENEMY_ROW] = 3;
+    array_EnemyStats[4][ENEMY_COL] = 4;
+    array_EnemyStats[4][ENEMY_TYPE] = RANGED_TOWER;
+
+    array_GameMap[1][5] = BLOCK_TOWER_ENEMY;
+    array_EnemyStats[5][ENEMY_ROW] = 1;
+    array_EnemyStats[5][ENEMY_COL] = 5;
+    array_EnemyStats[5][ENEMY_TYPE] = HEALING_TOWER;
+
+    array_GameMap[3][6] = BLOCK_TOWER_ENEMY;
+    array_EnemyStats[6][ENEMY_ROW] = 3;
+    array_EnemyStats[6][ENEMY_COL] = 6;
+    array_EnemyStats[6][ENEMY_TYPE] = RANGED_TOWER;
+
+    array_GameMap[1][7] = BLOCK_TOWER_ENEMY;
+    array_EnemyStats[7][ENEMY_ROW] = 1;
+    array_EnemyStats[7][ENEMY_COL] = 7;
+    array_EnemyStats[7][ENEMY_TYPE] = DAMAGE_ENEMY;
+
+    array_GameMap[3][8] = BLOCK_TOWER_ENEMY;
+    array_EnemyStats[8][ENEMY_ROW] = 3;
+    array_EnemyStats[8][ENEMY_COL] = 8;
+    array_EnemyStats[8][ENEMY_TYPE] = SLOW_ENEMY;
+
+    array_GameMap[4][8] = BLOCK_ENEMY;
+    array_EnemyStats[9][ENEMY_ROW] = 4;
+    array_EnemyStats[9][ENEMY_COL] = 8;
+    array_EnemyStats[9][ENEMY_TYPE] = GUARD_ENEMY;
+
+
+    /*Using Teleporter*/
+    level_has_teleporter = TRUE;
+    array_GameMap[3][10] = BLOCK_TELEPORTER;
+    array_GameMap[0][0] = BLOCK_TELEPORT_SPAWN;
+
+
+    initial_direction = LEFT;
+    /*placeholders, please change everything*/
 }
