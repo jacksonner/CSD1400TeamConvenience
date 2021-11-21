@@ -169,6 +169,7 @@ int is_minion_being_attacked(int enemy, int minion);
 #define PAUSE_SCREEN 4 //like a translucent array with a giant play button?
 #define LEVEL_SELECTOR_SCREEN 5
 #define SETTING_SCREEN 6
+#define HELP_SCREEN 7
 int Current_Gamestate;
 
 /*render HP bar for minions*/
@@ -289,6 +290,12 @@ int options_boxX, options_boxY, box_width, box_length; //this is the giant wide 
 int minion_buttons_width, minion_buttons_height, minion_boxX, minion_boxY;
 void gameplay_screen_clicked(float x, float y);
 
+/*Help Screen*/
+static CP_Image guide_image1;
+static CP_Image guide_image2;
+static CP_Image guide_image3;
+int current_guide;
+
 /*Main Menu Screen*/
 float button_height, button_width;
 float level_selectorX, level_selectorY, start_game_buttonX, start_game_buttonY, settingX, settingY;
@@ -368,6 +375,7 @@ void game_init(void) {
     Current_Gamestate = MAIN_MENU_SCREEN;
 
     current_level = 1;
+    current_guide = 1;
 
     /* get dt, time elapsed from last frame*/
     currentElapsedTime = CP_System_GetDt();
@@ -375,6 +383,7 @@ void game_init(void) {
     /*updating total elapsed time*/
     totalElapsedTime = 0;
     totalElapsedTime += currentElapsedTime;
+
 
 
 }
@@ -560,6 +569,9 @@ void game_update(void) {
     else if (Current_Gamestate == SETTING_SCREEN) {
         setting_screen();
     }
+    else if (Current_Gamestate == HELP_SCREEN) {
+        help_screen();
+    }
 }
 
 void game_exit(void) {
@@ -567,6 +579,26 @@ void game_exit(void) {
 }
 
 /*FUNCTIONS START HERE*/
+
+void help_screen() {
+    guide_image1 = CP_Image_Load("./Assets/guide1.jpg");
+    guide_image2 = CP_Image_Load("./Assets/guide2.jpg");
+    guide_image3 = CP_Image_Load("./Assets/guide3.jpg");
+    static float middleX, middleY, width, height;
+    middleX = (float)(CP_System_GetWindowWidth() / 2);
+    middleY = (float)(CP_System_GetWindowHeight() / 2);
+    width = (float)CP_Image_GetWidth(main_menu_image);
+    height = (float)CP_Image_GetWidth(main_menu_image) * 0.6f;
+    if (current_guide == 1) {
+        CP_Image_Draw(guide_image1, middleX, middleY, width, height, 100);
+    }
+    else if (current_guide == 2) {
+        CP_Image_Draw(guide_image2, middleX, middleY, width, height, 100);
+    }
+    else if (current_guide == 3) {
+        CP_Image_Draw(guide_image3, middleX, middleY, width, height, 100);
+    }
+}
 
 void main_menu_screen(void) {
     main_menu_image = CP_Image_Load("./Assets/bg_mainmenu2.png");
@@ -1908,7 +1940,6 @@ void projectile_logic()
     }
 }
 
-
 int check_projectile_basic_attack_charge(int i) {
     if (projectile[i][PROJ_CHARGE] >= array_EnemyStats[i][ENEMY_ATTACK_SPEED]) {
         projectile[i][PROJ_CHARGE] = 0;
@@ -1916,6 +1947,7 @@ int check_projectile_basic_attack_charge(int i) {
     }
     return 0;
 }
+
 void projectile_recycle(int dead_proj)
 {
     float temp_proj_array[PROJ_MAX][PROJ_STATS];
@@ -1939,6 +1971,7 @@ void projectile_recycle(int dead_proj)
     }
     proj_count--;
 }
+
 void projectile_colliding(int i)
 {
     float min_limit_right = (float)array_MinionStats[i][X] + (((float)array_MinionStats[i][MINION_SIZE] / 16) * 5);
@@ -1961,6 +1994,7 @@ void projectile_colliding(int i)
         }
     }
 }
+
 void projectile_render(int i)
 {
     CP_Settings_Fill(COLOR_GREEN);
