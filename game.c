@@ -677,6 +677,7 @@ void main_menu_clicked(float x, float y) {
         else if (x >= level_selectorX && x <= (level_selectorX + button_width) &&
             y >= level_selectorY && y <= level_selectorY + button_height) {
             Current_Gamestate = LEVEL_SELECTOR_SCREEN;
+            Previous_Gamestate = MAIN_MENU_SCREEN;
             // pending level_selector_screen completion /
 
                 CP_Image_Free(&main_menu_image);
@@ -686,6 +687,7 @@ void main_menu_clicked(float x, float y) {
         else if (x >= settingX && x <= (settingX + setting_width) &&
             y >= settingY && settingY <= settingY + setting_height) {
             Current_Gamestate = SETTING_SCREEN;
+            Previous_Gamestate = MAIN_MENU_SCREEN;
         }
 
 
@@ -1016,6 +1018,7 @@ void level_selector_screen(void) {
     float mouseX = (float)CP_Input_GetMouseX();
     float mouseY = (float)CP_Input_GetMouseY();
 
+
     /*Hovering on Level 1*/
     if (mouseX >= 600 && mouseX <= 900 &&
         mouseY >= 540 && mouseY <= 615 ) {
@@ -1238,6 +1241,7 @@ void level_selector_screen(void) {
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
         {
             Current_Gamestate = SETTING_SCREEN;
+            Previous_Gamestate = LEVEL_SELECTOR_SCREEN;
         }
 
     }
@@ -1257,10 +1261,19 @@ void level_selector_screen(void) {
         back_buttonY = back_buttonY + 40;
         CP_Font_DrawText("Back", 30, 50);
 
+
+
+
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
         {
 
-            Current_Gamestate = MAIN_MENU_SCREEN;
+            if (Previous_Gamestate == MAIN_MENU_SCREEN) {
+                Current_Gamestate = MAIN_MENU_SCREEN;
+            }
+
+            else if (Previous_Gamestate == SETTING_SCREEN) {
+                Current_Gamestate = SETTING_SCREEN;
+            }
 
 
         }
@@ -1322,22 +1335,6 @@ void setting_screen(void) {
     float mouseY = (float)CP_Input_GetMouseY();
 
 
-
-
-    Previous_Gamestate = MAIN_MENU_SCREEN; //initialise game state as main menu
-
-    if (Current_Gamestate == MAIN_MENU_SCREEN) {
-        Previous_Gamestate = MAIN_MENU_SCREEN;
-    }
-
-    else if (Current_Gamestate == LEVEL_SELECTOR_SCREEN) {
-        Previous_Gamestate = LEVEL_SELECTOR_SCREEN;
-    }
-
-    else if (Current_Gamestate == GAMEPLAY_SCREEN) {
-        Previous_Gamestate = GAMEPLAY_SCREEN;
-    }
-
     if (mouseX >= startX && mouseX <= (startX + button_width) &&
         mouseY >= startY * 3 && mouseY <= startY * 3 + button_height) {
 
@@ -1350,6 +1347,7 @@ void setting_screen(void) {
         mouseY >= startY * 4 && mouseY <= startY * 4 + button_height) {
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
             Current_Gamestate = LEVEL_SELECTOR_SCREEN;
+            Previous_Gamestate = SETTING_SCREEN;
         }
 
     }
@@ -1373,10 +1371,11 @@ void setting_screen(void) {
 
             if (Previous_Gamestate == MAIN_MENU_SCREEN) {
                 Current_Gamestate = MAIN_MENU_SCREEN;
+                
             }
 
             else if (Previous_Gamestate == LEVEL_SELECTOR_SCREEN) {
-                Current_Gamestate = LEVEL_SELECTOR_SCREEN;
+                Current_Gamestate = LEVEL_SELECTOR_SCREEN;  
             } 
 
             else if (Previous_Gamestate == GAMEPLAY_SCREEN) {
@@ -1398,6 +1397,7 @@ void setting_screen_clicked(float x, float y) {
         if (x >= settingX && x <= (settingX + setting_width) &&
             y >= settingY && y <= settingY + setting_height) {
             Current_Gamestate = SETTING_SCREEN;
+            Previous_Gamestate = MAIN_MENU_SCREEN;
         }
     }
 
@@ -1405,6 +1405,7 @@ void setting_screen_clicked(float x, float y) {
         if (x >= 1600 && x <= (1600 + button_width) &&
             y >= level3Y && y <= level3Y + button_height) {
             Current_Gamestate = SETTING_SCREEN;
+            Previous_Gamestate = LEVEL_SELECTOR_SCREEN;
             // CP_Graphics_DrawRect(1600, level3Y + 200, button_width, button_height);
         }
     }
