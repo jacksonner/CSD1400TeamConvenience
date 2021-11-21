@@ -1282,9 +1282,8 @@ void setting_screen(void) {
     middleY = (float)(CP_System_GetWindowHeight() / 2);
     width = (float)CP_Image_GetWidth(setting_image);
     height = (float)CP_Image_GetWidth(setting_image) * 0.6f;
-    CP_Image_Draw(setting_image, middleX, middleY, width, height, 100);
-
-    float startX = (float)CP_System_GetDisplayWidth() / 3;
+    CP_Image_Draw(setting_image, middleX, middleY, width, height, 300);
+    float startX = (float)CP_System_GetDisplayWidth() / 4;
     float startY = (float)CP_System_GetDisplayHeight() / 5;
     float option_textX = startX + 20.f;
     float option_textY = startY + 20.f;
@@ -1292,23 +1291,38 @@ void setting_screen(void) {
     button_height = 120.f;
     button_width = 300.f;
 
+    backX = 10.f;
+    backY = 10.f;
+    back_height = 80.f;
+    back_width = 200.f;
+
     /*options buttons*/
     CP_Settings_Fill(COLOR_WHITE);
-    CP_Graphics_DrawRect(startX, startY, button_width, button_height); //main menu
-    CP_Graphics_DrawRect(startX, startY * 2, button_width, button_height); //level selection
-    CP_Graphics_DrawRect(startX, startY * 3, button_width, button_height); //hordepedia?
-    CP_Graphics_DrawRect(startX, startY * 4, button_width, button_height); //music?
+    CP_Graphics_DrawRect(startX, startY * 3, button_width, button_height); //main menu
+    CP_Graphics_DrawRect(startX, startY * 4, button_width, button_height); //level selection
+    CP_Graphics_DrawRect(startX * 2, startY * 3, button_width, button_height); //hordepedia?
+    CP_Graphics_DrawRect(startX * 2, startY * 4, button_width, button_height); //music?
 
-     /*options text*/
+        /*back button*/
+    CP_Graphics_DrawRect(backX, backY, back_width, back_height);
+
+    /*options text*/
     CP_Settings_TextSize(60);
     CP_Settings_Fill(COLOR_BLACK);
-    CP_Font_DrawText("MAIN MENU", option_textX, option_textY + 60);
-    CP_Font_DrawText("LEVEL", option_textX, option_textY * 2 + 40);
-    CP_Font_DrawText("HELP", option_textX, option_textY * 3 + 20);
-    CP_Font_DrawText("BGM?", option_textX, option_textY * 4);
+    CP_Font_DrawText("MAIN MENU", option_textX, option_textY * 3 + 20);
+    CP_Font_DrawText("LEVEL", option_textX, option_textY * 4);
+    CP_Font_DrawText("HELP", option_textX * 2, option_textY * 3 + 20);
+    CP_Font_DrawText("BGM?", option_textX * 2, option_textY * 4);
+
+    /*back text*/
+    CP_Settings_TextSize(50);
+    CP_Font_DrawText("BACK", 40.f, 60.f);
 
     float mouseX = (float)CP_Input_GetMouseX();
     float mouseY = (float)CP_Input_GetMouseY();
+
+
+
 
     Previous_Gamestate = MAIN_MENU_SCREEN; //initialise game state as main menu
 
@@ -1324,9 +1338,8 @@ void setting_screen(void) {
         Previous_Gamestate = GAMEPLAY_SCREEN;
     }
 
-
     if (mouseX >= startX && mouseX <= (startX + button_width) &&
-        mouseY >= startY && mouseY <= startY + button_height) {
+        mouseY >= startY * 3 && mouseY <= startY * 3 + button_height) {
 
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
             Current_Gamestate = MAIN_MENU_SCREEN;
@@ -1334,12 +1347,14 @@ void setting_screen(void) {
     }
 
     else if (mouseX >= startX && mouseX <= (startX + button_width) &&
-        mouseY >= startY && mouseY <= startY * 2 + button_height) {
+        mouseY >= startY * 4 && mouseY <= startY * 4 + button_height) {
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
             Current_Gamestate = LEVEL_SELECTOR_SCREEN;
         }
 
     }
+
+   
     /*
     if (mouseX >= startX && mouseX <= (startX + button_width) &&
         mouseY >= startY && mouseY <= startY * 3 + button_height) {
@@ -1395,8 +1410,8 @@ void setting_screen_clicked(float x, float y) {
     }
 
     else if (Current_Gamestate == GAMEPLAY_SCREEN) {
-        if (x >= setting_buttonX && x <= (setting_buttonX + button_width) &&
-            y >= setting_buttonY && y <= setting_buttonY + button_height) {
+        if (x >= setting_buttonX && x <= (setting_buttonX + 180.f) &&
+            y >= setting_buttonY && y <= setting_buttonY + 40.f) {
             gIsPaused = TRUE;
             setting_popup = TRUE;
         }
