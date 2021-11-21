@@ -342,6 +342,9 @@ float back_width, back_height;
 int Previous_Gamestate;
 int setting_popup;
 
+/*Help Screen*/
+void help_screen(void);
+
 /*Move Minion*/
 int initial_direction; //when setting up level, check for the initial direction to set this to
 void move_minion(void);
@@ -1456,7 +1459,7 @@ void initialise_pause_and_timer_button(void) {
     pauseButtonLimitX = gPauseButtonPositionX + 100.f;
     pauseButtonLimitY = gPauseButtonPositionY + 50.f;
     setting_buttonX = gPauseButtonPositionX + 250.f;
-    setting_buttonY = gPauseButtonPositionY - 30.f;
+    setting_buttonY = gPauseButtonPositionY + 30.f;
 }
 
 void draw_timer_and_pause_button(void) {
@@ -1464,7 +1467,8 @@ void draw_timer_and_pause_button(void) {
     CP_Settings_Fill(COLOR_WHITE);
     CP_Graphics_DrawRect(gPauseButtonPositionX, gPauseButtonPositionY, 100.f, 50.f);
     CP_Graphics_DrawRect(gTimerPositionX, gTimerPositionY, 100.f, 50.f);
-    CP_Graphics_DrawRect(setting_buttonX, setting_buttonY, 200.f, 80.f);
+    CP_Graphics_DrawRect(setting_buttonX, setting_buttonY, 180.f, 40.f);
+    CP_Graphics_DrawCircle(setting_buttonX + 230.f, setting_buttonY + 20.f, 40.f);
     CP_Settings_Fill(COLOR_BLACK);
     CP_Settings_TextSize(35);
     CP_Font_DrawText(buffer, gTimerButtonTextPositionX, gTimerButtonTextPositionY);
@@ -1478,8 +1482,10 @@ void draw_timer_and_pause_button(void) {
         CP_Settings_TextSize(30);
         CP_Font_DrawText("Pause", gPauseButtonTextPositionX, gPauseButtonTextPositionY);
     }
-    CP_Settings_TextSize(50);
-    CP_Font_DrawText("SETTING", (setting_buttonX + 10.f), (setting_buttonY + 50.f));
+    CP_Settings_TextSize(40);
+    CP_Font_DrawText("SETTING", (setting_buttonX + 10.f), (setting_buttonY + 29.f));
+    CP_Font_DrawText("?", (setting_buttonX + 222.f), (setting_buttonY + 29.f));
+
 }
 
 void start_timer(void) {
@@ -1632,6 +1638,11 @@ void gameplay_screen_clicked(float x, float y) {
     }
     if (y >= restartY && (y <= (restartY + restart_width)) && (x >= restartX && (x <= (restartX + restart_length)))) {
         restart_level();
+    }
+
+    if (x >= setting_buttonX + 210.f && x <= setting_buttonX + 250.f &&
+        y >= setting_buttonY && y <= setting_buttonY + 40.f) {
+        Current_Gamestate = HELP_SCREEN;
     }
 }
 
