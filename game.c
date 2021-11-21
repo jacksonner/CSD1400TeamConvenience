@@ -57,6 +57,7 @@ int teleport_spawn_X, teleport_spawn_Y;
 #define TRANSLUCENT_BLUE CP_Color_Create(204, 255, 255, 100)
 #define COLOR_DULL_GREEN CP_Color_Create(0, 153, 0, 255)
 #define COLOR_DARK_BLUE CP_Color_Create(0, 102, 204, 255)
+#define COLOR_YELLOW CP_Color_Create(255, 255, 0, 255)
 
 
 /*Minion Stats*/
@@ -143,8 +144,9 @@ void enemy_special_attack();
 #define EFFECT_TIMER 0
 #define CHECKER 1
 float array_Enemy_Slow_Effect_Time[ENEMY_MAX][2];
-int array_isMinionSlowed[MINION_MAX][2];
+int array_isMinionSlowed[ENEMY_MAX][MINION_MAX][2];
 void render_enemy_special_attack_bar(int i);
+int find_enemy_full_hp(int j);
 
 /*Types of Enemies*/
 #define GUARD_ENEMY 0 //block minions
@@ -268,8 +270,6 @@ int minion_count;
 int spawn_row;
 int spawn_col;
 void update_variables_and_make_screen_nice(); //since it's full screen, need to update the various variables so everything still looks nice
-int is_Search = 1;
-int target_lock = 0;
 
 /*Money Code*/
 void display_money_counter(void);
@@ -316,7 +316,7 @@ float level5X, level5Y, level5_textY, level5_textY;
 float level6X, level6Y, level6_textY, level6_textY;
 CP_Image Level_Selector_Screen = NULL;
 
-/*Setting Screen*/
+/*Setting Screen*/ //comment so it let me commit
 void setting_screen(void);
 void setting_screen_clicked(float x, float y);
 static CP_Image setting_image;
@@ -344,9 +344,8 @@ void assign_minion_stats(void);
 void assign_enemy_stats(void);
 void render_enemy(void);
 void assign_minion_color(int i);
-void projectile_logic(void);
-void projectile_render(int i);
-void projectile_colliding(int i);
+void projectile_logic(float x_coord, float y_coord);
+void projectile_render(float x_coord, float y_coord);
 void assign_enemy_color(int i);
 
 void game_init(void) {
@@ -354,9 +353,8 @@ void game_init(void) {
     CP_System_SetFrameRate(60.0f);
 
     /*Initialising variables for Fullscreen etc.*/
-    //CP_System_Fullscreen();
-    CP_System_SetWindowSize(1920, 1080);
-    update_variables_and_make_screen_nice(); 
+    CP_System_Fullscreen();
+    update_variables_and_make_screen_nice();
 
     /*Initialise to Main_Menu*/
     Current_Gamestate = MAIN_MENU_SCREEN;
@@ -370,8 +368,7 @@ void game_init(void) {
     totalElapsedTime = 0;
     totalElapsedTime += currentElapsedTime;
 
-    /*Lose Screen*/
-    Lose_Screen = CP_Image_Load("./Assets/Lose_Screen.jpg");
+
 }
 
 void game_update(void) {
@@ -408,7 +405,7 @@ void game_update(void) {
                 CP_Graphics_DrawCircle((float)array_MinionStats[i][X], (float)array_MinionStats[i][Y], (float)array_MinionStats[i][MINION_SIZE]);
                 renderminionhp_bar();
                 render_special_current_charge();
-                CP_Graphics_DrawRect((float)projectile[i][X], (float)projectile[i][Y], PROJ_SIZE, PROJ_SIZE);
+                enemy_special_attack();
             }
             if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
                 if (CP_Input_GetMouseY() >= restartY && (CP_Input_GetMouseY() <= (restartY + restart_width)) && (CP_Input_GetMouseX() >= restartX && (CP_Input_GetMouseX() <= (restartX + restart_length)))) {
@@ -499,8 +496,8 @@ void main_menu_screen(void) {
     width = (float)CP_Image_GetWidth(main_menu_image);
     height = (float)CP_Image_GetWidth(main_menu_image) * 0.6f;
     CP_Image_Draw(main_menu_image, middleX, middleY, width, height, 100);
-    /*Buttons*/
-    CP_Settings_Fill(COLOR_WHITE);
+    /* Buttons */
+        CP_Settings_Fill(COLOR_WHITE);
     float quarter_blockX = (float)CP_System_GetDisplayWidth() / 4;
     float quarter_blockY = (float)CP_System_GetDisplayHeight() / 4;
     button_height = 120.f;
@@ -517,8 +514,8 @@ void main_menu_screen(void) {
     setting_height = 60.f;
     setting_width = 240.f;
     CP_Graphics_DrawRect(settingX, settingY, setting_width, setting_height);
-    /*Now Text*/
-    CP_Settings_TextSize(80);
+    /* Now Text */
+        CP_Settings_TextSize(80);
     CP_Settings_Fill(COLOR_BLACK);
     start_textX = start_game_buttonX + 50;
     start_textY = start_game_buttonY + 80;
@@ -535,41 +532,42 @@ void main_menu_screen(void) {
 void main_menu_clicked(float x, float y) {
     //float button_height, button_width;
     //float level_selectorX, level_selectorY, start_game_buttonX, start_game_buttonY;
-    /*Play button clicked*/
-    if (x >= start_game_buttonX && x <= (start_game_buttonX + button_width) &&
-        y >= start_game_buttonY && y <= start_game_buttonY + button_height) {
+    // Play button clicked
+        if (x >= start_game_buttonX && x <= (start_game_buttonX + button_width) &&
+            y >= start_game_buttonY && y <= start_game_buttonY + button_height) {
 
-        /*Game will start at level 1*/
-        current_level = 1;
-        Current_Gamestate = GAMEPLAY_SCREEN;
+            // Game will start at level 1
+                current_level = 1;
+            Current_Gamestate = GAMEPLAY_SCREEN;
 
-        /*Free image*/
-        CP_Image_Free(&main_menu_image);
+            // Free image /
+                CP_Image_Free(&main_menu_image);
 
-        /*initialise for gameplay screen*/
-        minion_count = 0;
-        reset_map_and_minions();
-        initialise_level();
-        restart_level();
-        gIsPaused = FALSE;
-        minions_in_base = 0; //Part of minion counter which has been commented out
+            // initialise for gameplay screen /
+                minion_count = 0;
+            reset_map_and_minions();
+            initialise_level();
+            restart_level();
+            gIsPaused = FALSE;
+            minions_in_base = 0; //Part of minion counter which has been commented out
 
-        initialise_pause_and_timer_button();
-    }
-    /*Level selector button clicked*/
-    else if (x >= level_selectorX && x <= (level_selectorX + button_width) &&
-        y >= level_selectorY && y <= level_selectorY + button_height) {
-        Current_Gamestate = LEVEL_SELECTOR_SCREEN;
-        /*pending level_selector_screen completion*/
+            initialise_pause_and_timer_button();
+        }
+    // Level selector button clicked /
+        else if (x >= level_selectorX && x <= (level_selectorX + button_width) &&
+            y >= level_selectorY && y <= level_selectorY + button_height) {
+            Current_Gamestate = LEVEL_SELECTOR_SCREEN;
+            // pending level_selector_screen completion /
 
-        CP_Image_Free(&main_menu_image);
-    }
+                CP_Image_Free(&main_menu_image);
+        }
 
-    /*Setting button clicked*/
-    else if (x >= settingX && x <= (settingX + setting_width) &&
-        y >= settingY && settingY <= settingY + setting_height) {
-        Current_Gamestate = SETTING_SCREEN;
-    }
+    // Setting button clicked /
+        else if (x >= settingX && x <= (settingX + setting_width) &&
+            y >= settingY && settingY <= settingY + setting_height) {
+            Current_Gamestate = SETTING_SCREEN;
+        }
+
 
 }
 
@@ -894,8 +892,6 @@ void level_selector_screen(void) {
     CP_Font_DrawText("Back", 30, back_buttonY);
 
 
-
-
     float mouseX = (float)CP_Input_GetMouseX();
     float mouseY = (float)CP_Input_GetMouseY();
 
@@ -924,8 +920,6 @@ void level_selector_screen(void) {
 
             initialise_level();
             minion_count = 0;
-
-
             reset_map_and_minions();
             gIsPaused = FALSE;
 
@@ -968,8 +962,6 @@ void level_selector_screen(void) {
             restart_level();
 
         }
-
-
     }
     /*Hovering on Level 3 Buttons*/
     else if (mouseX >= 600 && mouseX <= 900 && mouseY >= level3Y && mouseY <= 855)
@@ -1124,8 +1116,7 @@ void level_selector_screen(void) {
 
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
         {
-
-            //Current_Gamestate = SETTING_SCREEN;
+            Current_Gamestate = SETTING_SCREEN;
         }
 
     }
@@ -1180,11 +1171,6 @@ void setting_screen(void) {
     button_height = 120.f;
     button_width = 300.f;
 
-    backX = 10.f;
-    backY = 10.f;
-    back_height = 80.f;
-    back_width = 200.f;
-
     /*options buttons*/
     CP_Settings_Fill(COLOR_WHITE);
     CP_Graphics_DrawRect(startX, startY, button_width, button_height); //main menu
@@ -1192,10 +1178,7 @@ void setting_screen(void) {
     CP_Graphics_DrawRect(startX, startY * 3, button_width, button_height); //hordepedia?
     CP_Graphics_DrawRect(startX, startY * 4, button_width, button_height); //music?
 
-    /*back button*/
-    CP_Graphics_DrawRect(backX, backY, back_width, back_height);
-
-    /*options text*/
+     /*options text*/
     CP_Settings_TextSize(60);
     CP_Settings_Fill(COLOR_BLACK);
     CP_Font_DrawText("MAIN MENU", option_textX, option_textY + 60);
@@ -1203,15 +1186,23 @@ void setting_screen(void) {
     CP_Font_DrawText("HELP", option_textX, option_textY * 3 + 20);
     CP_Font_DrawText("BGM?", option_textX, option_textY * 4);
 
-    /*back text*/
-    CP_Settings_TextSize(50);
-    CP_Font_DrawText("BACK", 40.f, 60.f);
-
     float mouseX = (float)CP_Input_GetMouseX();
     float mouseY = (float)CP_Input_GetMouseY();
 
+    Previous_Gamestate = MAIN_MENU_SCREEN; //initialise game state as main menu
 
-    Previous_Gamestate = Current_Gamestate;
+    if (Current_Gamestate == MAIN_MENU_SCREEN) {
+        Previous_Gamestate = MAIN_MENU_SCREEN;
+    }
+
+    else if (Current_Gamestate == LEVEL_SELECTOR_SCREEN) {
+        Previous_Gamestate = LEVEL_SELECTOR_SCREEN;
+    }
+
+    else if (Current_Gamestate == GAMEPLAY_SCREEN) {
+        Previous_Gamestate = GAMEPLAY_SCREEN;
+    }
+
 
     if (mouseX >= startX && mouseX <= (startX + button_width) &&
         mouseY >= startY && mouseY <= startY + button_height) {
@@ -1221,7 +1212,7 @@ void setting_screen(void) {
         }
     }
 
-    if (mouseX >= startX && mouseX <= (startX + button_width) &&
+    else if (mouseX >= startX && mouseX <= (startX + button_width) &&
         mouseY >= startY && mouseY <= startY * 2 + button_height) {
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
             Current_Gamestate = LEVEL_SELECTOR_SCREEN;
@@ -1237,10 +1228,25 @@ void setting_screen(void) {
         mouseY >= startY && mouseY <= startY * 4 + button_height) {
     } */
 
-    if (mouseX >= backX && mouseX <= (backX + back_width) &&
-        mouseY >= backY && mouseY <= backY + back_height) {
+
+
+    else if (mouseX >= backX && mouseX <= (backX + back_width) &&
+        mouseY >= backY && mouseY <= backY + back_height) {   
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
-            Current_Gamestate = Previous_Gamestate;
+
+
+            if (Previous_Gamestate == MAIN_MENU_SCREEN) {
+                Current_Gamestate = MAIN_MENU_SCREEN;
+            }
+
+            else if (Previous_Gamestate == LEVEL_SELECTOR_SCREEN) {
+                Current_Gamestate = LEVEL_SELECTOR_SCREEN;
+            } 
+
+            else if (Previous_Gamestate == GAMEPLAY_SCREEN) {
+                Current_Gamestate = GAMEPLAY_SCREEN;
+
+            }
         }
     }
 
@@ -1252,21 +1258,94 @@ void setting_screen_clicked(float x, float y) {
     /*Free image*/
     CP_Image_Free(&setting_image);
 
-
     if (Current_Gamestate == MAIN_MENU_SCREEN) {
-        if (x >= settingX && x <= (settingX + button_width) &&
-            y >= settingY && y <= settingY + button_height) {
+        if (x >= settingX && x <= (settingX + setting_width) &&
+            y >= settingY && y <= settingY + setting_height) {
             Current_Gamestate = SETTING_SCREEN;
         }
     }
 
-    if (Current_Gamestate == GAMEPLAY_SCREEN) {
+    else if (Current_Gamestate == GAMEPLAY_SCREEN) {
         if (x >= setting_buttonX && x <= (setting_buttonX + button_width) &&
             y >= setting_buttonY && y <= setting_buttonY + button_height) {
             gIsPaused = TRUE;
-            Current_Gamestate = SETTING_SCREEN;
+            float startX = (float)CP_System_GetDisplayWidth() / 3;
+            float startY = (float)CP_System_GetDisplayHeight() / 5;
+            float option_textX = startX + 20.f;
+            float option_textY = startY + 20.f;
+
+            button_height = 120.f;
+            button_width = 300.f;
+
+            backX = 10.f;
+            backY = 10.f;
+            back_height = 80.f;
+            back_width = 200.f;
+
+            /*options buttons*/
+            CP_Settings_Fill(COLOR_WHITE);
+            CP_Graphics_DrawRect(startX, startY, button_width, button_height); //main menu
+            CP_Graphics_DrawRect(startX, startY * 2, button_width, button_height); //level selection
+            CP_Graphics_DrawRect(startX, startY * 3, button_width, button_height); //hordepedia?
+            CP_Graphics_DrawRect(startX, startY * 4, button_width, button_height); //music?
+
+            /*back button*/
+            CP_Graphics_DrawRect(backX, backY, back_width, back_height);
+
+            /*options text*/
+            CP_Settings_TextSize(60);
+            CP_Settings_Fill(COLOR_BLACK);
+            CP_Font_DrawText("MAIN MENU", option_textX, option_textY + 60);
+            CP_Font_DrawText("LEVEL", option_textX, option_textY * 2 + 40);
+            CP_Font_DrawText("HELP", option_textX, option_textY * 3 + 20);
+            CP_Font_DrawText("BGM?", option_textX, option_textY * 4);
+
+            /*back text*/
+            CP_Settings_TextSize(50);
+            CP_Font_DrawText("BACK", 40.f, 60.f);
+
+            float mouseX = (float)CP_Input_GetMouseX();
+            float mouseY = (float)CP_Input_GetMouseY();
+
+
+     if (Current_Gamestate == GAMEPLAY_SCREEN) {
+        Previous_Gamestate = GAMEPLAY_SCREEN;
+    }
+
+
+    if (mouseX >= startX && mouseX <= (startX + button_width) &&
+        mouseY >= startY && mouseY <= startY + button_height) {
+
+        if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
+            Current_Gamestate = MAIN_MENU_SCREEN;
+        }
+    }
+
+    else if (mouseX >= startX && mouseX <= (startX + button_width) &&
+        mouseY >= startY && mouseY <= startY * 2 + button_height) {
+        if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
+            Current_Gamestate = LEVEL_SELECTOR_SCREEN;
         }
 
+    }
+
+            if (mouseX >= backX && mouseX <= (backX + back_width) &&
+                mouseY >= backY && mouseY <= backY + back_height) {
+                if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
+
+                    CP_Image_Free(&setting_image);
+                    gIsPaused = FALSE;
+                }
+            }
+        }
+
+        else if (Current_Gamestate == LEVEL_SELECTOR_SCREEN) {
+            if (x >= 1600 && x <= (1600 + button_width) &&
+                y >= level3Y && y <= level3Y + button_height) {
+                Current_Gamestate = SETTING_SCREEN;
+                // CP_Graphics_DrawRect(1600, level3Y + 200, button_width, button_height);
+            }
+        }
     }
 }
 
@@ -1304,6 +1383,11 @@ void reset_map_and_minions(void) {
     }
     for (int i = 0; i < ENEMY_MAX; i++) {
         array_EnemyStats[i][ENEMY_CURRENT_MINIONS_ON_BLOCK] = 0;
+    }
+    for (int i = 0; i < ENEMY_MAX; i++) {
+        for (int j = 0; j < MINION_MAX; j++) {
+            array_isMinionSlowed[i][j][0] = FALSE;
+        }
     }
     level_has_been_reset = TRUE;
 }
@@ -1355,7 +1439,6 @@ void update_timer(void)
 {
     elapsed_timer += test;  //For Countdown
     elapsed_timer2 += test; //For Money
-    //elapsed_timer3 += test;
     /*for the minion charged attacks*/
 
 
@@ -1399,7 +1482,6 @@ void restart_level(void) {
     elapsed_timer = 0;
     elapsed_timer2 = 0;
     proj_count = 0;
-    //elapsed_timer3 = 0;
     l_time = 0;
     draw_timer_and_pause_button();
     display_money_counter();
@@ -1563,6 +1645,12 @@ void render_background() {
 void setup_teleport_diffusion_map() {
     for (int row = 0; row < MAP_GRID_ROWS; ++row) {
         for (int col = 0; col < MAP_GRID_COLS; ++col) {
+            array_Teleport_DiffusionMap[row][col][1] = FALSE;
+            array_Teleport_DiffusionMap[row][col][0] = 0;
+        }
+    }
+    for (int row = 0; row < MAP_GRID_ROWS; ++row) {
+        for (int col = 0; col < MAP_GRID_COLS; ++col) {
             if (array_GameMap[row][col] == BLOCK_TELEPORTER) {
                 array_Teleport_DiffusionMap[row][col][1] = TRUE; //when TRUE it means value has been filled and done
                 array_Teleport_DiffusionMap[row][col][0] = 2048.f;
@@ -1612,6 +1700,13 @@ void setup_teleport_diffusion_map() {
 }
 
 void setup_collaborative_diffusion_map() {
+    //Reset everything to 0?
+    for (int row = 0; row < MAP_GRID_ROWS; ++row) {
+        for (int col = 0; col < MAP_GRID_COLS; ++col) {
+            array_Collaborative_DiffusionMap[row][col][1] = FALSE;
+            array_Collaborative_DiffusionMap[row][col][0] = 0;
+        }
+    }
     /*Find BLOCK_END*/
     for (int row = 0; row < MAP_GRID_ROWS; ++row) {
         for (int col = 0; col < MAP_GRID_COLS; ++col) {
@@ -1679,6 +1774,10 @@ void render_enemy() {
 
                     assign_enemy_color(which_enemy);
                     render_enemy_special_attack_bar(which_enemy);
+                    if (array_EnemyStats[which_enemy][ENEMY_TYPE] == DAMAGE_ENEMY)
+                    {
+                        projectile_logic((float)array_EnemyStats[which_enemy][ENEMY_ROW_COORDINATES], (float)array_EnemyStats[which_enemy][ENEMY_COL_COORDINATES]);
+                    }
                 }
                 else if (array_EnemyStats[which_enemy][ENEMY_HP] <= 0) {
                     if (array_EnemyStats[which_enemy][ENEMY_TYPE] == GUARD_ENEMY) {
@@ -1696,7 +1795,7 @@ void render_enemy() {
     }
 }
 
-void projectile_logic()
+void projectile_logic(float x_coord, float y_coord)
 {
     for (int row = 0; row < MAP_GRID_ROWS; ++row) {
         for (int col = 0; col < MAP_GRID_COLS; ++col) {
@@ -1869,7 +1968,7 @@ void projectile_move(int i)
     projectile[i][Y] = projectile[i][Y] + (l_time * ((vectorY - projectile[i][Y]) / 500));
 
 }
-    
+
 void render_minion() {
     for (int row = 0; row < MAP_GRID_ROWS; ++row) {
         for (int col = 0; col < MAP_GRID_COLS; ++col) {
@@ -1902,8 +2001,6 @@ void move_minion() {
         move_right = array_MinionStats[i][X] + array_MinionStats[i][MINION_MOVEMENT_SPEED];
         move_up = array_MinionStats[i][Y] - array_MinionStats[i][MINION_MOVEMENT_SPEED];
         move_down = array_MinionStats[i][Y] + array_MinionStats[i][MINION_MOVEMENT_SPEED];
-        //current_boxCOL = (array_MinionStats[i][X] - origin_map_coordinateX + BLOCK_SIZE / 2 - 1) / BLOCK_SIZE; //x
-        //current_boxROW = (array_MinionStats[i][Y] - origin_map_coordinateY + BLOCK_SIZE / 2 - 1) / BLOCK_SIZE; //y
         current_boxCOL = (array_MinionStats[i][X] - origin_map_coordinateX) / BLOCK_SIZE;
         current_boxROW = (array_MinionStats[i][Y] - origin_map_coordinateY) / BLOCK_SIZE;
         minion_special_attack(i, current_boxROW, current_boxCOL);
@@ -1944,22 +2041,22 @@ void move_minion() {
                 (current_boxCOL + 1 < MAP_GRID_COLS && array_Collaborative_DiffusionMap[current_boxROW][current_boxCOL + 1][0] > array_Collaborative_DiffusionMap[current_boxROW][current_boxCOL][0]
                     && array_GameMap[current_boxROW][current_boxCOL + 1] != BLOCK_TOWER_ENEMY && array_GameMap[current_boxROW][current_boxCOL + 1] != BLOCK_PRESENT
                     && (array_GameMap[current_boxROW][current_boxCOL + 1] == BLOCK_ENEMY || array_GameMap[current_boxROW][current_boxCOL + 1] == BLOCK_EMPTY
-                        || array_GameMap[current_boxROW][current_boxCOL + 1] == BLOCK_END || array_GameMap[current_boxROW][current_boxCOL + 1] == BLOCK_TELEPORTER))
+                        || array_GameMap[current_boxROW][current_boxCOL + 1] == BLOCK_END))
                 ? RIGHT
                 : (current_boxCOL - 1 >= 0 && array_Collaborative_DiffusionMap[current_boxROW][current_boxCOL - 1][0] > array_Collaborative_DiffusionMap[current_boxROW][current_boxCOL][0]
                     && array_GameMap[current_boxROW][current_boxCOL - 1] != BLOCK_TOWER_ENEMY && array_GameMap[current_boxROW][current_boxCOL - 1] != BLOCK_PRESENT
                     && (array_GameMap[current_boxROW][current_boxCOL - 1] == BLOCK_ENEMY || array_GameMap[current_boxROW][current_boxCOL - 1] == BLOCK_EMPTY
-                        || array_GameMap[current_boxROW][current_boxCOL - 1] == BLOCK_END || array_GameMap[current_boxROW][current_boxCOL - 1] == BLOCK_TELEPORTER))
+                        || array_GameMap[current_boxROW][current_boxCOL - 1] == BLOCK_END ))
                 ? LEFT
                 : (current_boxROW + 1 < MAP_GRID_ROWS && array_Collaborative_DiffusionMap[current_boxROW + 1][current_boxCOL][0] > array_Collaborative_DiffusionMap[current_boxROW][current_boxCOL][0]
                     && array_GameMap[current_boxROW + 1][current_boxCOL] != BLOCK_TOWER_ENEMY && array_GameMap[current_boxROW + 1][current_boxCOL] != BLOCK_PRESENT
                     && (array_GameMap[current_boxROW + 1][current_boxCOL] == BLOCK_ENEMY || array_GameMap[current_boxROW + 1][current_boxCOL] == BLOCK_EMPTY
-                        || array_GameMap[current_boxROW + 1][current_boxCOL] == BLOCK_END || array_GameMap[current_boxROW + 1][current_boxCOL] == BLOCK_TELEPORTER))
+                        || array_GameMap[current_boxROW + 1][current_boxCOL] == BLOCK_END))
                 ? DOWN
                 : (current_boxROW - 1 >= 0 && array_Collaborative_DiffusionMap[current_boxROW - 1][current_boxCOL][0] > array_Collaborative_DiffusionMap[current_boxROW][current_boxCOL][0]
                     && array_GameMap[current_boxROW - 1][current_boxCOL] != BLOCK_TOWER_ENEMY && array_GameMap[current_boxROW - 1][current_boxCOL] != BLOCK_PRESENT
                     && (array_GameMap[current_boxROW - 1][current_boxCOL] == BLOCK_ENEMY || array_GameMap[current_boxROW - 1][current_boxCOL] == BLOCK_EMPTY
-                        || array_GameMap[current_boxROW - 1][current_boxCOL] == BLOCK_END || array_GameMap[current_boxROW - 1][current_boxCOL] == BLOCK_TELEPORTER))
+                        || array_GameMap[current_boxROW - 1][current_boxCOL] == BLOCK_END))
                 ? UP
                 : STOP;
         }
@@ -1990,9 +2087,11 @@ void move_minion() {
                         if (array_EnemyStats[correct_enemy][ENEMY_HP] > 0) {
                             array_MinionStats[i][MINION_DIRECTION] = STOP;
                             int check_if_can_attack = check_minion_basic_attack_charge(i);
-                            //int check_if_can_attack = 1; //to be deleted once i get above function working
                             if (array_MinionStats[i][MINION_HP] > 0 && check_if_can_attack == 1) {
                                 array_EnemyStats[correct_enemy][ENEMY_HP] -= array_MinionStats[i][MINION_ATTACK];
+                                if (array_EnemyStats[correct_enemy][ENEMY_HP] <= 0) {
+                                    money += 20;
+                                }
                             }
                             /*Single targeting system*/
                             int enemy_charged_up = check_enemy_basic_attack_charge(correct_enemy);
@@ -2017,10 +2116,6 @@ void move_minion() {
                                 }
                             }
                         }
-                        else if (array_EnemyStats[correct_enemy][ENEMY_HP] <= 0) {
-                            money += 20;
-                            array_MinionStats[i][MINION_DIRECTION] = array_MinionStats[i][MINION_PAST_DIRECTION];
-                        }
                     }
                 }
             }
@@ -2044,6 +2139,7 @@ void move_minion() {
             array_MinionStats[i][Y] = array_MinionStats[i][Y];
             array_MinionStats[i][MINION_DIRECTION] = array_MinionStats[i][MINION_PAST_DIRECTION];
         }
+        //Minion is now teleporting... yay
         if (array_GameMap[current_boxROW][current_boxCOL] == BLOCK_TELEPORTER) {
             array_MinionStats[i][MINION_TELEPORTED] = TRUE;
             array_MinionStats[i][X] = teleport_spawn_X;
@@ -2097,28 +2193,52 @@ void render_enemy_special_attack_bar(int i) {
     }
 }
 
+int find_enemy_full_hp(int n) {
+    int full_hp = (array_EnemyStats[n][ENEMY_TYPE] == GUARD_ENEMY)
+        ? 150
+        : (array_EnemyStats[n][ENEMY_TYPE] == SLOW_ENEMY)
+        ? 120
+        : (array_EnemyStats[n][ENEMY_TYPE] == HEALING_TOWER)
+        ? 120
+        : (array_EnemyStats[n][ENEMY_TYPE] == DAMAGE_ENEMY)
+        ? 100
+        : (array_EnemyStats[n][ENEMY_TYPE] == RANGED_TOWER)
+        ? 150
+        : 0;
+    return full_hp;
+}
+
 void enemy_special_attack() {
     int how_long_effect_is = 3;
     for (int i = 0; i < ENEMY_MAX; i++) {
         if (array_EnemyCurrentCharge[i][ENEMY_CURRENT_CHARGE] >= array_EnemyCurrentCharge[i][ENEMY_CHARGE_TIME]) {
-            if (array_EnemyStats[i][ENEMY_TYPE] == SLOW_ENEMY) {
+            if (array_EnemyStats[i][ENEMY_TYPE] == SLOW_ENEMY && array_EnemyStats[i][ENEMY_HP] > 0) {
                 array_Enemy_Slow_Effect_Time[i][CHECKER] = TRUE; //attack can start
                 array_Enemy_Slow_Effect_Time[i][EFFECT_TIMER] = 0;
             }
-            else if (array_EnemyStats[i][ENEMY_TYPE] == HEALING_TOWER) {
-                //code for the healing
+            else if (array_EnemyStats[i][ENEMY_TYPE] == HEALING_TOWER && array_EnemyStats[i][ENEMY_HP] > 0) {
+                int healing_amount = 40;
+                for (int j = 0; j < ENEMY_MAX; j++) {
+                    int full_hp = find_enemy_full_hp(j);
+                    if ((full_hp - array_EnemyStats[j][ENEMY_HP]) < healing_amount) {
+                        array_EnemyStats[j][ENEMY_HP] = full_hp;
+                    }
+                    else {
+                        array_EnemyStats[j][ENEMY_HP] += healing_amount;
+                    }
+                }
             }
             array_EnemyCurrentCharge[i][ENEMY_CURRENT_CHARGE] = 0;
         }
         //The Slow Minion's Special Attack is here
         if (array_EnemyStats[i][ENEMY_TYPE] == SLOW_ENEMY && array_Enemy_Slow_Effect_Time[i][CHECKER] == TRUE) {
-            if (array_Enemy_Slow_Effect_Time[i][EFFECT_TIMER] >= how_long_effect_is) {
+            if (array_Enemy_Slow_Effect_Time[i][EFFECT_TIMER] >= how_long_effect_is || array_EnemyStats[i][ENEMY_HP] <= 0) {
                 array_Enemy_Slow_Effect_Time[i][CHECKER] = FALSE;
                 array_Enemy_Slow_Effect_Time[i][EFFECT_TIMER] = 0;
                 for (int j = 0; j < minion_count; j++) {
-                    if (array_isMinionSlowed[j][0] == TRUE) {
-                        array_MinionStats[j][MINION_MOVEMENT_SPEED] = array_isMinionSlowed[j][1];
-                        array_isMinionSlowed[j][0] = FALSE;
+                    if (array_isMinionSlowed[i][j][0] == TRUE) {
+                        array_MinionStats[j][MINION_MOVEMENT_SPEED] = array_isMinionSlowed[i][j][1];
+                        array_isMinionSlowed[i][j][0] = FALSE;
                     }
                 }
             }
@@ -2131,17 +2251,18 @@ void enemy_special_attack() {
                 for (int j = 0; j < minion_count; j++) {
                     if (array_MinionStats[j][X] > minX && array_MinionStats[j][X] < maxX
                         && array_MinionStats[j][Y] > minY && array_MinionStats[j][Y] < maxY) {
-                        if (array_isMinionSlowed[j][0] != TRUE) {
-                            array_isMinionSlowed[j][1] = array_MinionStats[j][MINION_MOVEMENT_SPEED];
+                        if (array_isMinionSlowed[i][j][0] != TRUE) {
+                            array_isMinionSlowed[i][j][1] = array_MinionStats[j][MINION_MOVEMENT_SPEED];
                         }
                         array_MinionStats[j][MINION_MOVEMENT_SPEED] = 1;
-                        array_isMinionSlowed[j][0] = TRUE;
+                        array_isMinionSlowed[i][j][0] = TRUE;
                     }
+                    //Minion no longer in range
                     if (!(array_MinionStats[j][X] > minX && array_MinionStats[j][X] < maxX
                         && array_MinionStats[j][Y] > minY && array_MinionStats[j][Y] < maxY)) {
-                        if (array_isMinionSlowed[j][0] == TRUE) {
-                            array_MinionStats[j][MINION_MOVEMENT_SPEED] = array_isMinionSlowed[j][1];
-                            array_isMinionSlowed[j][0] = FALSE;
+                        if (array_isMinionSlowed[i][j][0] == TRUE) {
+                            array_MinionStats[j][MINION_MOVEMENT_SPEED] = array_isMinionSlowed[i][j][1];
+                            array_isMinionSlowed[i][j][0] = FALSE;
                         }
                     }
                 }
@@ -2159,7 +2280,7 @@ void enemy_special_attack() {
 void minion_dies_array_recycle(int dead_minion_number) {
     int array_Temp_MinionStats[MINION_MAX][MINION_TOTAL_STATS];
     float array_Temp_MinionCharge[MINION_MAX][TOTAL_CHARGES];
-    int array_Temp_isMinionSlowed[MINION_MAX][2];
+    int array_Temp_isMinionSlowed[ENEMY_MAX][MINION_MAX][2];
 
     for (int i = 0; i < dead_minion_number; i++) {
         for (int j = 0; j < MINION_TOTAL_STATS; j++) {
@@ -2171,9 +2292,11 @@ void minion_dies_array_recycle(int dead_minion_number) {
             array_Temp_MinionCharge[i][j] = array_MinionCurrentCharge[i][j];
         }
     }
-    for (int i = 0; i < dead_minion_number; i++) {
-        for (int j = 0; j < 2; j++) {
-            array_Temp_isMinionSlowed[i][j] = array_isMinionSlowed[i][j];
+    for (int k = 0; k < ENEMY_MAX; k++) {
+        for (int i = 0; i < dead_minion_number; i++) {
+            for (int j = 0; j < 2; j++) {
+                array_Temp_isMinionSlowed[k][i][j] = array_isMinionSlowed[k][i][j];
+            }
         }
     }
 
@@ -2190,9 +2313,11 @@ void minion_dies_array_recycle(int dead_minion_number) {
         }
     }
     dead_min_num = dead_minion_number;
-    for (int k = (dead_min_num + 1); k <= minion_count; k++, dead_min_num++) {
-        for (int m = 0; m < 2; m++) {
-            array_Temp_isMinionSlowed[dead_min_num][m] = array_isMinionSlowed[k][m];
+    for (int i = 0; i < ENEMY_MAX; i++) {
+        for (int k = (dead_min_num + 1); k <= minion_count; k++, dead_min_num++) {
+            for (int m = 0; m < 2; m++) {
+                array_Temp_isMinionSlowed[i][dead_min_num][m] = array_isMinionSlowed[i][k][m];
+            }
         }
     }
     //Now we update the original array with the stored values
@@ -2206,12 +2331,13 @@ void minion_dies_array_recycle(int dead_minion_number) {
             array_MinionCurrentCharge[h][n] = array_Temp_MinionCharge[h][n];
         }
     }
-    for (int h = 0; h < minion_count; h++) {
-        for (int n = 0; n < 2; n++) {
-            array_isMinionSlowed[h][n] = array_Temp_isMinionSlowed[h][n];
+    for (int k = 0; k < ENEMY_MAX; k++) {
+        for (int h = 0; h < minion_count; h++) {
+            for (int n = 0; n < 2; n++) {
+                array_isMinionSlowed[k][h][n] = array_Temp_isMinionSlowed[k][h][n];
+            }
         }
     }
-
     minion_count--;
 }
 
@@ -2335,10 +2461,12 @@ void render_special_current_charge() {
             int buffer_space = 0;
             float charge_percentage;
             if (array_MinionStats[i][MINION_HP] > 0) {
+                /*
                 if (array_MinionStats[i][MINION_TYPE] == WARRIOR_MINION) {
                     buffer_space = array_MinionStats[i][MINION_SIZE] / 2 + 7;
                 }
-                else if (array_MinionStats[i][MINION_TYPE] == TANK_MINION) {
+                */
+                if (array_MinionStats[i][MINION_TYPE] == TANK_MINION) {
                     buffer_space = array_MinionStats[i][MINION_SIZE] / 2 + 7;
                 }
                 else if (array_MinionStats[i][MINION_TYPE] == WIZARD_MINION) {
@@ -2429,6 +2557,9 @@ void minion_special_attack(int i, int current_row, int current_col) {
             for (int t = 0; t < ENEMY_MAX; t++) {
                 if (array_enemy_to_attack[i][t] == 1) {
                     array_EnemyStats[t][ENEMY_HP] -= 20;
+                    if (array_EnemyStats[t][ENEMY_HP] <= 0) {
+                        money += 20;
+                    }
                 }
             }
         }
@@ -2437,6 +2568,9 @@ void minion_special_attack(int i, int current_row, int current_col) {
             for (int t = 0; t < ENEMY_MAX; t++) {
                 if (array_enemy_to_attack[i][t] == 1) {
                     array_EnemyStats[t][ENEMY_HP] -= 30;
+                    if (array_EnemyStats[t][ENEMY_HP] <= 0) {
+                        money += 20;
+                    }
                 }
             }
         }
@@ -2653,34 +2787,34 @@ void assign_enemy_color(int i) {
 }
 
 /*probably going to be removed in the final product*/
-void assign_minion_color(int i) {
-    if (array_MinionStats[i][MINION_TYPE] == SPAM_MINION) {
-        CP_Settings_Fill(COLOR_BLUE);
-    }
-    else if (array_MinionStats[i][MINION_TYPE] == WARRIOR_MINION) {
-        CP_Settings_Fill(COLOR_SEAGREEN);
-    }
-    else if (array_MinionStats[i][MINION_TYPE] == TANK_MINION) {
-        CP_Settings_Fill(COLOR_BROWN);
-    }
-    else if (array_MinionStats[i][MINION_TYPE] == WIZARD_MINION) {
-        CP_Settings_Fill(COLOR_CYAN);
-    }
-    else if (array_MinionStats[i][MINION_TYPE] == HEALER_MINION) {
-        CP_Settings_Fill(COLOR_PURPLE);
-    }
+void assign_minion_color(int i) { 
+        if (array_MinionStats[i][MINION_TYPE] == SPAM_MINION) {
+            CP_Settings_Fill(COLOR_BLUE);
+        }
+        else if (array_MinionStats[i][MINION_TYPE] == WARRIOR_MINION) {
+            CP_Settings_Fill(COLOR_YELLOW);
+        }
+        else if (array_MinionStats[i][MINION_TYPE] == TANK_MINION) {
+            CP_Settings_Fill(COLOR_BROWN);
+        }
+        else if (array_MinionStats[i][MINION_TYPE] == WIZARD_MINION) {
+            CP_Settings_Fill(COLOR_CYAN);
+        }
+        else if (array_MinionStats[i][MINION_TYPE] == HEALER_MINION) {
+            CP_Settings_Fill(COLOR_PURPLE);
+        }
 }
 
 void assign_enemy_stats() {
     for (int i = 0; i < ENEMY_MAX; i++) {
         if (array_EnemyStats[i][ENEMY_TYPE] == GUARD_ENEMY) {
             array_EnemyStats[i][ENEMY_HP] = 150;
-            array_EnemyStats[i][ENEMY_ATTACK] = 2;
+            array_EnemyStats[i][ENEMY_ATTACK] = 5;
             array_EnemyStats[i][ENEMY_ATTACK_SPEED] = 2; //idk how attack_speed works yet
             array_EnemyStats[i][ENEMY_BLOCK] = 2;
             array_EnemyStats[i][ENEMY_SIZE] = BLOCK_SIZE / 2;
             array_EnemyStats[i][ENEMY_RANGE] = 1;
-            array_EnemyCurrentCharge[i][ENEMY_BASIC_ATTACK_SPEED] = 0.5f;
+            array_EnemyCurrentCharge[i][ENEMY_BASIC_ATTACK_SPEED] = 0.4f;
         }
         if (array_EnemyStats[i][ENEMY_TYPE] == DAMAGE_ENEMY) {
             array_EnemyStats[i][ENEMY_HP] = 100;
@@ -2710,6 +2844,7 @@ void assign_enemy_stats() {
             array_EnemyStats[i][ENEMY_SIZE] = BLOCK_SIZE / 2;
             array_EnemyStats[i][ENEMY_RANGE] = 2;
             array_EnemyCurrentCharge[i][ENEMY_BASIC_ATTACK_SPEED] = 0.5f;
+            array_EnemyCurrentCharge[i][ENEMY_CHARGE_TIME] = 4.5f;
         }
         if (array_EnemyStats[i][ENEMY_TYPE] == RANGED_TOWER) {
             array_EnemyStats[i][ENEMY_HP] = 150;
@@ -2734,37 +2869,70 @@ void assign_enemy_stats() {
 }
 
 void level_1() {
+    array_GameMap[0][11] = BLOCK_SPAWN;
+    array_GameMap[0][1] = BLOCK_END;
     
-    array_GameMap[2][0] = BLOCK_END;
-    array_GameMap[2][11] = BLOCK_SPAWN;
-    array_GameMap[4][7] = BLOCK_ENEMY;
-    array_EnemyStats[0][ENEMY_ROW] = 4;
-    array_EnemyStats[0][ENEMY_COL] = 7;
-    array_EnemyStats[0][ENEMY_TYPE] = GUARD_ENEMY;
-    array_GameMap[3][3] = BLOCK_ENEMY;
-    array_EnemyStats[1][ENEMY_ROW] = 3;
-    array_EnemyStats[1][ENEMY_COL] = 3;
+    array_GameMap[2][0] = BLOCK_PRESENT;
+    array_GameMap[4][0] = BLOCK_PRESENT;
+    array_GameMap[3][0] = BLOCK_PRESENT;
+    array_GameMap[0][2] = BLOCK_PRESENT;
+    array_GameMap[1][2] = BLOCK_PRESENT;
+    array_GameMap[2][2] = BLOCK_PRESENT;
+    array_GameMap[3][2] = BLOCK_PRESENT;
+    array_GameMap[3][3] = BLOCK_PRESENT;
+    array_GameMap[1][5] = BLOCK_PRESENT;
+    array_GameMap[2][5] = BLOCK_PRESENT;
+    array_GameMap[3][5] = BLOCK_PRESENT;
+    array_GameMap[1][7] = BLOCK_PRESENT;
+    array_GameMap[3][7] = BLOCK_PRESENT;
+    array_GameMap[1][8] = BLOCK_PRESENT;
+    array_GameMap[3][9] = BLOCK_PRESENT;
+    array_GameMap[0][10] = BLOCK_PRESENT;
+    array_GameMap[1][10] = BLOCK_PRESENT;
+    array_GameMap[3][10] = BLOCK_PRESENT;
+    
+    array_GameMap[4][2] = BLOCK_ENEMY;
+    array_EnemyStats[1][ENEMY_ROW] = 4;
+    array_EnemyStats[1][ENEMY_COL] = 2;
     array_EnemyStats[1][ENEMY_TYPE] = GUARD_ENEMY;
-    array_GameMap[3][1] = BLOCK_ENEMY;
-    array_EnemyStats[2][ENEMY_ROW] = 3;
-    array_EnemyStats[2][ENEMY_COL] = 1;
+
+    array_GameMap[1][4] = BLOCK_ENEMY;
+    array_EnemyStats[2][ENEMY_ROW] = 1;
+    array_EnemyStats[2][ENEMY_COL] = 4;
     array_EnemyStats[2][ENEMY_TYPE] = GUARD_ENEMY;
-    array_GameMap[3][8] = BLOCK_TOWER_ENEMY;
-    array_EnemyStats[3][ENEMY_ROW] = 3;
-    array_EnemyStats[3][ENEMY_COL] = 8;
+
+    array_GameMap[4][5] = BLOCK_TOWER_ENEMY;
+    array_EnemyStats[3][ENEMY_ROW] = 4;
+    array_EnemyStats[3][ENEMY_COL] = 5;
     array_EnemyStats[3][ENEMY_TYPE] = DAMAGE_ENEMY;
-    array_GameMap[2][5] = BLOCK_TOWER_ENEMY;
-    array_EnemyStats[4][ENEMY_ROW] = 2;
-    array_EnemyStats[4][ENEMY_COL] = 5;
-    array_EnemyStats[4][ENEMY_TYPE] = SLOW_ENEMY;
+
+    array_GameMap[0][6] = BLOCK_ENEMY;
+    array_EnemyStats[4][ENEMY_ROW] = 0;
+    array_EnemyStats[4][ENEMY_COL] = 6;
+    array_EnemyStats[4][ENEMY_TYPE] = GUARD_ENEMY;
+
+    array_GameMap[1][6] = BLOCK_TOWER_ENEMY;
+    array_EnemyStats[5][ENEMY_ROW] = 1;
+    array_EnemyStats[5][ENEMY_COL] = 6;
+    array_EnemyStats[5][ENEMY_TYPE] = DAMAGE_ENEMY;
+
+    array_GameMap[3][8] = BLOCK_TOWER_ENEMY;
+    array_EnemyStats[6][ENEMY_ROW] = 3;
+    array_EnemyStats[6][ENEMY_COL] = 8;
+    array_EnemyStats[6][ENEMY_TYPE] = DAMAGE_ENEMY;
+
     array_GameMap[4][8] = BLOCK_ENEMY;
-    array_EnemyStats[5][ENEMY_ROW] = 4;
-    array_EnemyStats[5][ENEMY_COL] = 8;
-    array_EnemyStats[5][ENEMY_TYPE] = GUARD_ENEMY;
-    //Please be careful when adding a new enemy, change the number array_EnemyStats[3][ENEMY_TYPE] -> array_EnemyStats[4][ENEMY_TYPE]
-    array_GameMap[4][6] = BLOCK_PRESENT;
-    initial_direction = LEFT;
+    array_EnemyStats[7][ENEMY_ROW] = 4;
+    array_EnemyStats[7][ENEMY_COL] = 8;
+    array_EnemyStats[7][ENEMY_TYPE] = GUARD_ENEMY;
+
+    array_GameMap[2][10] = BLOCK_TOWER_ENEMY;
+    array_EnemyStats[8][ENEMY_ROW] = 2;
+    array_EnemyStats[8][ENEMY_COL] = 10;
+    array_EnemyStats[8][ENEMY_TYPE] = DAMAGE_ENEMY;
     
+    initial_direction = DOWN;
+    level_has_teleporter = FALSE;
     /*
     array_GameMap[0][0] = BLOCK_END;
     array_GameMap[0][11] = BLOCK_SPAWN;
@@ -2787,7 +2955,7 @@ void level_1() {
     array_GameMap[1][10] = BLOCK_PRESENT;
     array_GameMap[3][10] = BLOCK_PRESENT;
 
-    
+
     array_GameMap[4][2] = BLOCK_ENEMY;
     array_EnemyStats[1][ENEMY_ROW] = 4;
     array_EnemyStats[1][ENEMY_COL] = 2;
@@ -2879,6 +3047,8 @@ void level_2() {
     array_EnemyStats[6][ENEMY_ROW] = 3;
     array_EnemyStats[6][ENEMY_COL] = 1;
     array_EnemyStats[6][ENEMY_TYPE] = GUARD_ENEMY;
+
+    level_has_teleporter = FALSE;
 }
 
 void level_3() {
@@ -2955,6 +3125,8 @@ void level_3() {
     array_EnemyStats[9][ENEMY_ROW] = 3;
     array_EnemyStats[9][ENEMY_COL] = 6;
     array_EnemyStats[9][ENEMY_TYPE] = RANGED_TOWER;
+
+    level_has_teleporter = FALSE;
 }
 
 /*Example on how to use Teleporter*/
@@ -3005,27 +3177,99 @@ void level_4() {
     array_EnemyStats[4][ENEMY_COL] = 10;
     array_EnemyStats[4][ENEMY_TYPE] = DAMAGE_ENEMY;
 
-    array_GameMap[2][3] = BLOCK_ENEMY;
+    array_GameMap[2][2] = BLOCK_ENEMY;
     array_EnemyStats[5][ENEMY_ROW] = 2;
-    array_EnemyStats[5][ENEMY_COL] = 3;
+    array_EnemyStats[5][ENEMY_COL] = 2;
     array_EnemyStats[0][ENEMY_TYPE] = GUARD_ENEMY;
 
-    /*Using Teleporter*/
+    
     initial_direction = UP;
 
+    /*Using Teleporter*/
     level_has_teleporter = TRUE;
     array_GameMap[4][0] = BLOCK_TELEPORTER;
     array_GameMap[0][10] = BLOCK_TELEPORT_SPAWN;
 }
 
 void level_5() {
-    array_GameMap[2][5] = BLOCK_SPAWN;
-    array_GameMap[4][2] = BLOCK_END;
+    array_GameMap[4][11] = BLOCK_SPAWN;
+    array_GameMap[4][4] = BLOCK_END;
+
+    /*Filler Blocks*/
+    array_GameMap[3][11] = BLOCK_PRESENT;
+    array_GameMap[3][10] = BLOCK_PRESENT;
+    array_GameMap[2][1] = BLOCK_PRESENT;
+    array_GameMap[2][10] = BLOCK_PRESENT;
+    array_GameMap[4][6] = BLOCK_PRESENT;
+    array_GameMap[4][5] = BLOCK_PRESENT;
+    array_GameMap[3][6] = BLOCK_PRESENT;
+    array_GameMap[3][9] = BLOCK_PRESENT;
+    array_GameMap[1][7] = BLOCK_PRESENT;
+    array_GameMap[1][8] = BLOCK_PRESENT;
+    array_GameMap[0][9] = BLOCK_PRESENT;
+    array_GameMap[0][0] = BLOCK_PRESENT;
+    array_GameMap[1][1] = BLOCK_PRESENT;
+    array_GameMap[3][3] = BLOCK_PRESENT;
+    array_GameMap[2][4] = BLOCK_PRESENT;
+    array_GameMap[2][3] = BLOCK_PRESENT;
+    array_GameMap[4][3] = BLOCK_PRESENT;
+
+    /*Enemies*/
+    array_GameMap[4][8] = BLOCK_ENEMY;
+    array_EnemyStats[0][ENEMY_ROW] = 4;
+    array_EnemyStats[0][ENEMY_COL] = 8;
+    array_EnemyStats[0][ENEMY_TYPE] = GUARD_ENEMY;
+
+    array_GameMap[3][8] = BLOCK_TOWER_ENEMY;
+    array_EnemyStats[1][ENEMY_ROW] = 3;
+    array_EnemyStats[1][ENEMY_COL] = 8;
+    array_EnemyStats[1][ENEMY_TYPE] = DAMAGE_ENEMY;
+
+    array_GameMap[3][3] = BLOCK_TOWER_ENEMY;
+    array_EnemyStats[2][ENEMY_ROW] = 3;
+    array_EnemyStats[2][ENEMY_COL] = 3;
+    array_EnemyStats[2][ENEMY_TYPE] = DAMAGE_ENEMY;
+
+    array_GameMap[1][3] = BLOCK_TOWER_ENEMY;
+    array_EnemyStats[3][ENEMY_ROW] = 1;
+    array_EnemyStats[3][ENEMY_COL] = 3;
+    array_EnemyStats[3][ENEMY_TYPE] = SLOW_ENEMY;
+
+    array_GameMap[0][5] = BLOCK_TOWER_ENEMY;
+    array_EnemyStats[4][ENEMY_ROW] = 0;
+    array_EnemyStats[4][ENEMY_COL] = 5;
+    array_EnemyStats[4][ENEMY_TYPE] = HEALING_TOWER;
+
+    array_GameMap[2][6] = BLOCK_TOWER_ENEMY;
+    array_EnemyStats[5][ENEMY_ROW] = 2;
+    array_EnemyStats[5][ENEMY_COL] = 6;
+    array_EnemyStats[5][ENEMY_TYPE] = SLOW_ENEMY;
+
+    array_GameMap[2][7] = BLOCK_ENEMY;
+    array_EnemyStats[6][ENEMY_ROW] = 2;
+    array_EnemyStats[6][ENEMY_COL] = 7;
+    array_EnemyStats[6][ENEMY_TYPE] = GUARD_ENEMY;
+
+    array_GameMap[3][5] = BLOCK_ENEMY;
+    array_EnemyStats[7][ENEMY_ROW] = 3;
+    array_EnemyStats[7][ENEMY_COL] = 5;
+    array_EnemyStats[7][ENEMY_TYPE] = GUARD_ENEMY;
+
+    array_GameMap[2][2] = BLOCK_ENEMY;
+    array_EnemyStats[8][ENEMY_ROW] = 2;
+    array_EnemyStats[8][ENEMY_COL] = 2;
+    array_EnemyStats[8][ENEMY_TYPE] = GUARD_ENEMY;
+
+    /*Using Teleporter*/
+    level_has_teleporter = TRUE;
+    array_GameMap[2][11] = BLOCK_TELEPORTER;
+    array_GameMap[1][0] = BLOCK_TELEPORT_SPAWN;
+
+
+    initial_direction = LEFT;
     /*placeholders, please change everything*/
 }
 
 void level_6() {
-    array_GameMap[2][5] = BLOCK_SPAWN;
-    array_GameMap[4][2] = BLOCK_END;
-    /*placeholders, please change everything*/
+    
 }
