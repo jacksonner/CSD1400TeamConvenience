@@ -298,6 +298,9 @@ CP_Image Level_Selector_Screen = NULL;
 void setting_screen(void);
 void setting_screen_clicked(float x, float y);
 static CP_Image setting_image;
+float backX, backY, setting_width, setting_height;
+float back_width, back_height;
+int Previous_Gamestate;
 
 /*Move Minion*/
 int initial_direction; //when setting up level, check for the initial direction to set this to
@@ -461,11 +464,13 @@ void main_menu_screen(void) {
     start_game_buttonX = quarter_blockX;
     start_game_buttonY = 2.f * quarter_blockY + 0.1f * quarter_blockY;
     level_selectorY = start_game_buttonY + quarter_blockY * 0.8f;
-    settingX = quarter_blockX;
-    settingY = start_game_buttonY - quarter_blockY * 0.8f;
+    settingX = 1600;
+    settingY = 1000.f;
     CP_Graphics_DrawRect(level_selectorX, level_selectorY, button_width, button_height);
     CP_Graphics_DrawRect(start_game_buttonX, start_game_buttonY, button_width, button_height);
-    CP_Graphics_DrawRect(settingX, settingY, button_width, button_height);
+    setting_height = 60.f;
+    setting_width = 240.f;
+    CP_Graphics_DrawRect(settingX, settingY, setting_width, setting_height);
     /*Now Text*/
     CP_Settings_TextSize(80);
     CP_Settings_Fill(COLOR_BLACK);
@@ -474,9 +479,10 @@ void main_menu_screen(void) {
     levels_textX = level_selectorX + 40;
     levels_textY = level_selectorY + 80;
     setting_textX = settingX + 40;
-    setting_textY = settingY + 80;
+    setting_textY = settingY + 40;
     CP_Font_DrawText("START", start_textX, start_textY);
     CP_Font_DrawText("LEVELS", levels_textX, levels_textY);
+    CP_Settings_TextSize(40);
     CP_Font_DrawText("SETTING", setting_textX, setting_textY);
 }
 
@@ -514,8 +520,8 @@ void main_menu_clicked(float x, float y) {
     }
 
     /*Setting button clicked*/
-    else if (x >= settingX && x <= (settingX + button_width) &&
-        y >= settingY && settingY <= level_selectorY + button_height) {
+    else if (x >= settingX && x <= (settingX + setting_width) &&
+        y >= settingY && settingY <= settingY + setting_height) {
         Current_Gamestate = SETTING_SCREEN;
     }
 
@@ -1128,6 +1134,11 @@ void setting_screen(void) {
     button_height = 120.f;
     button_width = 300.f;
 
+    backX = 10.f;
+    backY = 10.f;
+    back_height = 80.f;
+    back_width = 200.f;
+
     /*options buttons*/
     CP_Settings_Fill(COLOR_WHITE);
     CP_Graphics_DrawRect(startX, startY, button_width, button_height); //main menu
@@ -1135,7 +1146,10 @@ void setting_screen(void) {
     CP_Graphics_DrawRect(startX, startY * 3, button_width, button_height); //hordepedia?
     CP_Graphics_DrawRect(startX, startY * 4, button_width, button_height); //music?
 
-     /*options text*/
+    /*back button*/
+    CP_Graphics_DrawRect(backX, backY, back_width, back_height);
+
+    /*options text*/
     CP_Settings_TextSize(60);
     CP_Settings_Fill(COLOR_BLACK);
     CP_Font_DrawText("MAIN MENU", option_textX, option_textY + 60);
@@ -1143,11 +1157,15 @@ void setting_screen(void) {
     CP_Font_DrawText("HELP", option_textX, option_textY * 3 + 20);
     CP_Font_DrawText("BGM?", option_textX, option_textY * 4);
 
+    /*back text*/
+    CP_Settings_TextSize(50);
+    CP_Font_DrawText("BACK", 40.f, 60.f);
+
     float mouseX = (float)CP_Input_GetMouseX();
     float mouseY = (float)CP_Input_GetMouseY();
 
 
-
+    Previous_Gamestate = Current_Gamestate;
 
     if (mouseX >= startX && mouseX <= (startX + button_width) &&
         mouseY >= startY && mouseY <= startY + button_height) {
@@ -1173,6 +1191,13 @@ void setting_screen(void) {
         mouseY >= startY && mouseY <= startY * 4 + button_height) {
     } */
 
+    if (mouseX >= backX && mouseX <= (backX + back_width) &&
+        mouseY >= backY && mouseY <= backY + back_height) {
+        if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
+            Current_Gamestate = Previous_Gamestate;
+        }
+    }
+
 }
 
 
@@ -1180,6 +1205,7 @@ void setting_screen_clicked(float x, float y) {
 
     /*Free image*/
     CP_Image_Free(&setting_image);
+
 
     if (Current_Gamestate == MAIN_MENU_SCREEN) {
         if (x >= settingX && x <= (settingX + button_width) &&
