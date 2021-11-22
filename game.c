@@ -60,6 +60,7 @@ int teleport_spawn_X, teleport_spawn_Y;
 #define COLOR_YELLOW CP_Color_Create(255, 255, 0, 255)
 #define COLOR_TURQUOISE CP_Color_Create(99, 212, 178, 255)
 #define COLOR_WEIRD_PURPLE CP_Color_Create(153, 0, 153, 255)
+#define TRANSLUCENT_PURPLE CP_Color_Create(204, 153, 255, 60)
 
 /*Minion Stats*/
 #define X 0 //x-coordinates
@@ -145,6 +146,7 @@ void enemy_special_attack();
 #define EFFECT_TIMER 0
 #define CHECKER 1
 float array_Enemy_Slow_Effect_Time[ENEMY_MAX][2];
+float array_enemy_attack_time[ENEMY_MAX][2];
 int array_isMinionSlowed[ENEMY_MAX][MINION_MAX][2];
 void render_enemy_special_attack_bar(int i);
 int find_enemy_full_hp(int j);
@@ -645,8 +647,6 @@ void main_menu_clicked(float x, float y) {
 
             // initialise for gameplay screen /
                 minion_count = 0;
-            reset_map_and_minions();
-            initialise_level();
             restart_level();
             gIsPaused = FALSE;
             minions_in_base = 0; //Part of minion counter which has been commented out
@@ -1430,6 +1430,9 @@ void reset_map_and_minions(void) {
             array_MinionStats[row][col] = 0;
         }
     }
+    for (int j = 0; j < ENEMY_MAX; j++) {
+        array_EnemyCurrentCharge[j][ENEMY_CURRENT_CHARGE] = 0;
+    }
     for (int row = 0; row < ENEMY_MAX; ++row) {
         for (int col = 0; col < MINION_MAX; ++col) {
             array_isMinionBlocked[row][col] = 0;
@@ -1442,6 +1445,10 @@ void reset_map_and_minions(void) {
         for (int j = 0; j < MINION_MAX; j++) {
             array_isMinionSlowed[i][j][0] = FALSE;
         }
+    }
+    for (int i = 0; i < ENEMY_MAX; i++) {
+        array_enemy_attack_time[i][EFFECT_TIMER] = 0;
+        array_enemy_attack_time[i][CHECKER] = 0;
     }
     level_has_been_reset = TRUE;
 }
@@ -1506,6 +1513,7 @@ void update_timer(void)
         array_EnemyCurrentCharge[i][ENEMY_BASIC_CURRENT_CHARGE] += test;
         array_EnemyCurrentCharge[i][ENEMY_CURRENT_CHARGE] += test;
         array_Enemy_Slow_Effect_Time[i][EFFECT_TIMER] += test;
+        array_enemy_attack_time[i][EFFECT_TIMER] += test;
     }
     for (int j = 0; j < ENEMY_MAX; j++) {
         for (int i = 0; i < proj_count; i++) {
@@ -2341,7 +2349,8 @@ int find_enemy_full_hp(int n) {
 }
 
 void enemy_special_attack() {
-    int how_long_effect_is = 3;
+    int how_long_effect_is_slow = 3;
+    float how_long_effect_is_AOE = 0.4f;
     for (int i = 0; i < ENEMY_MAX; i++) {
         if (array_EnemyCurrentCharge[i][ENEMY_CURRENT_CHARGE] >= array_EnemyCurrentCharge[i][ENEMY_CHARGE_TIME]) {
             if (array_EnemyStats[i][ENEMY_TYPE] == SLOW_ENEMY && array_EnemyStats[i][ENEMY_HP] > 0) {
@@ -2369,6 +2378,8 @@ void enemy_special_attack() {
                 maxX = array_EnemyStats[i][ENEMY_ROW_COORDINATES] + BLOCK_SIZE + (BLOCK_SIZE / 2);
                 minY = array_EnemyStats[i][ENEMY_COL_COORDINATES] - BLOCK_SIZE - (BLOCK_SIZE / 2);
                 maxY = array_EnemyStats[i][ENEMY_COL_COORDINATES] + BLOCK_SIZE + (BLOCK_SIZE / 2);
+                array_enemy_attack_time[i][CHECKER] = TRUE;
+                array_enemy_attack_time[i][EFFECT_TIMER] = 0;
                 for (int j = 0; j < minion_count; j++) {
                     if (array_MinionStats[j][X] > minX && array_MinionStats[j][X] < maxX
                         && array_MinionStats[j][Y] > minY && array_MinionStats[j][Y] < maxY) {
@@ -2380,7 +2391,7 @@ void enemy_special_attack() {
         }
         //The Slow Minion's Special Attack is here
         if (array_EnemyStats[i][ENEMY_TYPE] == SLOW_ENEMY && array_Enemy_Slow_Effect_Time[i][CHECKER] == TRUE) {
-            if (array_Enemy_Slow_Effect_Time[i][EFFECT_TIMER] >= how_long_effect_is || array_EnemyStats[i][ENEMY_HP] <= 0) {
+            if (array_Enemy_Slow_Effect_Time[i][EFFECT_TIMER] >= how_long_effect_is_slow || array_EnemyStats[i][ENEMY_HP] <= 0) {
                 array_Enemy_Slow_Effect_Time[i][CHECKER] = FALSE;
                 array_Enemy_Slow_Effect_Time[i][EFFECT_TIMER] = 0;
                 for (int j = 0; j < minion_count; j++) {
@@ -2390,7 +2401,7 @@ void enemy_special_attack() {
                     }
                 }
             }
-            else if (array_Enemy_Slow_Effect_Time[i][EFFECT_TIMER] < how_long_effect_is) {
+            else if (array_Enemy_Slow_Effect_Time[i][EFFECT_TIMER] < how_long_effect_is_slow) {
                 int minX, maxX, minY, maxY;
                 minX = array_EnemyStats[i][ENEMY_ROW_COORDINATES] - BLOCK_SIZE - (BLOCK_SIZE / 2);
                 maxX = array_EnemyStats[i][ENEMY_ROW_COORDINATES] + BLOCK_SIZE + (BLOCK_SIZE / 2);
@@ -2420,6 +2431,18 @@ void enemy_special_attack() {
                 CP_Graphics_DrawRect((float)array_EnemyStats[i][ENEMY_ROW_COORDINATES], (float)array_EnemyStats[i][ENEMY_COL_COORDINATES], length, length);
                 CP_Settings_RectMode(CP_POSITION_CORNER);
             }
+        }
+        if (array_enemy_attack_time[i][EFFECT_TIMER] >= how_long_effect_is_AOE || array_EnemyStats[i][ENEMY_HP] < 0) {
+            array_enemy_attack_time[i][EFFECT_TIMER] = 0;
+            array_enemy_attack_time[i][CHECKER] = FALSE;
+        }
+        else if (array_EnemyStats[i][ENEMY_TYPE] == RANGED_TOWER && array_enemy_attack_time[i][CHECKER] == TRUE && 
+            array_enemy_attack_time[i][EFFECT_TIMER] < how_long_effect_is_AOE) {
+            float length = (float)BLOCK_SIZE * 3;
+            CP_Settings_Fill(TRANSLUCENT_PURPLE);
+            CP_Settings_RectMode(CP_POSITION_CENTER);
+            CP_Graphics_DrawRect((float)array_EnemyStats[i][ENEMY_ROW_COORDINATES], (float)array_EnemyStats[i][ENEMY_COL_COORDINATES], length, length);
+            CP_Settings_RectMode(CP_POSITION_CORNER);
         }
     }
 }
@@ -3038,7 +3061,7 @@ void level_1() {
     array_GameMap[3][3] = BLOCK_PRESENT;
     array_GameMap[1][5] = BLOCK_PRESENT;
     array_GameMap[2][5] = BLOCK_PRESENT;
-    array_GameMap[3][5] = BLOCK_PRESENT;
+    array_GameMap[4][5] = BLOCK_PRESENT;
     array_GameMap[1][7] = BLOCK_PRESENT;
     array_GameMap[3][7] = BLOCK_PRESENT;
     array_GameMap[1][8] = BLOCK_PRESENT;
@@ -3057,8 +3080,8 @@ void level_1() {
     array_EnemyStats[2][ENEMY_COL] = 4;
     array_EnemyStats[2][ENEMY_TYPE] = GUARD_ENEMY;
 
-    array_GameMap[4][5] = BLOCK_TOWER_ENEMY;
-    array_EnemyStats[3][ENEMY_ROW] = 4;
+    array_GameMap[3][5] = BLOCK_TOWER_ENEMY;
+    array_EnemyStats[3][ENEMY_ROW] = 3;
     array_EnemyStats[3][ENEMY_COL] = 5;
     //array_EnemyStats[3][ENEMY_TYPE] = DAMAGE_ENEMY;
     array_EnemyStats[3][ENEMY_TYPE] = RANGED_TOWER;
