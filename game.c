@@ -494,6 +494,7 @@ void game_update(void) {
 
                     if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
                         Current_Gamestate = MAIN_MENU_SCREEN;
+                        setting_popup = FALSE;
                     }
                 }
 
@@ -501,6 +502,7 @@ void game_update(void) {
                     mouseY >= startY * 4 && mouseY <= startY * 4 + button_height) {
                     if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
                         Current_Gamestate = LEVEL_SELECTOR_SCREEN;
+                        setting_popup = FALSE;
                     }
 
                 }
