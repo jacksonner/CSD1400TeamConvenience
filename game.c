@@ -505,7 +505,14 @@ void game_update(void) {
                         Current_Gamestate = LEVEL_SELECTOR_SCREEN;
                         setting_popup = FALSE;
                     }
+                }
 
+                if (mouseX >= startX * 2 && mouseX <= (startX * 2 + button_width) &&
+                    mouseY >= startY * 3 && mouseY <= startY * 3 + button_height) {
+                    if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
+                        Current_Gamestate = HELP_SCREEN;
+                        setting_popup = FALSE;
+                    }
                 }
 
                 else   if (mouseX >= backX && mouseX <= (backX + back_width) &&
@@ -1345,7 +1352,14 @@ void setting_screen(void) {
             Current_Gamestate = LEVEL_SELECTOR_SCREEN;
             Previous_Gamestate = SETTING_SCREEN;
         }
+    }
 
+    if (mouseX >= startX * 2 && mouseX <= (startX * 2 + button_width) &&
+        mouseY >= startY * 3 && mouseY <= startY * 3 + button_height) {
+        if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
+            Current_Gamestate = HELP_SCREEN;
+            Previous_Gamestate = HELP_SCREEN;
+        }
     }
 
    
@@ -2429,7 +2443,6 @@ void enemy_special_attack() {
 void render_special_effect_enemy(int i) {
     int how_long_effect_is_slow = 3;
     float how_long_effect_is_AOE = 0.4f;
-    float how_long_effect_is_heal = 0.4f;
     if (array_EnemyStats[i][ENEMY_TYPE] == SLOW_ENEMY && array_Enemy_Slow_Effect_Time[i][CHECKER] == TRUE) {
         if (array_Enemy_Slow_Effect_Time[i][EFFECT_TIMER] >= how_long_effect_is_slow || array_EnemyStats[i][ENEMY_HP] <= 0) {
             array_Enemy_Slow_Effect_Time[i][CHECKER] = FALSE;
