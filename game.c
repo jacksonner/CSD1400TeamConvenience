@@ -148,6 +148,7 @@ void enemy_special_attack();
 float array_Enemy_Slow_Effect_Time[ENEMY_MAX][2];
 int array_isMinionSlowed[ENEMY_MAX][MINION_MAX][2];
 float array_enemy_attack_time[ENEMY_MAX][2];
+int array_special_drawn_once[ENEMY_MAX];
 void render_enemy_special_attack_bar(int i);
 int find_enemy_full_hp(int j);
 void render_special_effect_enemy(int i);
@@ -293,7 +294,7 @@ void update_variables_and_make_screen_nice(); //since it's full screen, need to 
 /*Money Code*/
 void display_money_counter(void);
 char money_buffer[400];
-int money = 50;
+int money = 60;
 int money_test = 0;
 
 /*GamePlay Screen*/
@@ -406,7 +407,6 @@ void game_update(void) {
     }
     else if (Current_Gamestate == GAMEPLAY_SCREEN) {
         gameplay_screen();
-        //display_minion_eneter_base_counter(); Commented out
         draw_timer_and_pause_button();
         display_money_counter();
         render_enemy();
@@ -434,8 +434,7 @@ void game_update(void) {
                 enemy_special_attack();
                 for (int j = 0; j < ENEMY_MAX; j++) {
                     render_special_effect_enemy(j);
-                }
-                
+                }   
             }
             if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
                 if (CP_Input_GetMouseY() >= restartY && (CP_Input_GetMouseY() <= (restartY + restart_width)) && (CP_Input_GetMouseX() >= restartX && (CP_Input_GetMouseX() <= (restartX + restart_length)))) {
@@ -520,15 +519,15 @@ void game_update(void) {
         }
 
         else if (gIsPaused == FALSE) {
+            
             //test = CP_System_GetDt();
             start_timer();
             update_timer();
-            if (elapsed_timer2 > 2)
-            {
+            if (elapsed_timer2 > 2) {
                 money += 10;
                 elapsed_timer2 -= 2;
             }
-            snprintf(buffer, sizeof(buffer), "%d", (60 - (int)elapsed_timer));
+            snprintf(buffer, sizeof(buffer), "%d", (90 - (int)elapsed_timer));
             if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
                 gameplay_screen_clicked(CP_Input_GetMouseX(), CP_Input_GetMouseY());
             }
@@ -538,15 +537,17 @@ void game_update(void) {
                 render_special_current_charge();
                 minion_enter_base_counter(); //please do not comment this out
             }
+            
             enemy_special_attack();
             for (int j = 0; j < ENEMY_MAX; j++) {
                 render_special_effect_enemy(j);
             }
-            if ((int)elapsed_timer == 60)
+            
+            if ((int)elapsed_timer == 90)
             {
                 Current_Gamestate = LOSE_SCREEN;
             }
-            projectile_render();
+            //projectile_render();
             if (minions_in_base == 10) {
                 Current_Gamestate = WIN_SCREEN;
             }
@@ -1464,11 +1465,10 @@ void reset_map_and_minions(void) {
         array_Enemy_Slow_Effect_Time[i][EFFECT_TIMER] = 0;
         array_Enemy_Slow_Effect_Time[i][CHECKER] = 0;
     }
-
     for (int j = 0; j < ENEMY_MAX; j++) {
         array_EnemyCurrentCharge[j][ENEMY_CURRENT_CHARGE] = 0;
+        array_special_drawn_once[j] = 0;
     }
-
     level_has_been_reset = TRUE;
 }
 
@@ -1565,7 +1565,7 @@ void restart_level(void) {
     gIsPaused = FALSE;
     minions_in_base = 0;
     initialise_pause_and_timer_button();
-    money = 50;
+    money = 60;
     elapsed_timer = 0;
     elapsed_timer2 = 0;
     proj_count = 0;
@@ -2220,7 +2220,7 @@ void move_minion() {
                             if (array_MinionStats[i][MINION_HP] > 0 && check_if_can_attack == 1) {
                                 array_EnemyStats[correct_enemy][ENEMY_HP] -= array_MinionStats[i][MINION_ATTACK];
                                 if (array_EnemyStats[correct_enemy][ENEMY_HP] <= 0) {
-                                    money += 20;
+                                    money += 25;
                                 }
                             }
                             /*Single targeting system*/
@@ -2455,46 +2455,48 @@ void render_special_effect_enemy(int i) {
                     }
                 }
             }
-            int default_start_row = array_EnemyStats[i][ENEMY_ROW] - 1; //default to top left
-            int default_start_col = array_EnemyStats[i][ENEMY_COL] - 1; //default to top left
-            int default_iterations = 3; //3x3
-            int default_iterations2 = 3;
-            if (array_EnemyStats[i][ENEMY_ROW] == 0) { //don't draw the top boxes
-                default_start_row += 1;
-                default_iterations = 2;
-            }
-            else if (array_EnemyStats[i][ENEMY_ROW] == 4) { //don't draw the bottom row
-                default_iterations = 2;
-            }
-            if (array_EnemyStats[i][ENEMY_COL] == 0) { //don't draw to the left row
-                default_start_col += 1;
-                default_iterations2 = 2;
-            }
-            else if (array_EnemyStats[i][ENEMY_COL] == 11) { //don't draw to the right row
-                default_iterations2 = 2;
-            }
-            int starting_point1 = origin_map_coordinateY + (default_start_row * BLOCK_SIZE);
-            int starting_point2 = origin_map_coordinateX + (default_start_col * BLOCK_SIZE);
-            for (int s = 0; s < default_iterations; s++) {
-                for (int d = 0; d < default_iterations2; d++) {
-                    CP_Settings_NoStroke();
-                    CP_Settings_RectMode(CP_POSITION_CORNER);
-                    int special_X = starting_point2 + (s * BLOCK_SIZE);
-                    int special_Y = starting_point1 + (d * BLOCK_SIZE);
-                    CP_Settings_Fill(TRANSLUCENT_BLUE);
-                    CP_Graphics_DrawRect((float)special_X, (float)special_Y, (float)BLOCK_SIZE, (float)BLOCK_SIZE);
+            if (array_special_drawn_once[i] == FALSE) {
+                int default_start_row = array_EnemyStats[i][ENEMY_ROW] - 1; //default to top left
+                int default_start_col = array_EnemyStats[i][ENEMY_COL] - 1; //default to top left
+                int default_iterations = 3; //3x3
+                int default_iterations2 = 3;
+                if (array_EnemyStats[i][ENEMY_ROW] == 0) { //don't draw the top boxes
+                    default_start_row += 1;
+                    default_iterations = 2;
                 }
+                else if (array_EnemyStats[i][ENEMY_ROW] == 4) { //don't draw the bottom row
+                    default_iterations = 2;
+                }
+                if (array_EnemyStats[i][ENEMY_COL] == 0) { //don't draw to the left row
+                    default_start_col += 1;
+                    default_iterations2 = 2;
+                }
+                else if (array_EnemyStats[i][ENEMY_COL] == 11) { //don't draw to the right row
+                    default_iterations2 = 2;
+                }
+                int starting_point1 = origin_map_coordinateY + (default_start_row * BLOCK_SIZE);
+                int starting_point2 = origin_map_coordinateX + (default_start_col * BLOCK_SIZE);
+                for (int s = 0; s < default_iterations; s++) {
+                    for (int d = 0; d < default_iterations2; d++) {
+                        CP_Settings_NoStroke();
+                        CP_Settings_RectMode(CP_POSITION_CORNER);
+                        int special_X = starting_point2 + (s * BLOCK_SIZE);
+                        int special_Y = starting_point1 + (d * BLOCK_SIZE);
+                        CP_Settings_Fill(TRANSLUCENT_BLUE);
+                        CP_Graphics_DrawRect((float)special_X, (float)special_Y, (float)BLOCK_SIZE, (float)BLOCK_SIZE);
+                    }
+                }
+                CP_Settings_Stroke(COLOR_BLACK);
+                /*
+                CP_Settings_NoStroke();
+                float length = (float)BLOCK_SIZE * 3;
+                CP_Settings_Fill(TRANSLUCENT_BLUE);
+                CP_Settings_RectMode(CP_POSITION_CENTER);
+                CP_Graphics_DrawRect((float)array_EnemyStats[i][ENEMY_ROW_COORDINATES], (float)array_EnemyStats[i][ENEMY_COL_COORDINATES], length, length);
+                CP_Settings_RectMode(CP_POSITION_CORNER);
+                CP_Settings_Stroke(COLOR_BLACK);
+                */
             }
-            CP_Settings_Stroke(COLOR_BLACK);
-            /*
-            CP_Settings_NoStroke();
-            float length = (float)BLOCK_SIZE * 3;
-            CP_Settings_Fill(TRANSLUCENT_BLUE);
-            CP_Settings_RectMode(CP_POSITION_CENTER);
-            CP_Graphics_DrawRect((float)array_EnemyStats[i][ENEMY_ROW_COORDINATES], (float)array_EnemyStats[i][ENEMY_COL_COORDINATES], length, length);
-            CP_Settings_RectMode(CP_POSITION_CORNER);
-            CP_Settings_Stroke(COLOR_BLACK);
-            */
         }
     }
     if (array_enemy_attack_time[i][EFFECT_TIMER] >= how_long_effect_is_AOE || array_EnemyStats[i][ENEMY_HP] <= 0) {
@@ -2831,7 +2833,7 @@ void minion_special_attack(int i, int current_row, int current_col) {
                 if (array_enemy_to_attack[i][t] == 1) {
                     array_EnemyStats[t][ENEMY_HP] -= 20;
                     if (array_EnemyStats[t][ENEMY_HP] <= 0) {
-                        money += 20;
+                        money += 25;
                     }
                 }
             }
@@ -2842,7 +2844,7 @@ void minion_special_attack(int i, int current_row, int current_col) {
                 if (array_enemy_to_attack[i][t] == 1) {
                     array_EnemyStats[t][ENEMY_HP] -= 30;
                     if (array_EnemyStats[t][ENEMY_HP] <= 0) {
-                        money += 20;
+                        money += 25;
                     }
                 }
             }
