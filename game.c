@@ -61,6 +61,7 @@ int teleport_spawn_X, teleport_spawn_Y;
 #define COLOR_TURQUOISE CP_Color_Create(99, 212, 178, 255)
 #define COLOR_WEIRD_PURPLE CP_Color_Create(153, 0, 153, 255)
 #define TRANSLUCENT_PURPLE CP_Color_Create(204, 153, 255, 100)
+#define TRANSLUCENT_GREEN CP_Color_Create(0, 230, 0, 80)
 
 /*Minion Stats*/
 #define X 0 //x-coordinates
@@ -148,7 +149,6 @@ void enemy_special_attack();
 float array_Enemy_Slow_Effect_Time[ENEMY_MAX][2];
 int array_isMinionSlowed[ENEMY_MAX][MINION_MAX][2];
 float array_enemy_attack_time[ENEMY_MAX][2];
-int array_special_drawn_once[ENEMY_MAX];
 void render_enemy_special_attack_bar(int i);
 int find_enemy_full_hp(int j);
 void render_special_effect_enemy(int i);
@@ -1466,7 +1466,6 @@ void reset_map_and_minions(void) {
     }
     for (int j = 0; j < ENEMY_MAX; j++) {
         array_EnemyCurrentCharge[j][ENEMY_CURRENT_CHARGE] = 0;
-        array_special_drawn_once[j] = 0;
     }
     level_has_been_reset = TRUE;
 }
@@ -2380,7 +2379,7 @@ void enemy_special_attack() {
                     array_Enemy_Slow_Effect_Time[i][EFFECT_TIMER] = 0;
                 }
                 else if (array_EnemyStats[i][ENEMY_TYPE] == HEALING_TOWER && array_EnemyStats[i][ENEMY_HP] > 0) {
-                    int healing_amount = 40;
+                    int healing_amount = 25;
                     for (int j = 0; j < ENEMY_MAX; j++) {
                         int full_hp = find_enemy_full_hp(j);
                         if ((full_hp - array_EnemyStats[j][ENEMY_HP]) < healing_amount) {
@@ -2389,6 +2388,8 @@ void enemy_special_attack() {
                         else {
                             array_EnemyStats[j][ENEMY_HP] += healing_amount;
                         }
+                        array_enemy_attack_time[i][CHECKER] = TRUE;
+                        array_enemy_attack_time[i][EFFECT_TIMER] = 0;
                     }
                 }
                 else if (array_EnemyStats[i][ENEMY_TYPE] == DAMAGE_ENEMY && array_EnemyStats[i][ENEMY_HP] > 0) {
@@ -2419,6 +2420,7 @@ void enemy_special_attack() {
 void render_special_effect_enemy(int i) {
     int how_long_effect_is_slow = 3;
     float how_long_effect_is_AOE = 0.4f;
+    float how_long_effect_is_heal = 0.4f;
     if (array_EnemyStats[i][ENEMY_TYPE] == SLOW_ENEMY && array_Enemy_Slow_Effect_Time[i][CHECKER] == TRUE) {
         if (array_Enemy_Slow_Effect_Time[i][EFFECT_TIMER] >= how_long_effect_is_slow || array_EnemyStats[i][ENEMY_HP] <= 0) {
             array_Enemy_Slow_Effect_Time[i][CHECKER] = FALSE;
@@ -2454,97 +2456,93 @@ void render_special_effect_enemy(int i) {
                     }
                 }
             }
-            if (array_special_drawn_once[i] == FALSE) {
-                int default_start_row = array_EnemyStats[i][ENEMY_ROW] - 1; //default to top left
-                int default_start_col = array_EnemyStats[i][ENEMY_COL] - 1; //default to top left
-                int default_iterations = 3; //3x3
-                int default_iterations2 = 3;
-                if (array_EnemyStats[i][ENEMY_ROW] == 0) { //don't draw the top boxes
-                    default_start_row += 1;
-                    default_iterations = 2;
+            int default_start_row = array_EnemyStats[i][ENEMY_ROW] - 1; //default to top left
+            int default_start_col = array_EnemyStats[i][ENEMY_COL] - 1; //default to top left
+            int default_iterations = 3; //3x3
+            int default_iterations2 = 3;
+            if (array_EnemyStats[i][ENEMY_ROW] == 0) { //don't draw the top boxes
+                default_start_row += 1;
+                default_iterations = 2;
+            }
+            else if (array_EnemyStats[i][ENEMY_ROW] == 4) { //don't draw the bottom row
+                default_iterations = 2;
+            }
+            if (array_EnemyStats[i][ENEMY_COL] == 0) { //don't draw to the left row
+                default_start_col += 1;
+                default_iterations2 = 2;
+            }
+            else if (array_EnemyStats[i][ENEMY_COL] == 11) { //don't draw to the right row
+                default_iterations2 = 2;
+            }
+            int starting_point1 = origin_map_coordinateY + (default_start_row * BLOCK_SIZE);
+            int starting_point2 = origin_map_coordinateX + (default_start_col * BLOCK_SIZE);
+            for (int s = 0; s < default_iterations; s++) {
+                for (int d = 0; d < default_iterations2; d++) {
+                    CP_Settings_NoStroke();
+                    CP_Settings_RectMode(CP_POSITION_CORNER);
+                    int special_X = starting_point2 + (s * BLOCK_SIZE);
+                    int special_Y = starting_point1 + (d * BLOCK_SIZE);
+                    CP_Settings_Fill(TRANSLUCENT_BLUE);
+                    CP_Graphics_DrawRect((float)special_X, (float)special_Y, (float)BLOCK_SIZE, (float)BLOCK_SIZE);
                 }
-                else if (array_EnemyStats[i][ENEMY_ROW] == 4) { //don't draw the bottom row
-                    default_iterations = 2;
-                }
-                if (array_EnemyStats[i][ENEMY_COL] == 0) { //don't draw to the left row
-                    default_start_col += 1;
-                    default_iterations2 = 2;
-                }
-                else if (array_EnemyStats[i][ENEMY_COL] == 11) { //don't draw to the right row
-                    default_iterations2 = 2;
-                }
-                int starting_point1 = origin_map_coordinateY + (default_start_row * BLOCK_SIZE);
-                int starting_point2 = origin_map_coordinateX + (default_start_col * BLOCK_SIZE);
-                for (int s = 0; s < default_iterations; s++) {
-                    for (int d = 0; d < default_iterations2; d++) {
-                        CP_Settings_NoStroke();
-                        CP_Settings_RectMode(CP_POSITION_CORNER);
-                        int special_X = starting_point2 + (s * BLOCK_SIZE);
-                        int special_Y = starting_point1 + (d * BLOCK_SIZE);
-                        CP_Settings_Fill(TRANSLUCENT_BLUE);
-                        CP_Graphics_DrawRect((float)special_X, (float)special_Y, (float)BLOCK_SIZE, (float)BLOCK_SIZE);
-                    }
-                }
-                CP_Settings_Stroke(COLOR_BLACK);
-                /*
-                CP_Settings_NoStroke();
-                float length = (float)BLOCK_SIZE * 3;
-                CP_Settings_Fill(TRANSLUCENT_BLUE);
+            }
+            CP_Settings_Stroke(COLOR_BLACK);
+        }
+    }
+    if (array_EnemyStats[i][ENEMY_TYPE] == HEALING_TOWER) {
+        if (array_enemy_attack_time[i][EFFECT_TIMER] >= how_long_effect_is_heal || array_EnemyStats[i][ENEMY_HP] <= 0) {
+            array_enemy_attack_time[i][EFFECT_TIMER] = 0;
+            array_enemy_attack_time[i][CHECKER] = FALSE;
+        }
+        else if (array_enemy_attack_time[i][CHECKER] == TRUE && array_enemy_attack_time[i][EFFECT_TIMER] < how_long_effect_is_heal
+            && array_EnemyStats[i][ENEMY_HP] > 0) {
+            for (int j = 0; j < ENEMY_MAX; j++) {
+                CP_Settings_Fill(TRANSLUCENT_GREEN);
                 CP_Settings_RectMode(CP_POSITION_CENTER);
-                CP_Graphics_DrawRect((float)array_EnemyStats[i][ENEMY_ROW_COORDINATES], (float)array_EnemyStats[i][ENEMY_COL_COORDINATES], length, length);
+                CP_Graphics_DrawRect((float)array_EnemyStats[j][ENEMY_ROW_COORDINATES], (float)array_EnemyStats[j][ENEMY_COL_COORDINATES], (float)BLOCK_SIZE, (float)BLOCK_SIZE);
                 CP_Settings_RectMode(CP_POSITION_CORNER);
-                CP_Settings_Stroke(COLOR_BLACK);
-                */
             }
         }
     }
-    if (array_enemy_attack_time[i][EFFECT_TIMER] >= how_long_effect_is_AOE || array_EnemyStats[i][ENEMY_HP] <= 0) {
-        array_enemy_attack_time[i][EFFECT_TIMER] = 0;
-        array_enemy_attack_time[i][CHECKER] = FALSE;
-    }
-    else if (array_EnemyStats[i][ENEMY_TYPE] == RANGED_TOWER && array_enemy_attack_time[i][CHECKER] == TRUE &&
-        array_enemy_attack_time[i][EFFECT_TIMER] < how_long_effect_is_AOE && array_EnemyStats[i][ENEMY_HP] > 0) {
-        int default_start_row = array_EnemyStats[i][ENEMY_ROW] - 1; //default to top left
-        int default_start_col = array_EnemyStats[i][ENEMY_COL] - 1; //default to top left
-        int default_iterations = 3; //3x3
-        int default_iterations2 = 3;
-        if (array_EnemyStats[i][ENEMY_ROW] == 0) { //don't draw the top boxes
-            default_start_row += 1;
-            default_iterations = 2;
+    if (array_EnemyStats[i][ENEMY_TYPE] == RANGED_TOWER) {
+        if (array_enemy_attack_time[i][EFFECT_TIMER] >= how_long_effect_is_AOE || array_EnemyStats[i][ENEMY_HP] <= 0) {
+            array_enemy_attack_time[i][EFFECT_TIMER] = 0;
+            array_enemy_attack_time[i][CHECKER] = FALSE;
         }
-        else if (array_EnemyStats[i][ENEMY_ROW] == 4) { //don't draw the bottom row
-            default_iterations = 2;
-        }
-        if (array_EnemyStats[i][ENEMY_COL] == 0) { //don't draw to the left row
-            default_start_col += 1;
-            default_iterations2 = 2;
-        }
-        else if (array_EnemyStats[i][ENEMY_COL] == 11) { //don't draw to the right row
-            default_iterations2 = 2;
-        }
-        int starting_point1 = origin_map_coordinateY + (default_start_row * BLOCK_SIZE);
-        int starting_point2 = origin_map_coordinateX + (default_start_col * BLOCK_SIZE);
-        for (int s = 0; s < default_iterations; s++) {
-            for (int d = 0; d < default_iterations2; d++) {
-                CP_Settings_NoStroke();
-                CP_Settings_RectMode(CP_POSITION_CORNER);
-                int special_X = starting_point2 + (d * BLOCK_SIZE);
-                int special_Y = starting_point1 + (s * BLOCK_SIZE);
-                CP_Settings_Fill(TRANSLUCENT_PURPLE);
-                CP_Graphics_DrawRect((float)special_X, (float)special_Y, (float)BLOCK_SIZE, (float)BLOCK_SIZE);
+        else if (array_enemy_attack_time[i][CHECKER] == TRUE && array_enemy_attack_time[i][EFFECT_TIMER] < how_long_effect_is_AOE
+            && array_EnemyStats[i][ENEMY_HP] > 0) {
+            int default_start_row = array_EnemyStats[i][ENEMY_ROW] - 1; //default to top left
+            int default_start_col = array_EnemyStats[i][ENEMY_COL] - 1; //default to top left
+            int default_iterations = 3; //3x3
+            int default_iterations2 = 3;
+            if (array_EnemyStats[i][ENEMY_ROW] == 0) { //don't draw the top boxes
+                default_start_row += 1;
+                default_iterations = 2;
             }
+            else if (array_EnemyStats[i][ENEMY_ROW] == 4) { //don't draw the bottom row
+                default_iterations = 2;
+            }
+            if (array_EnemyStats[i][ENEMY_COL] == 0) { //don't draw to the left row
+                default_start_col += 1;
+                default_iterations2 = 2;
+            }
+            else if (array_EnemyStats[i][ENEMY_COL] == 11) { //don't draw to the right row
+                default_iterations2 = 2;
+            }
+            int starting_point1 = origin_map_coordinateY + (default_start_row * BLOCK_SIZE);
+            int starting_point2 = origin_map_coordinateX + (default_start_col * BLOCK_SIZE);
+            for (int s = 0; s < default_iterations; s++) {
+                for (int d = 0; d < default_iterations2; d++) {
+                    CP_Settings_NoStroke();
+                    CP_Settings_RectMode(CP_POSITION_CORNER);
+                    int special_X = starting_point2 + (d * BLOCK_SIZE);
+                    int special_Y = starting_point1 + (s * BLOCK_SIZE);
+                    CP_Settings_Fill(TRANSLUCENT_PURPLE);
+                    CP_Graphics_DrawRect((float)special_X, (float)special_Y, (float)BLOCK_SIZE, (float)BLOCK_SIZE);
+                }
+            }
+            CP_Settings_Stroke(COLOR_BLACK);
         }
-        /*
-        CP_Settings_Stroke(COLOR_BLACK);
-        float length = (float)BLOCK_SIZE * 3;
-        CP_Settings_NoStroke();
-        CP_Settings_Fill(TRANSLUCENT_PURPLE);
-        CP_Settings_RectMode(CP_POSITION_CENTER);
-        CP_Graphics_DrawRect((float)array_EnemyStats[i][ENEMY_ROW_COORDINATES], (float)array_EnemyStats[i][ENEMY_COL_COORDINATES], length, length);
-        CP_Settings_RectMode(CP_POSITION_CORNER);
-        CP_Settings_Stroke(COLOR_BLACK);
-        */
-        CP_Settings_Stroke(COLOR_BLACK);
     }
 }
 
