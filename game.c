@@ -153,6 +153,7 @@ float array_enemy_attack_time[ENEMY_MAX][2];
 void render_enemy_special_attack_bar(int i);
 int find_enemy_full_hp(int j);
 void render_special_effect_enemy(int i);
+int find_minion_original_speed(int minion);
 
 /*Enemy Single Targetting*/
 int array_isMinionAttacked[ENEMY_MAX][MINION_MAX];
@@ -2223,7 +2224,6 @@ void move_minion() {
                             int check_if_can_attack = check_minion_basic_attack_charge(i);
                             if (array_MinionStats[i][MINION_HP] > 0 && check_if_can_attack == 1) {
                                 array_EnemyStats[correct_enemy][ENEMY_HP] -= array_MinionStats[i][MINION_ATTACK];
-                                printf("%d", array_EnemyStats[correct_enemy][ENEMY_HP]);
                                 if (array_EnemyStats[correct_enemy][ENEMY_HP] <= 0) {
                                     money += 25;
                                 }
@@ -2460,7 +2460,8 @@ void render_special_effect_enemy(int i) {
                 if (!(array_MinionStats[j][X] > minX && array_MinionStats[j][X] < maxX
                     && array_MinionStats[j][Y] > minY && array_MinionStats[j][Y] < maxY)) {
                     if (array_isMinionSlowed[i][j][0] == TRUE) {
-                        array_MinionStats[j][MINION_MOVEMENT_SPEED] = array_isMinionSlowed[i][j][1];
+                        //array_MinionStats[j][MINION_MOVEMENT_SPEED] = array_isMinionSlowed[i][j][1];
+                        array_MinionStats[j][MINION_MOVEMENT_SPEED] = find_minion_original_speed(j);
                         array_isMinionSlowed[i][j][0] = FALSE;
                     }
                 }
@@ -2558,6 +2559,21 @@ void render_special_effect_enemy(int i) {
     }
 }
 
+int find_minion_original_speed(int minion) {
+    int minion_speed = (array_MinionStats[minion][MINION_TYPE] == SPAM_MINION)
+        ? 6
+        : (array_MinionStats[minion][MINION_TYPE] == WARRIOR_MINION)
+        ? 5
+        : (array_MinionStats[minion][MINION_TYPE] == TANK_MINION)
+        ? 3
+        : (array_MinionStats[minion][MINION_TYPE] == WIZARD_MINION)
+        ? 4
+        : (array_MinionStats[minion][MINION_TYPE] == HEALER_MINION)
+        ? 3
+        : 0;
+    return minion_speed;
+}
+
 /*Should probably update this code to make it shorter lol*/
 void minion_dies_array_recycle(int dead_minion_number) {
     int array_Temp_MinionStats[MINION_MAX][MINION_TOTAL_STATS] = { 0 };
@@ -2638,6 +2654,10 @@ void minion_dies_array_recycle(int dead_minion_number) {
     for (int i = 0; i < minion_count; i++) {
         array_minion_attack_time[i][EFFECT_TIMER] = array_Temp_minion_attack_time[i][EFFECT_TIMER];
         array_minion_attack_time[i][CHECKER] = array_Temp_minion_attack_time[i][CHECKER];
+    }
+    //very inefficient but i hope this works
+    for (int i = 0; i < minion_count; i++) {
+        array_MinionStats[i][MINION_MOVEMENT_SPEED] = find_minion_original_speed(i);
     }
     minion_count--;
 }
