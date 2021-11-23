@@ -428,13 +428,13 @@ void game_update(void) {
             for (int i = 0; i < minion_count; i++) {
                 array_MinionStats[minion_count][MINION_TYPE] = array_MinionStats[i][MINION_TYPE];
                 assign_minion_color(i);
-                CP_Graphics_DrawCircle((float)array_MinionStats[i][X], (float)array_MinionStats[i][Y], (float)array_MinionStats[i][MINION_SIZE]);
-                renderminionhp_bar();
-                render_special_current_charge();
-                enemy_special_attack();
-                for (int j = 0; j < ENEMY_MAX; j++) {
-                    render_special_effect_enemy(j);
-                }   
+                CP_Graphics_DrawCircle((float)array_MinionStats[i][X], (float)array_MinionStats[i][Y], (float)array_MinionStats[i][MINION_SIZE]); 
+            }
+            renderminionhp_bar();
+            render_special_current_charge();
+            enemy_special_attack();
+            for (int j = 0; j < ENEMY_MAX; j++) {
+                render_special_effect_enemy(j);
             }
             if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
                 if (CP_Input_GetMouseY() >= restartY && (CP_Input_GetMouseY() <= (restartY + restart_width)) && (CP_Input_GetMouseX() >= restartX && (CP_Input_GetMouseX() <= (restartX + restart_length)))) {
@@ -517,7 +517,6 @@ void game_update(void) {
                 }
             }
         }
-
         else if (gIsPaused == FALSE) {
             
             //test = CP_System_GetDt();
