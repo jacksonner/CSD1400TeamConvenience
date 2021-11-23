@@ -95,6 +95,7 @@ int array_MinionStats[MINION_MAX][MINION_TOTAL_STATS]; //MUST edit reset_map_and
 float array_MinionCurrentCharge[MINION_MAX][TOTAL_CHARGES];
 int check_minion_basic_attack_charge(int i); //checks if it is time for minion to attack
 void render_special_current_charge();
+float array_minion_attack_time[MINION_MAX][2];
 
 /*Types of Minions*/
 #define SPAM_MINION 0 //weak everything, but low cost
@@ -1467,6 +1468,10 @@ void reset_map_and_minions(void) {
     for (int j = 0; j < ENEMY_MAX; j++) {
         array_EnemyCurrentCharge[j][ENEMY_CURRENT_CHARGE] = 0;
     }
+    for (int i = 0; i < MINION_MAX; i++) {
+        array_minion_attack_time[i][EFFECT_TIMER] = 0;
+        array_minion_attack_time[i][CHECKER] = 0;
+    }
     level_has_been_reset = TRUE;
 }
 
@@ -1525,6 +1530,7 @@ void update_timer(void)
     for (int i = 0; i < minion_count; i++) {
         array_MinionCurrentCharge[i][MINION_CURRENT_CHARGE] += test;
         array_MinionCurrentCharge[i][MINION_BASIC_CURRENT_CHARGE] += test;
+        array_minion_attack_time[i][EFFECT_TIMER] += test;
     }
     for (int i = 0; i < ENEMY_MAX; i++) {
         array_EnemyCurrentCharge[i][ENEMY_BASIC_CURRENT_CHARGE] += test;
@@ -2217,6 +2223,7 @@ void move_minion() {
                             int check_if_can_attack = check_minion_basic_attack_charge(i);
                             if (array_MinionStats[i][MINION_HP] > 0 && check_if_can_attack == 1) {
                                 array_EnemyStats[correct_enemy][ENEMY_HP] -= array_MinionStats[i][MINION_ATTACK];
+                                printf("%d", array_EnemyStats[correct_enemy][ENEMY_HP]);
                                 if (array_EnemyStats[correct_enemy][ENEMY_HP] <= 0) {
                                     money += 25;
                                 }
@@ -2381,15 +2388,17 @@ void enemy_special_attack() {
                 else if (array_EnemyStats[i][ENEMY_TYPE] == HEALING_TOWER && array_EnemyStats[i][ENEMY_HP] > 0) {
                     int healing_amount = 25;
                     for (int j = 0; j < ENEMY_MAX; j++) {
-                        int full_hp = find_enemy_full_hp(j);
-                        if ((full_hp - array_EnemyStats[j][ENEMY_HP]) < healing_amount) {
-                            array_EnemyStats[j][ENEMY_HP] = full_hp;
+                        if (array_EnemyStats[j][ENEMY_HP] > 0) {
+                            int full_hp = find_enemy_full_hp(j);
+                            if ((full_hp - array_EnemyStats[j][ENEMY_HP]) < healing_amount) {
+                                array_EnemyStats[j][ENEMY_HP] = full_hp;
+                            }
+                            else {
+                                array_EnemyStats[j][ENEMY_HP] += healing_amount;
+                            }
+                            array_enemy_attack_time[i][CHECKER] = TRUE;
+                            array_enemy_attack_time[i][EFFECT_TIMER] = 0;
                         }
-                        else {
-                            array_EnemyStats[j][ENEMY_HP] += healing_amount;
-                        }
-                        array_enemy_attack_time[i][CHECKER] = TRUE;
-                        array_enemy_attack_time[i][EFFECT_TIMER] = 0;
                     }
                 }
                 else if (array_EnemyStats[i][ENEMY_TYPE] == DAMAGE_ENEMY && array_EnemyStats[i][ENEMY_HP] > 0) {
@@ -2494,14 +2503,17 @@ void render_special_effect_enemy(int i) {
             array_enemy_attack_time[i][EFFECT_TIMER] = 0;
             array_enemy_attack_time[i][CHECKER] = FALSE;
         }
-        else if (array_enemy_attack_time[i][CHECKER] == TRUE && array_enemy_attack_time[i][EFFECT_TIMER] < how_long_effect_is_heal
-            && array_EnemyStats[i][ENEMY_HP] > 0) {
+        else if (array_enemy_attack_time[i][CHECKER] == TRUE && array_enemy_attack_time[i][EFFECT_TIMER] < how_long_effect_is_heal && array_EnemyStats[i][ENEMY_HP] > 0) {
             for (int j = 0; j < ENEMY_MAX; j++) {
-                CP_Settings_Fill(TRANSLUCENT_GREEN);
-                CP_Settings_RectMode(CP_POSITION_CENTER);
-                CP_Graphics_DrawRect((float)array_EnemyStats[j][ENEMY_ROW_COORDINATES], (float)array_EnemyStats[j][ENEMY_COL_COORDINATES], (float)BLOCK_SIZE, (float)BLOCK_SIZE);
-                CP_Settings_RectMode(CP_POSITION_CORNER);
+                if (array_EnemyStats[j][ENEMY_HP] > 0) {
+                    CP_Settings_NoStroke();
+                    CP_Settings_Fill(TRANSLUCENT_GREEN);
+                    CP_Settings_RectMode(CP_POSITION_CENTER);
+                    CP_Graphics_DrawRect((float)array_EnemyStats[j][ENEMY_ROW_COORDINATES], (float)array_EnemyStats[j][ENEMY_COL_COORDINATES], (float)BLOCK_SIZE - 15, (float)BLOCK_SIZE - 15);
+                    CP_Settings_RectMode(CP_POSITION_CORNER);
+                }
             }
+            CP_Settings_Stroke(COLOR_BLACK);
         }
     }
     if (array_EnemyStats[i][ENEMY_TYPE] == RANGED_TOWER) {
@@ -2548,12 +2560,18 @@ void render_special_effect_enemy(int i) {
 
 /*Should probably update this code to make it shorter lol*/
 void minion_dies_array_recycle(int dead_minion_number) {
-    int array_Temp_MinionStats[MINION_MAX][MINION_TOTAL_STATS];
-    float array_Temp_MinionCharge[MINION_MAX][TOTAL_CHARGES];
-    int array_Temp_isMinionSlowed[ENEMY_MAX][MINION_MAX][2];
+    int array_Temp_MinionStats[MINION_MAX][MINION_TOTAL_STATS] = { 0 };
+    float array_Temp_MinionCharge[MINION_MAX][TOTAL_CHARGES] = { 0 };
+    int array_Temp_isMinionSlowed[ENEMY_MAX][MINION_MAX][2] = { 0 };
+    float array_Temp_minion_attack_time[MINION_MAX][2] = { 0 };
 
     for (int i = 0; i < ENEMY_MAX; i++) {
         array_isMinionAttacked[i][dead_minion_number] = 0;
+    }
+    //
+    for (int i = 0; i < dead_minion_number; i++) {
+        array_Temp_minion_attack_time[i][EFFECT_TIMER] = array_minion_attack_time[i][EFFECT_TIMER];
+        array_Temp_minion_attack_time[i][CHECKER] = array_minion_attack_time[i][CHECKER];
     }
     for (int i = 0; i < dead_minion_number; i++) {
         for (int j = 0; j < MINION_TOTAL_STATS; j++) {
@@ -2593,6 +2611,12 @@ void minion_dies_array_recycle(int dead_minion_number) {
             }
         }
     }
+    dead_min_num = dead_minion_number;
+    for (int k = (dead_min_num + 1); k <= minion_count; k++, dead_min_num++) {
+        array_Temp_minion_attack_time[dead_min_num][EFFECT_TIMER] = array_minion_attack_time[k][EFFECT_TIMER];
+        array_Temp_minion_attack_time[dead_min_num][CHECKER] = array_minion_attack_time[k][CHECKER];
+    }
+
     //Now we update the original array with the stored values
     for (int h = 0; h < minion_count; h++) {
         for (int n = 0; n < MINION_TOTAL_STATS; n++) {
@@ -2610,6 +2634,10 @@ void minion_dies_array_recycle(int dead_minion_number) {
                 array_isMinionSlowed[k][h][n] = array_Temp_isMinionSlowed[k][h][n];
             }
         }
+    }
+    for (int i = 0; i < minion_count; i++) {
+        array_minion_attack_time[i][EFFECT_TIMER] = array_Temp_minion_attack_time[i][EFFECT_TIMER];
+        array_minion_attack_time[i][CHECKER] = array_Temp_minion_attack_time[i][CHECKER];
     }
     minion_count--;
 }
