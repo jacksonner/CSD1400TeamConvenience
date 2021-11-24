@@ -171,6 +171,8 @@ int is_minion_being_attacked(int enemy, int minion);
 #define LEVEL_SELECTOR_SCREEN 5
 #define SETTING_SCREEN 6
 #define HELP_SCREEN 7
+#define HELP_SCREENP2 8
+#define HELP_SCREENP3 9
 int Current_Gamestate;
 
 /*render HP bar for minions*/
@@ -304,6 +306,8 @@ static CP_Image guide_image2;
 static CP_Image guide_image3;
 int current_guide;
 void help_screen();
+void help_screen2();
+void help_screen3();
 
 /*Main Menu Screen*/
 float button_height, button_width;
@@ -540,10 +544,6 @@ void game_update(void) {
             }
         }
     }
-    else if (Current_Gamestate == HELP_SCREEN) {
-
-        help_screen();
-    }
     else if (Current_Gamestate == LOSE_SCREEN)
     {
         lose_screen();
@@ -559,6 +559,18 @@ void game_update(void) {
     else if (Current_Gamestate == SETTING_SCREEN) {
         setting_screen();
     }
+    else if (Current_Gamestate == HELP_SCREEN) {
+
+    help_screen();
+    }
+    else if (Current_Gamestate == HELP_SCREENP2) {
+    help_screen2();
+
+    }
+    else if (Current_Gamestate == HELP_SCREENP3) {
+    help_screen3();
+
+    }
 }
 
 void game_exit(void) {
@@ -567,25 +579,7 @@ void game_exit(void) {
 
 /*FUNCTIONS START HERE*/
 
-void help_screen(void) {
-    guide_image1 = CP_Image_Load("./Assets/guide1.jpg");
-    guide_image2 = CP_Image_Load("./Assets/guide2.jpg");
-    guide_image3 = CP_Image_Load("./Assets/guide3.jpg");
-    float middleX, middleY, width, height;
-    middleX = (float)(CP_System_GetWindowWidth() / 2);
-    middleY = (float)(CP_System_GetWindowHeight() / 2);
-    width = (float)CP_System_GetWindowWidth();
-    height = (float)CP_System_GetWindowHeight();
-    if (current_guide == 1) {
-        CP_Image_Draw(guide_image1, middleX, middleY, width, height, 100);
-    }
-    else if (current_guide == 2) {
-        CP_Image_Draw(guide_image2, middleX, middleY, width, height, 100);
-    }
-    else if (current_guide == 3) {
-        CP_Image_Draw(guide_image3, middleX, middleY, width, height, 100);
-    }
-}
+
 
 void main_menu_screen(void) {
     main_menu_image = CP_Image_Load("./Assets/bg_mainmenu2.png");
@@ -1401,6 +1395,145 @@ void setting_screen_clicked(float x, float y) {
             setting_popup = TRUE;
         }
     }
+}
+
+void help_screen(void) {
+
+    float middleX, middleY, width, height;
+    middleX = (float)(CP_System_GetWindowWidth() / 2);
+    middleY = (float)(CP_System_GetWindowHeight() / 2);
+    width = (float)CP_System_GetWindowWidth();
+    height = (float)CP_System_GetWindowHeight();
+
+    guide_image1 = CP_Image_Load("./Assets/Help_guide.jpg");
+    CP_Image_Draw(guide_image1, middleX, middleY, width, height, 100);
+
+    float mouseX = (float)CP_Input_GetMouseX();
+    float mouseY = (float)CP_Input_GetMouseY();
+
+    /*Button size*/
+    button_height = 60.f;
+    button_width = 150.f;
+
+    CP_Settings_Fill(COLOR_WHITE);
+    CP_Graphics_DrawRect(1750, 15, button_width, button_height);
+    CP_Settings_Fill(COLOR_BLACK);
+    CP_Font_DrawText("NEXT", 1755, button_height + 5);
+    CP_Settings_TextSize(50);
+
+    if (mouseX >= 1750 && mouseX <= (1750 + button_width) && mouseY >= 15 && mouseY <= (15 + button_height)) {
+
+        /*Hovering on Next button*/
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Graphics_DrawRect(1750, 15, button_width, button_height);
+        CP_Settings_Fill(COLOR_WHITE);
+        CP_Font_DrawText("NEXT", 1755, button_height + 5);
+        CP_Settings_TextSize(50);
+        if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
+
+            CP_Image_Free(&guide_image1);
+            Current_Gamestate = HELP_SCREENP2;
+        }
+
+    }
+}
+
+void help_screen2(void) {
+    float middleX, middleY, width, height;
+    middleX = (float)(CP_System_GetWindowWidth() / 2);
+    middleY = (float)(CP_System_GetWindowHeight() / 2);
+    width = (float)CP_System_GetWindowWidth();
+    height = (float)CP_System_GetWindowHeight();
+
+    guide_image2 = CP_Image_Load("./Assets/Help_guide2.jpg");
+    CP_Image_Draw(guide_image2, middleX, middleY, width, height, 100);
+
+    button_height = 60.f;
+    button_width = 150.f;
+
+    CP_Settings_Fill(COLOR_WHITE);
+    CP_Graphics_DrawRect(10, 15, button_width, button_height);
+    CP_Settings_Fill(COLOR_BLACK);
+    CP_Font_DrawText("BACK", 20, button_height + 5);
+    CP_Settings_TextSize(50);
+
+    CP_Settings_Fill(COLOR_WHITE);
+    CP_Graphics_DrawRect(1750, 15, button_width, button_height);
+    CP_Settings_Fill(COLOR_BLACK);
+    CP_Font_DrawText("NEXT", 1755, button_height + 5);
+    CP_Settings_TextSize(50);
+    float mouseX = (float)CP_Input_GetMouseX();
+    float mouseY = (float)CP_Input_GetMouseY();
+
+    if (mouseX >= 1750 && mouseX <= (1750 + button_width) && mouseY >= 15 && mouseY <= (15 + button_height)) {
+
+        button_height = 60.f;
+        button_width = 150.f;
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Graphics_DrawRect(1750, 15, button_width, button_height);
+        CP_Settings_Fill(COLOR_WHITE);
+        CP_Font_DrawText("NEXT", 1755, button_height + 5);
+        CP_Settings_TextSize(50);
+
+        if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
+            CP_Image_Free(&guide_image2);
+            Current_Gamestate = HELP_SCREENP3;
+        }
+    }
+    if (mouseX >= 10 && mouseX <= (10 + button_width) && mouseY >= 15 && mouseY <= (15 + button_height)) {
+
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Graphics_DrawRect(10, 15, button_width, button_height);
+        CP_Settings_Fill(COLOR_WHITE);
+        CP_Font_DrawText("BACK", 20, button_height + 5);
+        CP_Settings_TextSize(50);
+
+        if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
+
+            CP_Image_Free(&guide_image2);
+            Current_Gamestate = HELP_SCREEN;
+        }
+    }
+}
+
+void help_screen3(void) {
+
+
+    float middleX, middleY, width, height;
+    middleX = (float)(CP_System_GetWindowWidth() / 2);
+    middleY = (float)(CP_System_GetWindowHeight() / 2);
+    width = (float)CP_System_GetWindowWidth();
+    height = (float)CP_System_GetWindowHeight();
+
+    guide_image3 = CP_Image_Load("./Assets/Help_guide3.jpg");
+    CP_Image_Draw(guide_image3, middleX, middleY, width, height, 100);
+    button_height = 60.f;
+    button_width = 150.f;
+    CP_Settings_Fill(COLOR_WHITE);
+    CP_Graphics_DrawRect(10, 15, button_width, button_height);
+    CP_Settings_Fill(COLOR_BLACK);
+    CP_Font_DrawText("EXIT", 20, button_height + 5);
+    CP_Settings_TextSize(50);
+    float mouseX = (float)CP_Input_GetMouseX();
+    float mouseY = (float)CP_Input_GetMouseY();
+
+    if (mouseX >= 10 && mouseX <= (10 + button_width) && mouseY >= 15 && mouseY <= (15 + button_height)) {
+
+        button_height = 60.f;
+        button_width = 150.f;
+
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Graphics_DrawRect(10, 15, button_width, button_height);
+
+        CP_Settings_Fill(COLOR_WHITE);
+        CP_Font_DrawText("EXIT", 20, button_height + 5);
+        CP_Settings_TextSize(50);
+        if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
+            CP_Image_Free(&guide_image3);
+            Current_Gamestate = GAMEPLAY_SCREEN;
+        }
+    }
+
 }
 
 /*Updates the new origin depending on what the full screen size is*/
