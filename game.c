@@ -669,6 +669,37 @@ void main_menu_screen(void) {
     CP_Font_DrawText("LEVELS", levels_textX, levels_textY);
     CP_Settings_TextSize(40);
     CP_Font_DrawText("SETTING", setting_textX, setting_textY);
+
+    float mouseX = (float)CP_Input_GetMouseX();
+    float mouseY = (float)CP_Input_GetMouseY();
+
+    if (mouseX >= start_game_buttonX && mouseX <= (start_game_buttonX + button_width) &&
+        mouseY >= start_game_buttonY && mouseY <= start_game_buttonY + button_height) {
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Graphics_DrawRect(start_game_buttonX, start_game_buttonY, button_width, button_height);
+        CP_Settings_TextSize(80);
+        CP_Settings_Fill(COLOR_WHITE);
+        CP_Font_DrawText("START", start_textX, start_textY);
+    }
+
+    if (mouseX >= level_selectorX && mouseX <= (level_selectorX + button_width) &&
+        mouseY >= level_selectorY && mouseY <= level_selectorY + button_height) {
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Graphics_DrawRect(level_selectorX, level_selectorY, button_width, button_height);
+        CP_Settings_TextSize(80);
+        CP_Settings_Fill(COLOR_WHITE);
+        CP_Font_DrawText("LEVELS", levels_textX, levels_textY);
+    }
+
+    if (mouseX >= settingX && mouseX <= (settingX + button_width) &&
+        mouseY >= settingY && mouseY <= settingY + button_height) {
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Graphics_DrawRect(settingX, settingY, setting_width, setting_height);
+        CP_Settings_Fill(COLOR_WHITE);
+        CP_Settings_TextSize(40);
+        CP_Font_DrawText("SETTING", setting_textX, setting_textY);
+    }
+
 }
 
 void main_menu_clicked(float x, float y) {
