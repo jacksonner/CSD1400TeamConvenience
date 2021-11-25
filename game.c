@@ -518,7 +518,12 @@ void game_update(void) {
                     if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
                         Current_Gamestate = LEVEL_SELECTOR_SCREEN;
                     }
-
+                }
+                else if (mouseX >= startX * 2 && mouseX <= (startX * 2 + button_width) &&
+                    mouseY >= startY * 3 && mouseY <= startY * 3 + button_height) {
+                    if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
+                        Current_Gamestate = HELP_SCREEN;
+                    }
                 }
 
                 else   if (mouseX >= backX && mouseX <= (backX + back_width) &&
@@ -1350,7 +1355,14 @@ void setting_screen(void) {
             Current_Gamestate = LEVEL_SELECTOR_SCREEN;
             Previous_Gamestate = SETTING_SCREEN;
         }
+    }
 
+    else if (mouseX >= startX * 2 && mouseX <= (startX * 2 + button_width) &&
+        mouseY >= startY * 3 && mouseY <= startY * 3 + button_height) {
+        if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
+            Current_Gamestate = HELP_SCREEN;
+            Previous_Gamestate = SETTING_SCREEN;
+        }
     }
 
 
@@ -1558,7 +1570,12 @@ void help_screen3(void) {
 
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
             CP_Image_Free(&guide_image2);
-            Current_Gamestate = GAMEPLAY_SCREEN;
+            if (Previous_Gamestate == SETTING_SCREEN) {
+                Current_Gamestate = SETTING_SCREEN;
+            }
+            else {
+                Current_Gamestate = GAMEPLAY_SCREEN;
+            }
         }
     }
 
