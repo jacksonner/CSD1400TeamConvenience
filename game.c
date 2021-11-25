@@ -1340,6 +1340,7 @@ void setting_screen(void) {
 
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
             Current_Gamestate = MAIN_MENU_SCREEN;
+            Previous_Gamestate = SETTING_SCREEN;
         }
     }
 
@@ -1534,25 +1535,45 @@ void help_screen3(void) {
     CP_Settings_Fill(COLOR_WHITE);
     CP_Graphics_DrawRect(10, 15, button_width, button_height);
     CP_Settings_Fill(COLOR_BLACK);
-    CP_Font_DrawText("EXIT", 20, button_height + 5);
+    CP_Font_DrawText("BACK", 20, button_height + 5);
+    CP_Settings_TextSize(50);
+
+    CP_Settings_Fill(COLOR_WHITE);
+    CP_Graphics_DrawRect(1750, 15, button_width, button_height);
+    CP_Settings_Fill(COLOR_BLACK);
+    CP_Font_DrawText("EXIT", 1755, button_height + 5);
     CP_Settings_TextSize(50);
     float mouseX = (float)CP_Input_GetMouseX();
     float mouseY = (float)CP_Input_GetMouseY();
 
-    if (mouseX >= 10 && mouseX <= (10 + button_width) && mouseY >= 15 && mouseY <= (15 + button_height)) {
+    if (mouseX >= 1750 && mouseX <= (1750 + button_width) && mouseY >= 15 && mouseY <= (15 + button_height)) {
 
         button_height = 60.f;
         button_width = 150.f;
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Graphics_DrawRect(1750, 15, button_width, button_height);
+        CP_Settings_Fill(COLOR_WHITE);
+        CP_Font_DrawText("EXIT", 1755, button_height + 5);
+        CP_Settings_TextSize(50);
+
+        if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
+            CP_Image_Free(&guide_image2);
+            Current_Gamestate = GAMEPLAY_SCREEN;
+        }
+    }
+
+    if (mouseX >= 10 && mouseX <= (10 + button_width) && mouseY >= 15 && mouseY <= (15 + button_height)) {
 
         CP_Settings_Fill(COLOR_BLACK);
         CP_Graphics_DrawRect(10, 15, button_width, button_height);
-
         CP_Settings_Fill(COLOR_WHITE);
-        CP_Font_DrawText("EXIT", 20, button_height + 5);
+        CP_Font_DrawText("BACK", 20, button_height + 5);
         CP_Settings_TextSize(50);
+
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
-            CP_Image_Free(&guide_image3);
-            Current_Gamestate = GAMEPLAY_SCREEN;
+
+            CP_Image_Free(&guide_image2);
+            Current_Gamestate = HELP_SCREENP2;
         }
     }
 
