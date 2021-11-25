@@ -25,7 +25,7 @@ float array_Collaborative_DiffusionMap[MAP_GRID_ROWS][MAP_GRID_COLS][2];
 #define BLOCK_ENEMY 3
 #define BLOCK_SPAWN 4
 #define BLOCK_INVISIBLE 5 //ignore
-#define BLOCK_ENEMY_DEAD 6 //ignore
+#define BLOCK_ENEMY_DEAD 6 
 #define BLOCK_TOWER_ENEMY 7 //used to mark location for tower enemies
 
 #define BLOCK_TELEPORTER 8
@@ -62,6 +62,7 @@ int teleport_spawn_X, teleport_spawn_Y;
 #define COLOR_WEIRD_PURPLE CP_Color_Create(153, 0, 153, 255)
 #define TRANSLUCENT_PURPLE CP_Color_Create(204, 153, 255, 100)
 #define TRANSLUCENT_GREEN CP_Color_Create(0, 230, 0, 80)
+#define COLOR_MORE_BLUE CP_Color_Create(153, 204, 255, 255)
 
 /*Minion Stats*/
 #define X 0 //x-coordinates
@@ -299,6 +300,15 @@ char money_buffer[400];
 int money = 60;
 int money_test = 0;
 
+/*Enemy Guard Comes back to life*/
+void bring_back_enemy(void);
+#define ENEMY_DEATH_TIMER 0
+#define ENEMY_DEATH_COUNTER 1
+#define ENEMY_DEATH_TIMER_STARTED 2
+float array_enemy_death_timer[ENEMY_MAX][3];
+int death_recharge_time = 20;
+void render_enemy_death_comeback_bar(void);
+
 /*GamePlay Screen*/
 int options_boxX, options_boxY, box_width, box_length; //this is the giant wide box atm which all the options etc. goes in
 int minion_buttons_width, minion_buttons_height, minion_boxX, minion_boxY;
@@ -438,6 +448,7 @@ void game_update(void) {
             for (int j = 0; j < ENEMY_MAX; j++) {
                 render_special_effect_enemy(j);
             }
+            render_enemy_death_comeback_bar();
             if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
                 if (CP_Input_GetMouseY() >= restartY && (CP_Input_GetMouseY() <= (restartY + restart_width)) && (CP_Input_GetMouseX() >= restartX && (CP_Input_GetMouseX() <= (restartX + restart_length)))) {
                     restart_level();
@@ -550,6 +561,8 @@ void game_update(void) {
             for (int j = 0; j < ENEMY_MAX; j++) {
                 render_special_effect_enemy(j);
             }
+            render_enemy_death_comeback_bar();
+            bring_back_enemy();
             
             if ((int)elapsed_timer == 90)
             {
@@ -1482,6 +1495,7 @@ void reset_map_and_minions(void) {
     }
     for (int j = 0; j < ENEMY_MAX; j++) {
         array_EnemyCurrentCharge[j][ENEMY_CURRENT_CHARGE] = 0;
+        array_enemy_death_timer[j][ENEMY_DEATH_COUNTER] = 0;
     }
     for (int i = 0; i < MINION_MAX; i++) {
         array_minion_attack_time[i][EFFECT_TIMER] = 0;
@@ -1552,6 +1566,7 @@ void update_timer(void)
         array_EnemyCurrentCharge[i][ENEMY_CURRENT_CHARGE] += test;
         array_Enemy_Slow_Effect_Time[i][EFFECT_TIMER] += test;
         array_enemy_attack_time[i][EFFECT_TIMER] += test;
+        array_enemy_death_timer[i][ENEMY_DEATH_TIMER] += test;
     }
     for (int j = 0; j < ENEMY_MAX; j++) {
         for (int i = 0; i < proj_count; i++) {
@@ -1783,25 +1798,29 @@ void setup_teleport_diffusion_map() {
             for (int col = 0; col < MAP_GRID_COLS; ++col) {
                 if (array_Teleport_DiffusionMap[row][col][1] == TRUE) { //value has been set in stone yay
                     if ((col - 1) >= 0 && array_Teleport_DiffusionMap[row][col - 1][1] == FALSE) {
-                        if (array_GameMap[row][col - 1] == BLOCK_EMPTY || array_GameMap[row][col - 1] == BLOCK_ENEMY) {
+                        if (array_GameMap[row][col - 1] == BLOCK_EMPTY || array_GameMap[row][col - 1] == BLOCK_ENEMY 
+                            || array_GameMap[row][col - 1] ==  BLOCK_ENEMY_DEAD) {
                             array_Teleport_DiffusionMap[row][col - 1][0] = array_Teleport_DiffusionMap[row][col][0] / 2;
                             array_Teleport_DiffusionMap[row][col - 1][1] = TRUE;
                         }
                     }
                     if ((col + 1) < MAP_GRID_COLS && array_Teleport_DiffusionMap[row][col + 1][1] == FALSE) {
-                        if (array_GameMap[row][col + 1] == BLOCK_EMPTY || array_GameMap[row][col + 1] == BLOCK_ENEMY) {
+                        if (array_GameMap[row][col + 1] == BLOCK_EMPTY || array_GameMap[row][col + 1] == BLOCK_ENEMY
+                            || array_GameMap[row][col - 1] == BLOCK_ENEMY_DEAD) {
                             array_Teleport_DiffusionMap[row][col + 1][0] = array_Teleport_DiffusionMap[row][col][0] / 2;
                             array_Teleport_DiffusionMap[row][col + 1][1] = TRUE;
                         }
                     }
                     if ((row - 1) >= 0 && array_Teleport_DiffusionMap[row - 1][col][1] == FALSE) {
-                        if (array_GameMap[row - 1][col] == BLOCK_EMPTY || array_GameMap[row - 1][col] == BLOCK_ENEMY) {
+                        if (array_GameMap[row - 1][col] == BLOCK_EMPTY || array_GameMap[row - 1][col] == BLOCK_ENEMY
+                            || array_GameMap[row][col - 1] == BLOCK_ENEMY_DEAD) {
                             array_Teleport_DiffusionMap[row - 1][col][0] = array_Teleport_DiffusionMap[row][col][0] / 2;
                             array_Teleport_DiffusionMap[row - 1][col][1] = TRUE;
                         }
                     }
                     if ((row + 1) < MAP_GRID_ROWS && array_Teleport_DiffusionMap[row + 1][col][1] == FALSE) {
-                        if (array_GameMap[row + 1][col] == BLOCK_EMPTY || array_GameMap[row + 1][col] == BLOCK_ENEMY) {
+                        if (array_GameMap[row + 1][col] == BLOCK_EMPTY || array_GameMap[row + 1][col] == BLOCK_ENEMY
+                            || array_GameMap[row][col - 1] == BLOCK_ENEMY_DEAD) {
                             array_Teleport_DiffusionMap[row + 1][col][0] = array_Teleport_DiffusionMap[row][col][0] / 2;
                             array_Teleport_DiffusionMap[row + 1][col][1] = TRUE;
                         }
@@ -1836,24 +1855,28 @@ void setup_collaborative_diffusion_map() {
             for (int col = 0; col < MAP_GRID_COLS; ++col) {
                 if (array_Collaborative_DiffusionMap[row][col][1] == TRUE) { //value has been set in stone yay
                     if ((col - 1) >= 0 && array_Collaborative_DiffusionMap[row][col - 1][1] == FALSE) {
-                        if (array_GameMap[row][col - 1] == BLOCK_EMPTY || array_GameMap[row][col - 1] == BLOCK_ENEMY) {
+                        if (array_GameMap[row][col - 1] == BLOCK_EMPTY || array_GameMap[row][col - 1] == BLOCK_ENEMY
+                            || array_GameMap[row][col - 1] == BLOCK_ENEMY_DEAD) {
                             array_Collaborative_DiffusionMap[row][col - 1][0] = array_Collaborative_DiffusionMap[row][col][0] / 2;
                             array_Collaborative_DiffusionMap[row][col - 1][1] = TRUE;
                         }
                     }
                     if ((col + 1) < MAP_GRID_COLS && array_Collaborative_DiffusionMap[row][col + 1][1] == FALSE) {
-                        if (array_GameMap[row][col + 1] == BLOCK_EMPTY || array_GameMap[row][col + 1] == BLOCK_ENEMY) {
+                        if (array_GameMap[row][col + 1] == BLOCK_EMPTY || array_GameMap[row][col + 1] == BLOCK_ENEMY
+                            || array_GameMap[row][col - 1] == BLOCK_ENEMY_DEAD) {
                             array_Collaborative_DiffusionMap[row][col + 1][0] = array_Collaborative_DiffusionMap[row][col][0] / 2;
                             array_Collaborative_DiffusionMap[row][col + 1][1] = TRUE;
                         }
                     }
                     if ((row - 1) >= 0 && array_Collaborative_DiffusionMap[row - 1][col][1] == FALSE) {
-                        if (array_GameMap[row - 1][col] == BLOCK_EMPTY || array_GameMap[row - 1][col] == BLOCK_ENEMY) {
+                        if (array_GameMap[row - 1][col] == BLOCK_EMPTY || array_GameMap[row - 1][col] == BLOCK_ENEMY
+                            || array_GameMap[row][col - 1] == BLOCK_ENEMY_DEAD) {
                             array_Collaborative_DiffusionMap[row - 1][col][0] = array_Collaborative_DiffusionMap[row][col][0] / 2;
                             array_Collaborative_DiffusionMap[row - 1][col][1] = TRUE;
                         }
                     }
-                    if ((row + 1) < MAP_GRID_ROWS && array_Collaborative_DiffusionMap[row + 1][col][1] == FALSE) {
+                    if ((row + 1) < MAP_GRID_ROWS && array_Collaborative_DiffusionMap[row + 1][col][1] == FALSE
+                        || array_GameMap[row][col - 1] == BLOCK_ENEMY_DEAD) {
                         if (array_GameMap[row + 1][col] == BLOCK_EMPTY || array_GameMap[row + 1][col] == BLOCK_ENEMY) {
                             array_Collaborative_DiffusionMap[row + 1][col][0] = array_Collaborative_DiffusionMap[row][col][0] / 2;
                             array_Collaborative_DiffusionMap[row + 1][col][1] = TRUE;
@@ -1889,9 +1912,16 @@ void render_enemy() {
                     render_enemy_special_attack_bar(which_enemy);
                 }
                 else if (array_EnemyStats[which_enemy][ENEMY_HP] <= 0) {
+                    for (int i = 0; i < MINION_MAX; i++) {
+                        array_isMinionBlocked[which_enemy][i] = 0;
+                    }
                     if (array_EnemyStats[which_enemy][ENEMY_TYPE] == GUARD_ENEMY) {
                         array_EnemyStats[which_enemy][ENEMY_CURRENT_MINIONS_ON_BLOCK] = 0;
-                        array_GameMap[row][col] = BLOCK_EMPTY;
+                        array_GameMap[row][col] = BLOCK_ENEMY_DEAD;
+                        if (array_enemy_death_timer[which_enemy][ENEMY_DEATH_TIMER_STARTED] == FALSE) {
+                            array_enemy_death_timer[which_enemy][ENEMY_DEATH_TIMER] = 0;
+                            array_enemy_death_timer[which_enemy][ENEMY_DEATH_TIMER_STARTED] = TRUE;
+                        }
                     }
                     else if (array_EnemyStats[which_enemy][ENEMY_TYPE] == SLOW_ENEMY || array_EnemyStats[which_enemy][ENEMY_TYPE] == HEALING_TOWER
                         || array_EnemyStats[which_enemy][ENEMY_TYPE] == RANGED_TOWER || array_EnemyStats[which_enemy][ENEMY_TYPE] == DAMAGE_ENEMY) {
@@ -2165,22 +2195,26 @@ void move_minion() {
                 (current_boxCOL + 1 < MAP_GRID_COLS && array_Teleport_DiffusionMap[current_boxROW][current_boxCOL + 1][0] > array_Teleport_DiffusionMap[current_boxROW][current_boxCOL][0]
                     && array_GameMap[current_boxROW][current_boxCOL + 1] != BLOCK_TOWER_ENEMY && array_GameMap[current_boxROW][current_boxCOL + 1] != BLOCK_PRESENT
                     && (array_GameMap[current_boxROW][current_boxCOL + 1] == BLOCK_ENEMY || array_GameMap[current_boxROW][current_boxCOL + 1] == BLOCK_EMPTY
-                        || array_GameMap[current_boxROW][current_boxCOL + 1] == BLOCK_END || array_GameMap[current_boxROW][current_boxCOL + 1] == BLOCK_TELEPORTER))
+                        || array_GameMap[current_boxROW][current_boxCOL + 1] == BLOCK_END || array_GameMap[current_boxROW][current_boxCOL + 1] == BLOCK_TELEPORTER
+                        || array_GameMap[current_boxROW][current_boxCOL + 1] == BLOCK_ENEMY_DEAD))
                 ? RIGHT
                 : (current_boxCOL - 1 >= 0 && array_Teleport_DiffusionMap[current_boxROW][current_boxCOL - 1][0] > array_Teleport_DiffusionMap[current_boxROW][current_boxCOL][0]
                     && array_GameMap[current_boxROW][current_boxCOL - 1] != BLOCK_TOWER_ENEMY && array_GameMap[current_boxROW][current_boxCOL - 1] != BLOCK_PRESENT
                     && (array_GameMap[current_boxROW][current_boxCOL - 1] == BLOCK_ENEMY || array_GameMap[current_boxROW][current_boxCOL - 1] == BLOCK_EMPTY
-                        || array_GameMap[current_boxROW][current_boxCOL - 1] == BLOCK_END || array_GameMap[current_boxROW][current_boxCOL - 1] == BLOCK_TELEPORTER))
+                        || array_GameMap[current_boxROW][current_boxCOL - 1] == BLOCK_END || array_GameMap[current_boxROW][current_boxCOL - 1] == BLOCK_TELEPORTER
+                        || array_GameMap[current_boxROW][current_boxCOL - 1] == BLOCK_ENEMY_DEAD))
                 ? LEFT
                 : (current_boxROW + 1 < MAP_GRID_ROWS && array_Teleport_DiffusionMap[current_boxROW + 1][current_boxCOL][0] > array_Teleport_DiffusionMap[current_boxROW][current_boxCOL][0]
                     && array_GameMap[current_boxROW + 1][current_boxCOL] != BLOCK_TOWER_ENEMY && array_GameMap[current_boxROW + 1][current_boxCOL] != BLOCK_PRESENT
                     && (array_GameMap[current_boxROW + 1][current_boxCOL] == BLOCK_ENEMY || array_GameMap[current_boxROW + 1][current_boxCOL] == BLOCK_EMPTY
-                        || array_GameMap[current_boxROW + 1][current_boxCOL] == BLOCK_END || array_GameMap[current_boxROW + 1][current_boxCOL] == BLOCK_TELEPORTER))
+                        || array_GameMap[current_boxROW + 1][current_boxCOL] == BLOCK_END || array_GameMap[current_boxROW + 1][current_boxCOL] == BLOCK_TELEPORTER
+                        || array_GameMap[current_boxROW + 1][current_boxCOL] == BLOCK_ENEMY_DEAD))
                 ? DOWN
                 : (current_boxROW - 1 >= 0 && array_Teleport_DiffusionMap[current_boxROW - 1][current_boxCOL][0] > array_Teleport_DiffusionMap[current_boxROW][current_boxCOL][0]
                     && array_GameMap[current_boxROW - 1][current_boxCOL] != BLOCK_TOWER_ENEMY && array_GameMap[current_boxROW - 1][current_boxCOL] != BLOCK_PRESENT
                     && (array_GameMap[current_boxROW - 1][current_boxCOL] == BLOCK_ENEMY || array_GameMap[current_boxROW - 1][current_boxCOL] == BLOCK_EMPTY
-                        || array_GameMap[current_boxROW - 1][current_boxCOL] == BLOCK_END || array_GameMap[current_boxROW - 1][current_boxCOL] == BLOCK_TELEPORTER))
+                        || array_GameMap[current_boxROW - 1][current_boxCOL] == BLOCK_END || array_GameMap[current_boxROW - 1][current_boxCOL] == BLOCK_TELEPORTER
+                        || array_GameMap[current_boxROW - 1][current_boxCOL] == BLOCK_ENEMY_DEAD))
                 ? UP
                 : STOP;
         }
@@ -2190,22 +2224,22 @@ void move_minion() {
                 (current_boxCOL + 1 < MAP_GRID_COLS && array_Collaborative_DiffusionMap[current_boxROW][current_boxCOL + 1][0] > array_Collaborative_DiffusionMap[current_boxROW][current_boxCOL][0]
                     && array_GameMap[current_boxROW][current_boxCOL + 1] != BLOCK_TOWER_ENEMY && array_GameMap[current_boxROW][current_boxCOL + 1] != BLOCK_PRESENT
                     && (array_GameMap[current_boxROW][current_boxCOL + 1] == BLOCK_ENEMY || array_GameMap[current_boxROW][current_boxCOL + 1] == BLOCK_EMPTY
-                        || array_GameMap[current_boxROW][current_boxCOL + 1] == BLOCK_END))
+                        || array_GameMap[current_boxROW][current_boxCOL + 1] == BLOCK_END || array_GameMap[current_boxROW][current_boxCOL + 1] == BLOCK_ENEMY_DEAD))
                 ? RIGHT
                 : (current_boxCOL - 1 >= 0 && array_Collaborative_DiffusionMap[current_boxROW][current_boxCOL - 1][0] > array_Collaborative_DiffusionMap[current_boxROW][current_boxCOL][0]
                     && array_GameMap[current_boxROW][current_boxCOL - 1] != BLOCK_TOWER_ENEMY && array_GameMap[current_boxROW][current_boxCOL - 1] != BLOCK_PRESENT
                     && (array_GameMap[current_boxROW][current_boxCOL - 1] == BLOCK_ENEMY || array_GameMap[current_boxROW][current_boxCOL - 1] == BLOCK_EMPTY
-                        || array_GameMap[current_boxROW][current_boxCOL - 1] == BLOCK_END ))
+                        || array_GameMap[current_boxROW][current_boxCOL - 1] == BLOCK_END || array_GameMap[current_boxROW][current_boxCOL - 1] == BLOCK_ENEMY_DEAD))
                 ? LEFT
                 : (current_boxROW + 1 < MAP_GRID_ROWS && array_Collaborative_DiffusionMap[current_boxROW + 1][current_boxCOL][0] > array_Collaborative_DiffusionMap[current_boxROW][current_boxCOL][0]
                     && array_GameMap[current_boxROW + 1][current_boxCOL] != BLOCK_TOWER_ENEMY && array_GameMap[current_boxROW + 1][current_boxCOL] != BLOCK_PRESENT
                     && (array_GameMap[current_boxROW + 1][current_boxCOL] == BLOCK_ENEMY || array_GameMap[current_boxROW + 1][current_boxCOL] == BLOCK_EMPTY
-                        || array_GameMap[current_boxROW + 1][current_boxCOL] == BLOCK_END))
+                        || array_GameMap[current_boxROW + 1][current_boxCOL] == BLOCK_END || array_GameMap[current_boxROW + 1][current_boxCOL] == BLOCK_ENEMY_DEAD))
                 ? DOWN
                 : (current_boxROW - 1 >= 0 && array_Collaborative_DiffusionMap[current_boxROW - 1][current_boxCOL][0] > array_Collaborative_DiffusionMap[current_boxROW][current_boxCOL][0]
                     && array_GameMap[current_boxROW - 1][current_boxCOL] != BLOCK_TOWER_ENEMY && array_GameMap[current_boxROW - 1][current_boxCOL] != BLOCK_PRESENT
                     && (array_GameMap[current_boxROW - 1][current_boxCOL] == BLOCK_ENEMY || array_GameMap[current_boxROW - 1][current_boxCOL] == BLOCK_EMPTY
-                        || array_GameMap[current_boxROW - 1][current_boxCOL] == BLOCK_END))
+                        || array_GameMap[current_boxROW - 1][current_boxCOL] == BLOCK_END || array_GameMap[current_boxROW - 1][current_boxCOL] == BLOCK_ENEMY_DEAD))
                 ? UP
                 : STOP;
         }
@@ -2443,6 +2477,7 @@ void enemy_special_attack() {
 void render_special_effect_enemy(int i) {
     int how_long_effect_is_slow = 3;
     float how_long_effect_is_AOE = 0.4f;
+    float how_long_effect_is_heal = 0.4f;
     if (array_EnemyStats[i][ENEMY_TYPE] == SLOW_ENEMY && array_Enemy_Slow_Effect_Time[i][CHECKER] == TRUE) {
         if (array_Enemy_Slow_Effect_Time[i][EFFECT_TIMER] >= how_long_effect_is_slow || array_EnemyStats[i][ENEMY_HP] <= 0) {
             array_Enemy_Slow_Effect_Time[i][CHECKER] = FALSE;
@@ -3041,6 +3076,40 @@ int check_which_enemy(int row, int col) { //input is the row and col to be check
     return correct_enemy;
 }
 
+void bring_back_enemy() {
+    for (int row = 0; row < MAP_GRID_ROWS; ++row) {
+        for (int col = 0; col < MAP_GRID_COLS; ++col) {
+            if (array_GameMap[row][col] == BLOCK_ENEMY_DEAD) {
+                int which_enemy = check_which_enemy(row, col);
+                if (array_enemy_death_timer[which_enemy][ENEMY_DEATH_TIMER] >= death_recharge_time) {
+                    int new_hp = find_enemy_full_hp(which_enemy);
+                    array_EnemyStats[which_enemy][ENEMY_HP] = new_hp / (int)(array_enemy_death_timer[which_enemy][ENEMY_DEATH_COUNTER] + 2);
+                    array_GameMap[row][col] = BLOCK_ENEMY;
+                    array_enemy_death_timer[which_enemy][ENEMY_DEATH_COUNTER] += 1;
+                    array_enemy_death_timer[which_enemy][ENEMY_DEATH_TIMER] = 0;
+                    array_EnemyStats[which_enemy][ENEMY_DEATH_TIMER_STARTED] = FALSE;
+                }
+            }
+        }
+    }
+}
+
+void render_enemy_death_comeback_bar() {
+    for (int row = 0; row < MAP_GRID_ROWS; ++row) {
+        for (int col = 0; col < MAP_GRID_COLS; ++col) {
+            if (array_GameMap[row][col] == BLOCK_ENEMY_DEAD) {
+                float long_length = 120;
+                int which_enemy = check_which_enemy(row, col);
+                float charge_percentage = (array_enemy_death_timer[which_enemy][ENEMY_DEATH_TIMER] / (float)death_recharge_time) * long_length;
+                CP_Settings_Fill(COLOR_BLACK);
+                CP_Graphics_DrawRect((float)array_EnemyStats[which_enemy][ENEMY_ROW_COORDINATES] - 60, (float)array_EnemyStats[which_enemy][ENEMY_COL_COORDINATES] + 50, long_length, (float)HP_BAR_HEIGHT);
+                CP_Settings_Fill(COLOR_MORE_BLUE);
+                CP_Graphics_DrawRect((float)array_EnemyStats[which_enemy][ENEMY_ROW_COORDINATES] - 60, (float)array_EnemyStats[which_enemy][ENEMY_COL_COORDINATES] + 50, charge_percentage, (float)HP_BAR_HEIGHT);
+            }
+        }
+    }
+}
+
 /*IMPORTANT - BEFORE UPDATING ANY VALUE HERE, CTRL+F TO CHECK IF IT HAS BEEN USED ELSEWHERE AND UPDATE ACCORDINGLY*/
 /*for example HP is used in rendering the hp bars. Thanks! :D*/
 void assign_minion_stats() {
@@ -3408,7 +3477,8 @@ void level_3() {
     array_GameMap[3][2] = BLOCK_TOWER_ENEMY;
     array_EnemyStats[5][ENEMY_ROW] = 3;
     array_EnemyStats[5][ENEMY_COL] = 2;
-    array_EnemyStats[5][ENEMY_TYPE] = DAMAGE_ENEMY;
+    //array_EnemyStats[5][ENEMY_TYPE] = DAMAGE_ENEMY;
+    array_EnemyStats[5][ENEMY_TYPE] = RANGED_TOWER;
 
     array_GameMap[3][10] = BLOCK_TOWER_ENEMY;
     array_EnemyStats[6][ENEMY_ROW] = 3;
