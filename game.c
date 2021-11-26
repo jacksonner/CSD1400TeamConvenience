@@ -41,7 +41,8 @@ int teleport_spawn_X, teleport_spawn_Y;
 
 /*Different Colours in Use*/
 #define COLOR_BLACK CP_Color_Create(0, 0, 0, 255)
-#define COLOR_GREY CP_Color_Create(110, 110, 110, 255)
+#define COLOR_BG CP_Color_Create(30, 30, 30, 255)
+#define COLOR_GREY CP_Color_Create(100, 100, 100, 255)
 #define COLOR_WHITE CP_Color_Create(255, 255, 255, 255)
 #define COLOR_RED CP_Color_Create(255, 0, 0, 255)
 #define COLOR_GREEN CP_Color_Create(0, 255, 0, 255)
@@ -51,7 +52,7 @@ int teleport_spawn_X, teleport_spawn_Y;
 #define COLOR_BROWN CP_Color_Create(165, 42, 42, 255)
 #define COLOR_CYAN CP_Color_Create(0, 255, 255, 255)
 #define COLOR_PURPLE CP_Color_Create(138, 43, 226, 255)
-#define TRANSLUCENT_WHITE CP_Color_Create(255, 255, 255, 100)
+#define TRANSLUCENT_WHITE CP_Color_Create(255, 255, 255, 200)
 #define COLOR_BRIGHT_BLUE CP_Color_Create(0, 204, 204, 255)
 #define COLOR_DULLER_BLUE CP_Color_Create(0, 76, 153, 255)
 #define TRANSLUCENT_BLUE CP_Color_Create(204, 255, 255, 100)
@@ -65,6 +66,8 @@ int teleport_spawn_X, teleport_spawn_Y;
 #define COLOR_MORE_BLUE CP_Color_Create(153, 204, 255, 255)
 #define TRANSLUCENT_ORANGE CP_Color_Create(255, 153, 51, 100)
 #define COLOR_HEALER_GREEN CP_Color_Create(0, 102, 0, 255)
+#define COLOR_LIGHT_GREY CP_Color_Create(224, 224, 224, 255)
+#define COLOR_GREYISH_BLUE CP_Color_Create(201, 223, 235, 255)
 
 /*Minion Stats*/
 #define X 0 //x-coordinates
@@ -1851,14 +1854,41 @@ void gameplay_screen() {
     box_width = BLOCK_SIZE + BLOCK_SIZE / 2;
     options_boxX = origin_map_coordinateX;
     options_boxY = origin_map_coordinateY + (MAP_GRID_ROWS * BLOCK_SIZE);
-    CP_Settings_Fill(COLOR_WHITE);
+    CP_Settings_Fill(COLOR_LIGHT_GREY);
     CP_Graphics_DrawRect((float)options_boxX, (float)options_boxY, (float)box_length, (float)box_width);
     minion_buttons_width = BLOCK_SIZE + BLOCK_SIZE / 2;
     minion_buttons_height = BLOCK_SIZE;
     for (int i = 1; i < 6; i++) {
         minion_boxX = options_boxX + (i * minion_buttons_width) - minion_buttons_width / 2;
         minion_boxY = options_boxY + (box_width / 4) - 20; //minion_boxY remains constant throughout
+        CP_Settings_Fill(COLOR_GREYISH_BLUE);
         CP_Graphics_DrawRect((float)minion_boxX, (float)minion_boxY, (float)minion_buttons_width, (float)minion_buttons_height);
+        float minion_size = 0;
+        int minions_imageX = minion_boxX + minion_buttons_width / 2;
+        int minions_imageY = minion_boxY + minion_buttons_height / 2;
+        if (i == 1) {
+            minion_size = 50;
+            CP_Settings_Fill(COLOR_BLUE);
+            minions_imageY -= 5;
+        }
+        else if (i == 2) {
+            minion_size = 80;
+            CP_Settings_Fill(COLOR_YELLOW);
+        }
+        else if (i == 3) {
+            minion_size = 120;
+            CP_Settings_Fill(COLOR_BROWN);
+        }
+        else if (i == 4) {
+            minion_size = 70;
+            CP_Settings_Fill(COLOR_CYAN);
+        }
+        else if (i == 5) {
+            minion_size = 55;
+            CP_Settings_Fill(COLOR_HEALER_GREEN);
+            minions_imageY -= 8;
+        }
+        CP_Graphics_DrawCircle((float)minions_imageX, (float)minions_imageY, minion_size);
     }
     float minion_costboxY = (float)minion_boxY + 100.f;
     float minion_costbox_height = 50;
@@ -1978,7 +2008,7 @@ void initialise_level() {
 }
 
 void render_background() {
-    CP_Graphics_ClearBackground(COLOR_BLACK);
+    CP_Graphics_ClearBackground(COLOR_BG);
     for (int row = 0; row < MAP_GRID_ROWS; ++row) {
         for (int col = 0; col < MAP_GRID_COLS; ++col) {
             BlockPositionX = origin_map_coordinateX + BLOCK_SIZE * col;
