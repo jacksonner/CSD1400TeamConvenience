@@ -41,7 +41,7 @@ int teleport_spawn_X, teleport_spawn_Y;
 
 /*Different Colours in Use*/
 #define COLOR_BLACK CP_Color_Create(0, 0, 0, 255)
-#define COLOR_GREY CP_Color_Create(70, 70, 70, 255)
+#define COLOR_GREY CP_Color_Create(110, 110, 110, 255)
 #define COLOR_WHITE CP_Color_Create(255, 255, 255, 255)
 #define COLOR_RED CP_Color_Create(255, 0, 0, 255)
 #define COLOR_GREEN CP_Color_Create(0, 255, 0, 255)
@@ -64,6 +64,7 @@ int teleport_spawn_X, teleport_spawn_Y;
 #define TRANSLUCENT_GREEN CP_Color_Create(0, 230, 0, 80)
 #define COLOR_MORE_BLUE CP_Color_Create(153, 204, 255, 255)
 #define TRANSLUCENT_ORANGE CP_Color_Create(255, 153, 51, 100)
+#define COLOR_HEALER_GREEN CP_Color_Create(0, 102, 0, 255)
 
 /*Minion Stats*/
 #define X 0 //x-coordinates
@@ -207,6 +208,9 @@ void minion_dies_array_recycle(int i);
 void minion_special_attack(int i, int current_row, int current_col);
 void minion_attacking_towers(int i, int current_row, int current_col, int minion_range);
 void healer_minion_basic_heal(int i);
+float healer_minion_basic_heals[MINION_MAX][2];
+int array_minion_lowest_hp[MINION_MAX];
+int healer_default_effect_size = 120;
 
 /*checking surrounding squares for AOE attacks*/
 int array_enemy_to_attack[MINION_MAX][ENEMY_MAX];
@@ -1726,6 +1730,8 @@ void reset_map_and_minions(void) {
     for (int i = 0; i < MINION_MAX; i++) {
         array_minion_attack_time[i][EFFECT_TIMER] = 0;
         array_minion_attack_time[i][CHECKER] = 0;
+        healer_minion_basic_heals[i][EFFECT_TIMER] = 0;
+        healer_minion_basic_heals[i][CHECKER] = 0;
     }
     level_has_been_reset = TRUE;
 }
@@ -1786,6 +1792,7 @@ void update_timer(void)
         array_MinionCurrentCharge[i][MINION_CURRENT_CHARGE] += test;
         array_MinionCurrentCharge[i][MINION_BASIC_CURRENT_CHARGE] += test;
         array_minion_attack_time[i][EFFECT_TIMER] += test;
+        healer_minion_basic_heals[i][EFFECT_TIMER] += test;
     }
     for (int i = 0; i < ENEMY_MAX; i++) {
         array_EnemyCurrentCharge[i][ENEMY_BASIC_CURRENT_CHARGE] += test;
@@ -2594,8 +2601,14 @@ int is_minion_being_attacked(int enemy, int minion) {
 }
 
 void healer_minion_basic_heal(int i) {
+    float basic_heal_time = 0.4f;
     int check_if_can_attack = check_minion_basic_attack_charge(i);
     if (check_if_can_attack == 1) {
+        if (healer_minion_basic_heals[i][CHECKER] == FALSE) {
+            healer_minion_basic_heals[i][EFFECT_TIMER] = 0;
+            healer_minion_basic_heals[i][CHECKER] = TRUE;
+            array_minion_effect[i] = (float)healer_default_effect_size;
+        }
         int minion_lowest_hp = 0;
         float full_hp1, full_hp2;
         full_hp1 = full_hp2 = 0;
@@ -2606,6 +2619,7 @@ void healer_minion_basic_heal(int i) {
             float percentage_minion_lowest_hp = ((float)array_MinionStats[minion_lowest_hp][MINION_HP] / full_hp2) * 100;
             if (percentage_hp1 <= percentage_minion_lowest_hp) {
                 minion_lowest_hp = j;
+                array_minion_lowest_hp[i] = j;
             }
         }
         int check = (int)full_hp2 - array_MinionStats[minion_lowest_hp][MINION_HP]; //how much hp to full hp
@@ -2616,6 +2630,21 @@ void healer_minion_basic_heal(int i) {
         else {
             array_MinionStats[minion_lowest_hp][MINION_HP] = find_full_hp(minion_lowest_hp);
         }
+    }
+    if (healer_minion_basic_heals[i][CHECKER] == TRUE && healer_minion_basic_heals[i][EFFECT_TIMER] < basic_heal_time) {
+        int minion_lowest_hp = array_minion_lowest_hp[i];
+        if (gIsPaused == FALSE) {
+            array_minion_effect[i] += 1;
+        }
+        CP_Settings_Stroke(TRANSLUCENT_GREEN);
+        CP_Settings_Fill(TRANSLUCENT_GREEN);
+        CP_Graphics_DrawCircle((float)array_MinionStats[minion_lowest_hp][X], (float)array_MinionStats[minion_lowest_hp][Y], array_minion_effect[i]);
+        CP_Settings_Stroke(COLOR_BLACK);
+    }
+    else if (healer_minion_basic_heals[i][EFFECT_TIMER] >= basic_heal_time) {
+        healer_minion_basic_heals[i][CHECKER] = FALSE;
+        array_minion_attack_time[i][EFFECT_TIMER] = 0; //pretty sure this is redundant lol
+        array_minion_effect[i] = (float)healer_default_effect_size;
     }
 }
 
@@ -2855,6 +2884,7 @@ void minion_dies_array_recycle(int dead_minion_number) {
     float array_Temp_MinionCharge[MINION_MAX][TOTAL_CHARGES] = { 0 };
     int array_Temp_isMinionSlowed[ENEMY_MAX][MINION_MAX][2] = { 0 };
     float array_Temp_minion_attack_time[MINION_MAX][2] = { 0 };
+    float array_Temp_healer_minion_basic_heals[MINION_MAX][2] = { 0 };
     //int array_Temp_isMinionBlocked[ENEMY_MAX][MINION_MAX] = { 0 };
 
     for (int i = 0; i < ENEMY_MAX; i++) {
@@ -2862,8 +2892,10 @@ void minion_dies_array_recycle(int dead_minion_number) {
     }
     //
     for (int i = 0; i < dead_minion_number; i++) {
-        array_Temp_minion_attack_time[i][EFFECT_TIMER] = array_minion_attack_time[i][EFFECT_TIMER];
-        array_Temp_minion_attack_time[i][CHECKER] = array_minion_attack_time[i][CHECKER];
+        for (int j = 0; j < 2; j++) {
+            array_Temp_minion_attack_time[i][j] = array_minion_attack_time[i][j];
+            array_Temp_healer_minion_basic_heals[i][j] = healer_minion_basic_heals[i][j];
+        }
     }
     for (int i = 0; i < dead_minion_number; i++) {
         for (int j = 0; j < MINION_TOTAL_STATS; j++) {
@@ -2882,7 +2914,7 @@ void minion_dies_array_recycle(int dead_minion_number) {
             }
         }
     }
-
+    //
     int dead_min_num = dead_minion_number;
     for (int k = (dead_min_num + 1); k <= minion_count; k++, dead_min_num++) {
         for (int m = 0; m < MINION_TOTAL_STATS; m++) {
@@ -2905,8 +2937,10 @@ void minion_dies_array_recycle(int dead_minion_number) {
     }
     dead_min_num = dead_minion_number;
     for (int k = (dead_min_num + 1); k <= minion_count; k++, dead_min_num++) {
-        array_Temp_minion_attack_time[dead_min_num][EFFECT_TIMER] = array_minion_attack_time[k][EFFECT_TIMER];
-        array_Temp_minion_attack_time[dead_min_num][CHECKER] = array_minion_attack_time[k][CHECKER];
+        for (int j = 0; j < 2; j++) {
+            array_Temp_minion_attack_time[dead_min_num][j] = array_minion_attack_time[k][j];
+            array_Temp_healer_minion_basic_heals[dead_min_num][j] = healer_minion_basic_heals[dead_min_num][j];
+        }
     }
 
     //Now we update the original array with the stored values
@@ -2928,8 +2962,11 @@ void minion_dies_array_recycle(int dead_minion_number) {
         }
     }
     for (int i = 0; i < minion_count; i++) {
-        array_minion_attack_time[i][EFFECT_TIMER] = array_Temp_minion_attack_time[i][EFFECT_TIMER];
-        array_minion_attack_time[i][CHECKER] = array_Temp_minion_attack_time[i][CHECKER];
+        for (int j = 0; j < 2; j++) {
+            array_minion_attack_time[i][j] = array_Temp_minion_attack_time[i][j];
+            healer_minion_basic_heals[i][j] = array_Temp_healer_minion_basic_heals[i][j];
+            
+        }
     }
     //very inefficient but i hope this works
     for (int i = 0; i < minion_count; i++) {
@@ -3154,10 +3191,10 @@ void render_minion_special_attack() {
         }
         else if (array_MinionStats[i][MINION_TYPE] == HEALER_MINION) {
             if (array_minion_attack_time[i][CHECKER] == TRUE && array_minion_attack_time[i][EFFECT_TIMER] < healer_minion_effect_lasts) {
+                if (gIsPaused == FALSE) {
+                    array_minion_effect[i] += 1;
+                }
                 for (int j = 0; j < minion_count; j++) {
-                    if (gIsPaused == FALSE) {
-                        array_minion_effect[i] += 1;
-                    }
                     CP_Settings_Stroke(TRANSLUCENT_GREEN);
                     CP_Settings_Fill(TRANSLUCENT_GREEN);
                     CP_Graphics_DrawCircle((float)array_MinionStats[j][X], (float)array_MinionStats[j][Y], array_minion_effect[i]);
@@ -3167,7 +3204,7 @@ void render_minion_special_attack() {
             else if (array_minion_attack_time[i][EFFECT_TIMER] >= healer_minion_effect_lasts) {
                 array_minion_attack_time[i][CHECKER] = FALSE;
                 array_minion_attack_time[i][EFFECT_TIMER] = 0; //pretty sure this is redundant lol
-                array_minion_effect[i] = 0;
+                array_minion_effect[i] = (float)healer_default_effect_size;
             }
         }
     }
@@ -3221,7 +3258,7 @@ void minion_special_attack(int i, int current_row, int current_col) {
         else if (array_MinionStats[i][MINION_TYPE] == HEALER_MINION) {
             array_minion_attack_time[i][CHECKER] = TRUE;
             array_minion_attack_time[i][EFFECT_TIMER] = 0;
-            array_minion_effect[i] = (float)array_MinionStats[i][MINION_SIZE];
+            array_minion_effect[i] = (float)healer_default_effect_size;
             int full_health[MINION_MAX];
             for (int n = 0; n < MINION_MAX; ++n) {
                 full_health[n] = find_full_hp(n);
@@ -3446,8 +3483,8 @@ void assign_minion_stats() {
         array_MinionStats[minion_count][MINION_COST] = 160;
         array_MinionStats[minion_count][MINION_SIZE] = 55;
         array_MinionStats[minion_count][MINION_HEAL] = 20;
-        array_MinionCurrentCharge[minion_count][MINION_CHARGE_TIME] = 6; //super healing???
-        array_MinionCurrentCharge[minion_count][MINION_BASIC_ATTACK_SPEED] = 0.5f;
+        array_MinionCurrentCharge[minion_count][MINION_CHARGE_TIME] = 7; //super healing???
+        array_MinionCurrentCharge[minion_count][MINION_BASIC_ATTACK_SPEED] = 2.f;
     }
 }
 
@@ -3484,7 +3521,7 @@ void assign_minion_color(int i) {
             CP_Settings_Fill(COLOR_CYAN);
         }
         else if (array_MinionStats[i][MINION_TYPE] == HEALER_MINION) {
-            CP_Settings_Fill(COLOR_PURPLE);
+            CP_Settings_Fill(COLOR_HEALER_GREEN);
         }
 }
 
