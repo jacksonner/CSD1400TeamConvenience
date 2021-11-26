@@ -187,6 +187,7 @@ int is_minion_being_attacked(int enemy, int minion);
 #define HELP_SCREEN 7
 #define HELP_SCREENP2 8
 #define HELP_SCREENP3 9
+#define QUIT_SCREEN 10
 int Current_Gamestate;
 
 /*render HP bar for minions*/
@@ -383,6 +384,10 @@ float back_width, back_height;
 int Previous_Gamestate;
 int setting_popup;
 
+/*Quit Screen*/
+void quit_screen(void);
+static CP_Image quit_image;
+
 /*Move Minion*/
 int initial_direction; //when setting up level, check for the initial direction to set this to
 void move_minion(void);
@@ -514,7 +519,7 @@ void game_update(void) {
                 CP_Font_DrawText("MAIN MENU", option_textX, option_textY * 3 + 20);
                 CP_Font_DrawText("LEVEL", option_textX, option_textY * 4);
                 CP_Font_DrawText("HELP", option_textX * 2, option_textY * 3 + 20);
-                CP_Font_DrawText("BGM?", option_textX * 2, option_textY * 4);
+                CP_Font_DrawText("QUIT", option_textX * 2, option_textY * 4);
 
                 /*back text*/
                 CP_Settings_TextSize(50);
@@ -555,6 +560,17 @@ void game_update(void) {
                     }
                 }
 
+                else if (mouseX >= startX * 2 && mouseX <= (startX * 2 + button_width) &&
+                    mouseY >= startY * 4 && mouseY <= startY * 4 + button_height) {
+                    CP_Settings_Fill(COLOR_BLACK);
+                    CP_Graphics_DrawRect(startX * 2, startY * 4, button_width, button_height);
+                    CP_Settings_TextSize(60);
+                    CP_Settings_Fill(COLOR_WHITE);
+                    CP_Font_DrawText("QUIT", option_textX * 2, option_textY * 4);
+                    if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
+                        Current_Gamestate = QUIT_SCREEN;
+                    }
+                }
                 else   if (mouseX >= backX && mouseX <= (backX + back_width) &&
                     mouseY >= backY && mouseY <= backY + back_height) {
                     CP_Settings_Fill(COLOR_BLACK);
@@ -617,23 +633,22 @@ void game_update(void) {
         level_selector_screen();
     }
     else if (Current_Gamestate == WIN_SCREEN) {
-
         win_screen();
     }
     else if (Current_Gamestate == SETTING_SCREEN) {
         setting_screen();
     }
     else if (Current_Gamestate == HELP_SCREEN) {
-
         help_screen();
     }
     else if (Current_Gamestate == HELP_SCREENP2) {
         help_screen2();
-
     }
     else if (Current_Gamestate == HELP_SCREENP3) {
         help_screen3();
-
+    }
+    else if (Current_Gamestate == QUIT_SCREEN) {
+    quit_screen();
     }
 }
 
@@ -1396,7 +1411,7 @@ void setting_screen(void) {
     CP_Font_DrawText("MAIN MENU", option_textX, option_textY * 3 + 20);
     CP_Font_DrawText("LEVEL", option_textX, option_textY * 4);
     CP_Font_DrawText("HELP", option_textX * 2, option_textY * 3 + 20);
-    CP_Font_DrawText("BGM?", option_textX * 2, option_textY * 4);
+    CP_Font_DrawText("QUIT", option_textX * 2, option_textY * 4);
 
     /*back text*/
     CP_Settings_TextSize(50);
@@ -1448,15 +1463,19 @@ void setting_screen(void) {
         }
     }
 
+    else if (mouseX >= startX * 2 && mouseX <= (startX * 2 + button_width) &&
+        mouseY >= startY * 4 && mouseY <= startY * 4 + button_height) {
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Graphics_DrawRect(startX * 2, startY * 4, button_width, button_height);
+        CP_Settings_TextSize(60);
+        CP_Settings_Fill(COLOR_WHITE);
+        CP_Font_DrawText("QUIT", option_textX * 2, option_textY * 4);
 
-    /*
-    if (mouseX >= startX && mouseX <= (startX + button_width) &&
-        mouseY >= startY && mouseY <= startY * 3 + button_height) {
+        if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
+            Current_Gamestate = QUIT_SCREEN;
+            Previous_Gamestate = SETTING_SCREEN;
+        }
     }
-
-    if (mouseX >= startX && mouseX <= (startX + button_width) &&
-        mouseY >= startY && mouseY <= startY * 4 + button_height) {
-    } */
 
     else if (mouseX >= backX && mouseX <= (backX + back_width) &&
         mouseY >= backY && mouseY <= backY + back_height) {
@@ -1703,6 +1722,74 @@ void help_screen3(void) {
 
             CP_Image_Free(&guide_image2);
             Current_Gamestate = HELP_SCREENP2;
+        }
+    }
+
+}
+
+void quit_screen(void) {
+
+
+    quit_image = CP_Image_Load("./Assets/bg_mainmenu.png");
+
+    float middleX = (float)(CP_System_GetWindowWidth() / 2);
+    float middleY = (float)(CP_System_GetWindowHeight() / 2);
+    float width = (float)CP_Image_GetWidth(setting_image);
+    float height = (float)CP_Image_GetWidth(setting_image) * 0.6f;
+    CP_Image_Draw(setting_image, middleX, middleY, width, height, 300);
+    float startX = (float)CP_System_GetDisplayWidth() / 4;
+    float startY = (float)CP_System_GetDisplayHeight() / 5;
+    CP_Image_Draw(quit_image, middleX, middleY, width, height, 100);
+    float option_textX = startX + 20.f;
+    float option_textY = startY + 20.f;
+
+    button_height = 120.f;
+    button_width = 300.f;
+
+    backX = 10.f;
+    backY = 10.f;
+    back_height = 80.f;
+    back_width = 200.f;
+
+    /*options buttons*/
+    CP_Settings_Fill(COLOR_WHITE);
+    CP_Graphics_DrawRect(startX, startY * 3, button_width, button_height); //no
+    CP_Graphics_DrawRect(startX * 2, startY * 3, button_width, button_height); //yes
+
+
+    /*options text*/
+    CP_Settings_TextSize(60);
+    CP_Settings_Fill(COLOR_BLACK);
+    CP_Font_DrawText("I'M SORRY", option_textX, option_textY * 3 + 20);
+    CP_Font_DrawText("YUP", option_textX * 2, option_textY * 3 + 20);
+
+    float mouseX = (float)CP_Input_GetMouseX();
+    float mouseY = (float)CP_Input_GetMouseY();
+
+    if (mouseX >= startX && mouseX <= (startX + button_width) && mouseY >= startY * 3 && mouseY <= (startY * 3 + button_height)) {
+
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Graphics_DrawRect(startX, startY * 3, button_width, button_height);
+        CP_Settings_Fill(COLOR_WHITE);
+        CP_Font_DrawText("I'M SORRY", option_textX, option_textY * 3 + 20);
+        if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
+
+            CP_Image_Free(&quit_image);
+            Current_Gamestate = SETTING_SCREEN;
+        }
+    }
+
+    else if (mouseX >= startX * 2 && mouseX <= (startX * 2 + button_width) && mouseY >= startY * 3 && mouseY <= (startY * 3 + button_height)) {
+
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Graphics_DrawRect(startX * 2, startY * 3, button_width, button_height);
+        CP_Settings_Fill(COLOR_WHITE);
+        CP_Font_DrawText("YUP", option_textX * 2, option_textY * 3 + 20);
+        if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
+
+            CP_Image_Free(&quit_image);
+            Current_Gamestate = SETTING_SCREEN;
+            CP_Engine_Terminate();
         }
     }
 
