@@ -1544,6 +1544,12 @@ void help_screen(void) {
     CP_Font_DrawText("NEXT", 1755, button_height + 5);
     CP_Settings_TextSize(50);
 
+    CP_Settings_Fill(COLOR_WHITE);
+    CP_Graphics_DrawRect(10, 15, button_width, button_height);
+    CP_Settings_Fill(COLOR_BLACK);
+    CP_Font_DrawText("BACK", 20, button_height + 5);
+    CP_Settings_TextSize(50);
+
     if (mouseX >= 1750 && mouseX <= (1750 + button_width) && mouseY >= 15 && mouseY <= (15 + button_height)) {
 
         /*Hovering on Next button*/
@@ -1557,7 +1563,25 @@ void help_screen(void) {
             CP_Image_Free(&guide_image1);
             Current_Gamestate = HELP_SCREENP2;
         }
+    }
+    if (mouseX >= 10 && mouseX <= (10 + button_width) && mouseY >= 15 && mouseY <= (15 + button_height)) {
 
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Graphics_DrawRect(10, 15, button_width, button_height);
+        CP_Settings_Fill(COLOR_WHITE);
+        CP_Font_DrawText("BACK", 20, button_height + 5);
+        CP_Settings_TextSize(50);
+
+        if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
+
+            CP_Image_Free(&guide_image1);
+            if (Previous_Gamestate == SETTING_SCREEN) {
+                Current_Gamestate = SETTING_SCREEN;
+            }
+            else {
+                Current_Gamestate = GAMEPLAY_SCREEN;
+            }
+        }
     }
 }
 
