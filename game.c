@@ -2613,7 +2613,7 @@ void render_special_effect_enemy(int i) {
                     if (array_isMinionSlowed[i][j][0] != TRUE) {
                         array_isMinionSlowed[i][j][1] = array_MinionStats[j][MINION_MOVEMENT_SPEED];
                     }
-                    array_MinionStats[j][MINION_MOVEMENT_SPEED] = 1;
+                    array_MinionStats[j][MINION_MOVEMENT_SPEED] = find_minion_original_speed(j)/3;
                     array_isMinionSlowed[i][j][0] = TRUE;
                 }
                 //Minion no longer in range
@@ -3633,7 +3633,7 @@ void level_4() {
     //array_GameMap[1][4] = BLOCK_PRESENT;
     array_GameMap[2][4] = BLOCK_PRESENT;
     array_GameMap[2][8] = BLOCK_PRESENT;
-    //array_GameMap[2][9] = BLOCK_PRESENT;
+    array_GameMap[4][10] = BLOCK_PRESENT;
     array_GameMap[1][9] = BLOCK_PRESENT;
     array_GameMap[0][9] = BLOCK_PRESENT;
     array_GameMap[4][11] = BLOCK_PRESENT;
@@ -3659,9 +3659,9 @@ void level_4() {
     array_EnemyStats[3][ENEMY_COL] = 4;
     array_EnemyStats[3][ENEMY_TYPE] = HEALING_TOWER;
 
-    array_GameMap[4][10] = BLOCK_TOWER_ENEMY;
+    array_GameMap[4][9] = BLOCK_TOWER_ENEMY;
     array_EnemyStats[4][ENEMY_ROW] = 4;
-    array_EnemyStats[4][ENEMY_COL] = 10;
+    array_EnemyStats[4][ENEMY_COL] = 9;
     //array_EnemyStats[4][ENEMY_TYPE] = DAMAGE_ENEMY;
     array_EnemyStats[4][ENEMY_TYPE] = RANGED_TOWER ;
 
