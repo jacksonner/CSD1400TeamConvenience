@@ -2609,7 +2609,7 @@ void healer_minion_basic_heal(int i) {
             array_MinionStats[minion_lowest_hp][MINION_HP] += check;
         }
         else {
-            array_MinionStats[minion_lowest_hp][MINION_HP] += array_MinionStats[i][MINION_HEAL];
+            array_MinionStats[minion_lowest_hp][MINION_HP] = (int)full_hp2;
         }
     }
 }
@@ -3364,7 +3364,7 @@ void assign_minion_stats() {
         array_MinionStats[minion_count][MINION_WEIGHT] = 2; //holds the line so other minions can pass
         array_MinionStats[minion_count][MINION_COST] = 120;
         array_MinionStats[minion_count][MINION_SIZE] = 120;
-        array_MinionCurrentCharge[minion_count][MINION_CHARGE_TIME] = 2;
+        array_MinionCurrentCharge[minion_count][MINION_CHARGE_TIME] = 4;
         array_MinionCurrentCharge[minion_count][MINION_BASIC_ATTACK_SPEED] = 1.f;
     }
     if (array_MinionStats[minion_count][MINION_TYPE] == WIZARD_MINION) {
