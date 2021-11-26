@@ -507,7 +507,11 @@ void game_update(void) {
 
                 if (mouseX >= startX && mouseX <= (startX + button_width) &&
                     mouseY >= startY * 3 && mouseY <= startY * 3 + button_height) {
-
+                    CP_Settings_Fill(COLOR_BLACK);
+                    CP_Graphics_DrawRect(startX, startY * 3, button_width, button_height);
+                    CP_Settings_TextSize(60);
+                    CP_Settings_Fill(COLOR_WHITE);
+                    CP_Font_DrawText("MAIN MENU", option_textX, option_textY * 3 + 20);
                     if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
                         Current_Gamestate = MAIN_MENU_SCREEN;
                     }
@@ -515,14 +519,34 @@ void game_update(void) {
 
                 else if (mouseX >= startX && mouseX <= (startX + button_width) &&
                     mouseY >= startY * 4 && mouseY <= startY * 4 + button_height) {
+                    CP_Settings_Fill(COLOR_BLACK);
+                    CP_Graphics_DrawRect(startX, startY * 4, button_width, button_height);
+                    CP_Settings_TextSize(60);
+                    CP_Settings_Fill(COLOR_WHITE);
+                    CP_Font_DrawText("LEVEL", option_textX, option_textY * 4);
                     if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
                         Current_Gamestate = LEVEL_SELECTOR_SCREEN;
                     }
-
+                }
+                else if (mouseX >= startX * 2 && mouseX <= (startX * 2 + button_width) &&
+                    mouseY >= startY * 3 && mouseY <= startY * 3 + button_height) {
+                    CP_Settings_Fill(COLOR_BLACK);
+                    CP_Graphics_DrawRect(startX * 2, startY * 3, button_width, button_height);
+                    CP_Settings_TextSize(60);
+                    CP_Settings_Fill(COLOR_WHITE);
+                    CP_Font_DrawText("HELP", option_textX * 2, option_textY * 3 + 20);
+                    if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
+                        Current_Gamestate = HELP_SCREEN;
+                    }
                 }
 
                 else   if (mouseX >= backX && mouseX <= (backX + back_width) &&
                     mouseY >= backY && mouseY <= backY + back_height) {
+                    CP_Settings_Fill(COLOR_BLACK);
+                    CP_Graphics_DrawRect(backX, backY, back_width, back_height);
+                    CP_Settings_Fill(COLOR_WHITE);
+                    CP_Settings_TextSize(50);
+                    CP_Font_DrawText("BACK", 40.f, 60.f);
                     if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
 
                         CP_Image_Free(&setting_image);
@@ -645,6 +669,37 @@ void main_menu_screen(void) {
     CP_Font_DrawText("LEVELS", levels_textX, levels_textY);
     CP_Settings_TextSize(40);
     CP_Font_DrawText("SETTING", setting_textX, setting_textY);
+
+    float mouseX = (float)CP_Input_GetMouseX();
+    float mouseY = (float)CP_Input_GetMouseY();
+
+    if (mouseX >= start_game_buttonX && mouseX <= (start_game_buttonX + button_width) &&
+        mouseY >= start_game_buttonY && mouseY <= start_game_buttonY + button_height) {
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Graphics_DrawRect(start_game_buttonX, start_game_buttonY, button_width, button_height);
+        CP_Settings_TextSize(80);
+        CP_Settings_Fill(COLOR_WHITE);
+        CP_Font_DrawText("START", start_textX, start_textY);
+    }
+
+    if (mouseX >= level_selectorX && mouseX <= (level_selectorX + button_width) &&
+        mouseY >= level_selectorY && mouseY <= level_selectorY + button_height) {
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Graphics_DrawRect(level_selectorX, level_selectorY, button_width, button_height);
+        CP_Settings_TextSize(80);
+        CP_Settings_Fill(COLOR_WHITE);
+        CP_Font_DrawText("LEVELS", levels_textX, levels_textY);
+    }
+
+    if (mouseX >= settingX && mouseX <= (settingX + button_width) &&
+        mouseY >= settingY && mouseY <= settingY + button_height) {
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Graphics_DrawRect(settingX, settingY, setting_width, setting_height);
+        CP_Settings_Fill(COLOR_WHITE);
+        CP_Settings_TextSize(40);
+        CP_Font_DrawText("SETTING", setting_textX, setting_textY);
+    }
+
 }
 
 void main_menu_clicked(float x, float y) {
@@ -1337,19 +1392,44 @@ void setting_screen(void) {
 
     if (mouseX >= startX && mouseX <= (startX + button_width) &&
         mouseY >= startY * 3 && mouseY <= startY * 3 + button_height) {
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Graphics_DrawRect(startX, startY * 3, button_width, button_height);
+        CP_Settings_TextSize(60);
+        CP_Settings_Fill(COLOR_WHITE);
+        CP_Font_DrawText("MAIN MENU", option_textX, option_textY * 3 + 20);
 
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
             Current_Gamestate = MAIN_MENU_SCREEN;
+            Previous_Gamestate = SETTING_SCREEN;
         }
     }
 
     else if (mouseX >= startX && mouseX <= (startX + button_width) &&
         mouseY >= startY * 4 && mouseY <= startY * 4 + button_height) {
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Graphics_DrawRect(startX, startY * 4, button_width, button_height);
+        CP_Settings_TextSize(60);
+        CP_Settings_Fill(COLOR_WHITE);
+        CP_Font_DrawText("LEVEL", option_textX, option_textY * 4);
+
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
             Current_Gamestate = LEVEL_SELECTOR_SCREEN;
             Previous_Gamestate = SETTING_SCREEN;
         }
+    }
 
+    else if (mouseX >= startX * 2 && mouseX <= (startX * 2 + button_width) &&
+        mouseY >= startY * 3 && mouseY <= startY * 3 + button_height) {
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Graphics_DrawRect(startX * 2, startY * 3, button_width, button_height);
+        CP_Settings_TextSize(60);
+        CP_Settings_Fill(COLOR_WHITE);
+        CP_Font_DrawText("HELP", option_textX * 2, option_textY * 3 + 20);
+
+        if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
+            Current_Gamestate = HELP_SCREEN;
+            Previous_Gamestate = SETTING_SCREEN;
+        }
     }
 
 
@@ -1364,6 +1444,11 @@ void setting_screen(void) {
 
     else if (mouseX >= backX && mouseX <= (backX + back_width) &&
         mouseY >= backY && mouseY <= backY + back_height) {
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Graphics_DrawRect(backX, backY, back_width, back_height);
+        CP_Settings_Fill(COLOR_WHITE);
+        CP_Settings_TextSize(50);
+        CP_Font_DrawText("BACK", 40.f, 60.f);
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
 
 
@@ -1534,25 +1619,50 @@ void help_screen3(void) {
     CP_Settings_Fill(COLOR_WHITE);
     CP_Graphics_DrawRect(10, 15, button_width, button_height);
     CP_Settings_Fill(COLOR_BLACK);
-    CP_Font_DrawText("EXIT", 20, button_height + 5);
+    CP_Font_DrawText("BACK", 20, button_height + 5);
+    CP_Settings_TextSize(50);
+
+    CP_Settings_Fill(COLOR_WHITE);
+    CP_Graphics_DrawRect(1750, 15, button_width, button_height);
+    CP_Settings_Fill(COLOR_BLACK);
+    CP_Font_DrawText("EXIT", 1755, button_height + 5);
     CP_Settings_TextSize(50);
     float mouseX = (float)CP_Input_GetMouseX();
     float mouseY = (float)CP_Input_GetMouseY();
 
-    if (mouseX >= 10 && mouseX <= (10 + button_width) && mouseY >= 15 && mouseY <= (15 + button_height)) {
+    if (mouseX >= 1750 && mouseX <= (1750 + button_width) && mouseY >= 15 && mouseY <= (15 + button_height)) {
 
         button_height = 60.f;
         button_width = 150.f;
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Graphics_DrawRect(1750, 15, button_width, button_height);
+        CP_Settings_Fill(COLOR_WHITE);
+        CP_Font_DrawText("EXIT", 1755, button_height + 5);
+        CP_Settings_TextSize(50);
+
+        if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
+            CP_Image_Free(&guide_image2);
+            if (Previous_Gamestate == SETTING_SCREEN) {
+                Current_Gamestate = SETTING_SCREEN;
+            }
+            else {
+                Current_Gamestate = GAMEPLAY_SCREEN;
+            }
+        }
+    }
+
+    if (mouseX >= 10 && mouseX <= (10 + button_width) && mouseY >= 15 && mouseY <= (15 + button_height)) {
 
         CP_Settings_Fill(COLOR_BLACK);
         CP_Graphics_DrawRect(10, 15, button_width, button_height);
-
         CP_Settings_Fill(COLOR_WHITE);
-        CP_Font_DrawText("EXIT", 20, button_height + 5);
+        CP_Font_DrawText("BACK", 20, button_height + 5);
         CP_Settings_TextSize(50);
+
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
-            CP_Image_Free(&guide_image3);
-            Current_Gamestate = GAMEPLAY_SCREEN;
+
+            CP_Image_Free(&guide_image2);
+            Current_Gamestate = HELP_SCREENP2;
         }
     }
 
