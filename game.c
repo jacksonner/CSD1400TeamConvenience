@@ -214,6 +214,11 @@ void healer_minion_basic_heal(int i);
 float healer_minion_basic_heals[MINION_MAX][2];
 int array_minion_lowest_hp[MINION_MAX];
 int healer_default_effect_size = 120;
+#define ALPHA 0
+#define R 1
+#define G 2
+#define B 3
+int array_alpha[MINION_MAX][4];
 
 /*checking surrounding squares for AOE attacks*/
 int array_enemy_to_attack[MINION_MAX][ENEMY_MAX];
@@ -3202,6 +3207,7 @@ int find_full_hp(int n) {
 void render_minion_special_attack() {
     float tank_minion_effect_lasts = 0.4f;
     float healer_minion_effect_lasts = 0.4f;
+    float wizard_minion_effect_lasts = 0.4f;
     for (int i = 0; i < minion_count; i++) {
         if (array_MinionStats[i][MINION_TYPE] == TANK_MINION) {
             if (array_minion_attack_time[i][CHECKER] == TRUE && array_minion_attack_time[i][EFFECT_TIMER] < tank_minion_effect_lasts) {
@@ -3235,6 +3241,37 @@ void render_minion_special_attack() {
                 array_minion_attack_time[i][CHECKER] = FALSE;
                 array_minion_attack_time[i][EFFECT_TIMER] = 0; //pretty sure this is redundant lol
                 array_minion_effect[i] = (float)healer_default_effect_size;
+            }
+        }
+        else if (array_MinionStats[i][MINION_TYPE] == WIZARD_MINION) {
+            if (array_minion_attack_time[i][CHECKER] == TRUE && array_minion_attack_time[i][EFFECT_TIMER] < wizard_minion_effect_lasts) {
+                if (gIsPaused == FALSE) {
+                    array_minion_effect[i] -= 2;
+                    array_alpha[i][ALPHA] += 5;
+                    array_alpha[i][G] += 10;
+                    array_alpha[i][B] += 10;
+                    if (array_alpha[i][ALPHA] > 255) {
+                        array_alpha[i][ALPHA] = 255;
+                    }
+                    if (array_alpha[i][G] > 255) {
+                        array_alpha[i][G] = 255;
+                    }
+                    if (array_alpha[i][B] > 255) {
+                        array_alpha[i][B] = 255;
+                    }
+                }
+                for (int t = 0; t < ENEMY_MAX; t++) {
+                    if (array_enemy_to_attack[i][t] == 1 && array_EnemyStats[t][ENEMY_HP] > 0) {
+                        CP_Settings_Stroke(CP_Color_Create(array_alpha[i][R], array_alpha[i][G], array_alpha[i][B], array_alpha[i][ALPHA]));
+                        CP_Settings_Fill(CP_Color_Create(array_alpha[i][R], array_alpha[i][G], array_alpha[i][B], array_alpha[i][ALPHA]));
+                        CP_Graphics_DrawCircle((float)array_EnemyStats[t][ENEMY_ROW_COORDINATES], (float)array_EnemyStats[t][ENEMY_COL_COORDINATES], array_minion_effect[i]);
+                        CP_Settings_Stroke(COLOR_BLACK);
+                    }
+                }
+            }
+            else if (array_minion_attack_time[i][EFFECT_TIMER] >= wizard_minion_effect_lasts) {
+                array_minion_attack_time[i][CHECKER] = FALSE;
+                array_minion_attack_time[i][EFFECT_TIMER] = 0; //pretty sure this is redundant lol
             }
         }
     }
@@ -3272,17 +3309,40 @@ void minion_special_attack(int i, int current_row, int current_col) {
                     }
                 }
             }
+            if (should_tank_attack == 0) {
+                array_MinionCurrentCharge[i][MINION_CURRENT_CHARGE] = array_MinionCurrentCharge[i][MINION_CHARGE_TIME];
+            }
         }
         else if (array_MinionStats[i][MINION_TYPE] == WIZARD_MINION) {
+            int should_wizard_attack = 0;
             minion_attacking_towers(i, current_row, current_col, wizard_range);
             for (int t = 0; t < ENEMY_MAX; t++) {
                 if (array_enemy_to_attack[i][t] == 1) {
-                    array_EnemyStats[t][ENEMY_HP] -= 30;
-                    if (array_EnemyStats[t][ENEMY_HP] <= 0) {
-                        money += 25;
-                        array_enemy_death_timer[t][ENEMY_DEATH_TIMER] = 0;
+                    should_wizard_attack++;
+                }
+            }
+            if (should_wizard_attack > 0) { //there is something to attack
+                array_alpha[i][ALPHA] = 140;
+                array_alpha[i][R] = 0;
+                array_alpha[i][G] = 0;
+                array_alpha[i][B] = 153;
+                array_minion_effect[i] = 65; //PAY ATTENTION
+
+                array_minion_attack_time[i][CHECKER] = TRUE;
+                array_minion_attack_time[i][EFFECT_TIMER] = 0;
+                for (int t = 0; t < ENEMY_MAX; t++) {
+                    if (array_enemy_to_attack[i][t] == 1) {
+                        array_EnemyStats[t][ENEMY_HP] -= 30;
+                        if (array_EnemyStats[t][ENEMY_HP] <= 0) {
+                            money += 25;
+                            array_enemy_death_timer[t][ENEMY_DEATH_TIMER] = 0;
+                        }
                     }
                 }
+                array_MinionCurrentCharge[i][MINION_CURRENT_CHARGE] = 0;
+            }
+            else if (should_wizard_attack == 0) {
+                array_MinionCurrentCharge[i][MINION_CURRENT_CHARGE] = array_MinionCurrentCharge[i][MINION_CHARGE_TIME];
             }
         }
         else if (array_MinionStats[i][MINION_TYPE] == HEALER_MINION) {
@@ -3304,8 +3364,9 @@ void minion_special_attack(int i, int current_row, int current_col) {
                     }
                 }
             }
+            array_MinionCurrentCharge[i][MINION_CURRENT_CHARGE] = 0;
         }
-        array_MinionCurrentCharge[i][MINION_CURRENT_CHARGE] = 0;
+        //array_MinionCurrentCharge[i][MINION_CURRENT_CHARGE] = 0;
     }
 }
 
