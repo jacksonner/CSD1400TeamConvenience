@@ -3292,6 +3292,11 @@ void render_minion_special_attack() {
                         CP_Settings_Stroke(COLOR_BLACK);
                     }
                 }
+                CP_Settings_Stroke(CP_Color_Create(0, 0, 153, 140));
+                CP_Settings_Fill(CP_Color_Create(0, 0, 153, 100));
+                CP_Graphics_DrawCircle((float)array_MinionStats[i][X], (float)array_MinionStats[i][Y], (float)array_MinionStats[i][MINION_SIZE]);
+                CP_Settings_Stroke(COLOR_BLACK);
+                
             }
             else if (array_minion_attack_time[i][EFFECT_TIMER] >= wizard_minion_effect_lasts) {
                 array_minion_attack_time[i][CHECKER] = FALSE;
