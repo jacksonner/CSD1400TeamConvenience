@@ -446,12 +446,12 @@ void game_update(void) {
         draw_timer_and_pause_button();
         display_money_counter();
         render_enemy();
-        /*
+        
         if (CP_Input_KeyTriggered(KEY_1))
         {
             money += 1000;
         }
-        */
+        
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
         {
             setting_screen_clicked(CP_Input_GetMouseX(), CP_Input_GetMouseY());
@@ -2687,19 +2687,20 @@ void move_minion() {
                                 }
                             }
                             */
-                            if (array_MinionStats[i][MINION_HP] <= 0) { //if minion dies
-                                array_EnemyStats[correct_enemy][ENEMY_CURRENT_MINIONS_ON_BLOCK] -= array_MinionStats[i][MINION_WEIGHT];
-                                if (array_isMinionBlocked[correct_enemy][i + 1] == 1) {
-                                    array_isMinionBlocked[correct_enemy][i] = 1;
-                                }
-                                else {
-                                    array_isMinionBlocked[correct_enemy][i] = 0;
-                                }
-                            }
+                            
                         }
                     }
-                }
-            }
+                    if (array_MinionStats[i][MINION_HP] <= 0 && array_isMinionBlocked[correct_enemy][i] == 1) { //if minion dies
+                        array_EnemyStats[correct_enemy][ENEMY_CURRENT_MINIONS_ON_BLOCK] -= array_MinionStats[i][MINION_WEIGHT];
+                        if (array_isMinionBlocked[correct_enemy][i + 1] == 1) {
+                            array_isMinionBlocked[correct_enemy][i] = 1;
+                        }
+                        else {
+                            array_isMinionBlocked[correct_enemy][i] = 0;
+                        }
+                    }
+                } 
+            } 
         }
         if (array_MinionStats[i][MINION_DIRECTION] == UP || array_MinionStats[i][MINION_DIRECTION] == DOWN) {
             array_MinionStats[i][X] = array_MinionStats[i][X];
@@ -3038,12 +3039,15 @@ void minion_dies_array_recycle(int dead_minion_number) {
     int array_Temp_isMinionSlowed[ENEMY_MAX][MINION_MAX][2] = { 0 };
     float array_Temp_minion_attack_time[MINION_MAX][2] = { 0 };
     float array_Temp_healer_minion_basic_heals[MINION_MAX][2] = { 0 };
+    float array_Temp_minion_effect[MINION_MAX] = { 0 };
     //int array_Temp_isMinionBlocked[ENEMY_MAX][MINION_MAX] = { 0 };
 
+    //make it so no enemy is targetting this number first
     for (int i = 0; i < ENEMY_MAX; i++) {
         array_isMinionAttacked[i][dead_minion_number] = 0;
     }
     //
+    
     for (int i = 0; i < dead_minion_number; i++) {
         for (int j = 0; j < 2; j++) {
             array_Temp_minion_attack_time[i][j] = array_minion_attack_time[i][j];
@@ -3066,6 +3070,9 @@ void minion_dies_array_recycle(int dead_minion_number) {
                 array_Temp_isMinionSlowed[k][i][j] = array_isMinionSlowed[k][i][j];
             }
         }
+    }
+    for (int i = 0; i < dead_minion_number; i++) {
+        array_Temp_minion_effect[i] = array_minion_effect[i];
     }
     //
     int dead_min_num = dead_minion_number;
@@ -3095,6 +3102,10 @@ void minion_dies_array_recycle(int dead_minion_number) {
             array_Temp_healer_minion_basic_heals[dead_min_num][j] = healer_minion_basic_heals[dead_min_num][j];
         }
     }
+    dead_min_num = dead_minion_number;
+    for (int k = (dead_min_num + 1); k <= minion_count; k++, dead_min_num++) {
+        array_Temp_minion_effect[dead_min_num] = array_minion_effect[k];
+    }
 
     //Now we update the original array with the stored values
     for (int h = 0; h < minion_count; h++) {
@@ -3120,6 +3131,9 @@ void minion_dies_array_recycle(int dead_minion_number) {
             healer_minion_basic_heals[i][j] = array_Temp_healer_minion_basic_heals[i][j];
             
         }
+    }
+    for (int i = 0; i < dead_minion_number; i++) {
+        array_minion_effect[i] = array_Temp_minion_effect[i];
     }
     //very inefficient but i hope this works
     for (int i = 0; i < minion_count; i++) {
