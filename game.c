@@ -233,6 +233,9 @@ void display_restart_button(void); //found in gameplay_screen
 /*Win Condition Related*/
 void render_win_progress();
 
+/*hover effect*/
+void enemy_info(void);
+
 /**/
 #define FALSE 0
 #define TRUE 1
@@ -446,6 +449,7 @@ void game_update(void) {
         draw_timer_and_pause_button();
         display_money_counter();
         render_enemy();
+        enemy_info();
         
         if (CP_Input_KeyTriggered(KEY_1))
         {
@@ -663,6 +667,40 @@ void game_exit(void) {
 }
 
 /*FUNCTIONS START HERE*/
+void enemy_info(void) {
+
+    float mouseX = CP_Input_GetMouseX();
+    float mouseY = CP_Input_GetMouseY();
+    for (int row = 0; row < MAP_GRID_ROWS; ++row) {
+        for (int col = 0; col < MAP_GRID_COLS; ++col) {
+            if ((int)mouseX >= col * BLOCK_SIZE && (int)mouseX <= col * BLOCK_SIZE + BLOCK_SIZE &&
+                (int)mouseY >= row * BLOCK_SIZE && (int)mouseY <= row * BLOCK_SIZE + BLOCK_SIZE) {
+                if (array_GameMap[row][col] == BLOCK_ENEMY || array_GameMap[row][col] == BLOCK_TOWER_ENEMY) {
+                    CP_Settings_Fill(COLOR_WHITE);
+                    CP_Graphics_DrawRect(col * (float)BLOCK_SIZE + 85, row * (float)BLOCK_SIZE + 20, 100.f, 50.f);
+                    CP_Settings_TextSize(35);
+                    CP_Settings_Fill(COLOR_BLACK);
+                //    for (int i = 0; i < ENEMY_MAX; ++i) {
+                        int i = check_which_enemy(row, col);
+                        if (array_EnemyStats[i][ENEMY_TYPE] == GUARD_ENEMY) {
+                            CP_Font_DrawText("BLOCK", col * (float)BLOCK_SIZE + 90, row * (float)BLOCK_SIZE + 60);
+                        }
+                        else if (array_EnemyStats[i][ENEMY_TYPE] == RANGED_TOWER) {
+                            CP_Font_DrawText("AOE", col * (float)BLOCK_SIZE + 90, row * (float)BLOCK_SIZE + 60);
+                        }
+                        else if (array_EnemyStats[i][ENEMY_TYPE] == SLOW_ENEMY) {
+                            CP_Font_DrawText("SLOW", col * (float)BLOCK_SIZE + 90, row * (float)BLOCK_SIZE + 60);
+                        }
+                        else if (array_EnemyStats[i][ENEMY_TYPE] == HEALING_TOWER) {
+                            CP_Font_DrawText("HEAL", col * (float)BLOCK_SIZE + 90, row * (float)BLOCK_SIZE + 60);
+                        }
+                    
+
+                }
+            }
+        }
+    }
+}
 
 
 
