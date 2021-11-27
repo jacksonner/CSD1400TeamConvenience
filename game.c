@@ -603,7 +603,6 @@ void game_update(void) {
                 Current_Gamestate = LOSE_SCREEN;
             }
             projectile_logic();
-            projectile_move(8, 0);
             projectile_render();
             printf("Minion : %f and %f\n", (float)array_target[0][0][X], (float)array_target[0][0][Y]);
             printf("Projectile : %f and %f\n", (float)projectile[8][0][X], (float)projectile[8][0][Y]);
@@ -1880,6 +1879,7 @@ void restart_level(void) {
     //l_time = 0;
     for (int i = 0; i < ENEMY_MAX; i++) {
         l_time[i] = 0;
+
         for (int x = 0; x < PROJ_MAX; x++)
         {
             projectile[i][x][X] = (float)array_EnemyStats[i][ENEMY_ROW_COORDINATES];
@@ -2350,7 +2350,7 @@ void projectile_logic() {
                                             //array_target[which_enemy][i][X] = array_MinionStats[attacked_minion][X];
                                             //array_target[which_enemy][i][Y] = array_MinionStats[attacked_minion][Y];
 
-                                            //projectile_move(which_enemy, i);
+                                            projectile_move(which_enemy, i);
                                             proj_count++;
                                             fire_timer[which_enemy] = 0.0f;
                                         //}
@@ -2452,7 +2452,7 @@ void projectile_render() {
     
     for (int which_enemy = 0; which_enemy < ENEMY_MAX; which_enemy++) {
         for (int i = 0; i < PROJ_MAX; i++) {
-            if (in_range[which_enemy] == 1) {
+            if (in_range[which_enemy] == 1 && proj_count > 0) {
                 CP_Settings_Fill(COLOR_GREEN);
                 CP_Graphics_DrawRect(projectile[which_enemy][i][X], projectile[which_enemy][i][Y], PROJ_SIZE, PROJ_SIZE);
             }
