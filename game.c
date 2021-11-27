@@ -446,10 +446,12 @@ void game_update(void) {
         draw_timer_and_pause_button();
         display_money_counter();
         render_enemy();
+        /*
         if (CP_Input_KeyTriggered(KEY_1))
         {
             money += 1000;
         }
+        */
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
         {
             setting_screen_clicked(CP_Input_GetMouseX(), CP_Input_GetMouseY());
@@ -1758,10 +1760,15 @@ void quit_screen(void) {
 
 
     /*options text*/
-    CP_Settings_TextSize(60);
+    CP_Settings_TextSize(75);
+    CP_Settings_Fill(TRANSLUCENT_WHITE);
+    CP_Font_DrawText("Are you sure you want to quit?", option_textX - 40, option_textY * 3 - 120);
+    CP_Settings_TextSize(75);
     CP_Settings_Fill(COLOR_BLACK);
-    CP_Font_DrawText("I'M SORRY", option_textX, option_textY * 3 + 20);
-    CP_Font_DrawText("YUP", option_textX * 2, option_textY * 3 + 20);
+    CP_Font_DrawText("Are you sure you want to quit?", option_textX - 41, option_textY * 3 - 120);
+    CP_Settings_TextSize(60);
+    CP_Font_DrawText("No", option_textX, option_textY * 3 + 20);
+    CP_Font_DrawText("Yes", option_textX * 2, option_textY * 3 + 20);
 
     float mouseX = (float)CP_Input_GetMouseX();
     float mouseY = (float)CP_Input_GetMouseY();
@@ -1771,7 +1778,7 @@ void quit_screen(void) {
         CP_Settings_Fill(COLOR_BLACK);
         CP_Graphics_DrawRect(startX, startY * 3, button_width, button_height);
         CP_Settings_Fill(COLOR_WHITE);
-        CP_Font_DrawText("I'M SORRY", option_textX, option_textY * 3 + 20);
+        CP_Font_DrawText(":D", option_textX, option_textY * 3 + 20);
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
 
             CP_Image_Free(&quit_image);
@@ -1784,7 +1791,7 @@ void quit_screen(void) {
         CP_Settings_Fill(COLOR_BLACK);
         CP_Graphics_DrawRect(startX * 2, startY * 3, button_width, button_height);
         CP_Settings_Fill(COLOR_WHITE);
-        CP_Font_DrawText("YUP", option_textX * 2, option_textY * 3 + 20);
+        CP_Font_DrawText("Yes", option_textX * 2, option_textY * 3 + 20);
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
 
             CP_Image_Free(&quit_image);
