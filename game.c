@@ -1962,7 +1962,7 @@ void restart_level(void) {
     gIsPaused = FALSE;
     minions_in_base = 0;
     initialise_pause_and_timer_button();
-    money = 60;
+    money = 80;
     elapsed_timer = 0;
     elapsed_timer2 = 0;
     proj_count = 0;
@@ -2034,11 +2034,11 @@ void gameplay_screen() {
             : i == 1
             ? "60"
             : i == 2
-            ? "120"
+            ? "110"
             : i == 3
-            ? "160"
+            ? "130"
             : i == 4
-            ? "160"
+            ? "150"
             : "ERROR")
             , (float)minion_boxX + 90, minion_costboxY + 32);
     }
@@ -2068,17 +2068,17 @@ void gameplay_screen_clicked(float x, float y) {
 
         }
         else if (x >= (origin_first_boxX + 2 * minion_buttons_width) && x < (origin_first_boxX + 3 * minion_buttons_width)) { //Create Tank Minion
-            if (money >= 120 && minion_count < MINION_MAX)
+            if (money >= 110 && minion_count < MINION_MAX)
             {
-                money -= 120;
+                money -= 110;
                 array_MinionStats[minion_count][MINION_TYPE] = TANK_MINION;
                 assign_minion_stats(); //maybe can throw this function call in render_minion
             }
         }
         else if (x >= (origin_first_boxX + 3 * minion_buttons_width) && x < (origin_first_boxX + 4 * minion_buttons_width)) { //Create Wizard Minion
-            if (money >= 160 && minion_count < MINION_MAX)
+            if (money >= 130 && minion_count < MINION_MAX)
             {
-                money -= 160;
+                money -= 130;
                 array_MinionStats[minion_count][MINION_TYPE] = WIZARD_MINION;
                 assign_minion_stats(); //maybe can throw this function call in render_minion
             }
