@@ -602,7 +602,7 @@ void game_update(void) {
                 money += 10;
                 elapsed_timer2 -= 2;
             }
-            snprintf(buffer, sizeof(buffer), "%d", (90 - (int)elapsed_timer));
+            snprintf(buffer, sizeof(buffer), "%d", (120 - (int)elapsed_timer));
             if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
                 gameplay_screen_clicked(CP_Input_GetMouseX(), CP_Input_GetMouseY());
             }
@@ -620,7 +620,7 @@ void game_update(void) {
             render_enemy_death_comeback_bar();
             bring_back_enemy();
             
-            if ((int)elapsed_timer == 90)
+            if ((int)elapsed_timer == 120)
             {
                 Current_Gamestate = LOSE_SCREEN;
             }
@@ -3691,7 +3691,7 @@ void assign_minion_stats() {
     if (array_MinionStats[minion_count][MINION_TYPE] == WIZARD_MINION) {
         array_MinionStats[minion_count][MINION_HP] = 80;
         array_MinionStats[minion_count][MINION_MOVEMENT_SPEED] = 4;
-        array_MinionStats[minion_count][MINION_ATTACK] = 4;
+        array_MinionStats[minion_count][MINION_ATTACK] = 10;
         array_MinionStats[minion_count][MINION_ATTACK_SPEED] = 2;
         array_MinionStats[minion_count][MINION_WEIGHT] = 1;
         array_MinionStats[minion_count][MINION_COST] = 160;
