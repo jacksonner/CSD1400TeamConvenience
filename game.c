@@ -3404,17 +3404,8 @@ void minion_special_attack(int i, int current_row, int current_col) {
     int tank_range = 2, wizard_range = 3;
     if (array_MinionCurrentCharge[i][MINION_CURRENT_CHARGE] >= array_MinionCurrentCharge[i][MINION_CHARGE_TIME]) {
         if (array_MinionStats[i][MINION_TYPE] == TANK_MINION) { //restores HP and attack tower
-            int should_tank_attack = 0;
             int full_hp = find_full_hp(i);
-            minion_attacking_towers(i, current_row, current_col, tank_range);
-            for (int t = 0; t < ENEMY_MAX; t++) {
-                if (array_enemy_to_attack[i][t] == 1) {
-                    should_tank_attack++;
-                }
-            }
-            if (array_MinionStats[i][MINION_HP] != full_hp || should_tank_attack > 0) {
-                array_minion_attack_time[i][CHECKER] = TRUE;
-                array_minion_attack_time[i][EFFECT_TIMER] = 0;
+            if (array_MinionStats[i][MINION_HP] != full_hp) {
                 array_minion_effect[i] = (float)array_MinionStats[i][MINION_SIZE];
                 if (array_MinionStats[i][MINION_HP] < 205) {
                     array_MinionStats[i][MINION_HP] += 35;
@@ -3422,19 +3413,21 @@ void minion_special_attack(int i, int current_row, int current_col) {
                 else {
                     array_MinionStats[i][MINION_HP] = full_hp;
                 }
-                for (int t = 0; t < ENEMY_MAX; t++) {
-                    if (array_enemy_to_attack[i][t] == 1) {
-                        array_EnemyStats[t][ENEMY_HP] -= 8;
-                        if (array_EnemyStats[t][ENEMY_HP] <= 0) {
-                            money += 25;
-                            array_enemy_death_timer[t][ENEMY_DEATH_TIMER] = 0;
-                        }
+            }
+            minion_attacking_towers(i, current_row, current_col, tank_range);
+            for (int t = 0; t < ENEMY_MAX; t++) {
+                if (array_enemy_to_attack[i][t] == 1) {
+                    array_EnemyStats[t][ENEMY_HP] -= 8;
+                    if (array_EnemyStats[t][ENEMY_HP] <= 0) {
+                        money += 25;
+                        array_enemy_death_timer[t][ENEMY_DEATH_TIMER] = 0;
+                            
                     }
                 }
             }
-            if (should_tank_attack == 0) {
-                array_MinionCurrentCharge[i][MINION_CURRENT_CHARGE] = array_MinionCurrentCharge[i][MINION_CHARGE_TIME];
-            }
+            array_minion_attack_time[i][CHECKER] = TRUE;
+            array_minion_attack_time[i][EFFECT_TIMER] = 0;
+            array_MinionCurrentCharge[i][MINION_CURRENT_CHARGE] = 0;
         }
         else if (array_MinionStats[i][MINION_TYPE] == WIZARD_MINION) {
             int should_wizard_attack = 0;
@@ -3786,7 +3779,7 @@ void assign_enemy_stats() {
         }
         if (array_EnemyStats[i][ENEMY_TYPE] == RANGED_TOWER) {
             array_EnemyStats[i][ENEMY_HP] = 110;
-            array_EnemyStats[i][ENEMY_ATTACK] = 7;
+            array_EnemyStats[i][ENEMY_ATTACK] = 8;
             array_EnemyStats[i][ENEMY_ATTACK_SPEED] = 3;
             array_EnemyStats[i][ENEMY_BLOCK] = 2;
             array_EnemyStats[i][ENEMY_SIZE] = BLOCK_SIZE / 2;
