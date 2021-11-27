@@ -536,6 +536,7 @@ void game_update(void) {
                     CP_Font_DrawText("MAIN MENU", option_textX, option_textY * 3 + 20);
                     if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
                         Current_Gamestate = MAIN_MENU_SCREEN;
+                        setting_popup = FALSE;
                     }
                 }
 
@@ -548,6 +549,7 @@ void game_update(void) {
                     CP_Font_DrawText("LEVEL", option_textX, option_textY * 4);
                     if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
                         Current_Gamestate = LEVEL_SELECTOR_SCREEN;
+                        setting_popup = FALSE;
                     }
                 }
                 else if (mouseX >= startX * 2 && mouseX <= (startX * 2 + button_width) &&
@@ -559,6 +561,7 @@ void game_update(void) {
                     CP_Font_DrawText("HELP", option_textX * 2, option_textY * 3 + 20);
                     if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
                         Current_Gamestate = HELP_SCREEN;
+                        setting_popup = FALSE;
                     }
                 }
 
@@ -571,6 +574,7 @@ void game_update(void) {
                     CP_Font_DrawText("QUIT", option_textX * 2, option_textY * 4);
                     if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
                         Current_Gamestate = QUIT_SCREEN;
+                        setting_popup = FALSE;
                     }
                 }
                 else   if (mouseX >= backX && mouseX <= (backX + back_width) &&
