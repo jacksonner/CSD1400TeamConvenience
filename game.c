@@ -708,7 +708,7 @@ void minion_info(void) {
     float minion_costbox_height = 50;
     //CP_Graphics_DrawRect((float)minion_boxX, minion_costboxY, (float)minion_buttons_width, minion_costbox_height);
     if (mouseX >= (float)minion_boxX && mouseX <= (float)minion_boxX + minion_buttons_width &&
-        mouseY >= minion_costboxY  && mouseY <= minion_costboxY + minion_costbox_height) {
+        mouseY >= minion_costboxY - 100 && mouseY <= minion_costboxY + minion_costbox_height) {
         CP_Settings_Fill(COLOR_WHITE);
         CP_Graphics_DrawRect((float)minion_boxX + 55, minion_costboxY - 150, 120.f, 50.f);
         CP_Settings_TextSize(35);
@@ -716,7 +716,7 @@ void minion_info(void) {
         CP_Font_DrawText("HEALER", (float)minion_boxX + 60, minion_costboxY - 110);
     }
     else if (mouseX >= (float)minion_boxX - minion_buttons_width && mouseX <= (float)minion_boxX &&
-        mouseY >= minion_costboxY && mouseY <= minion_costboxY + minion_costbox_height) {
+        mouseY >= minion_costboxY - 100 && mouseY <= minion_costboxY + minion_costbox_height) {
         CP_Settings_Fill(COLOR_WHITE);
         CP_Graphics_DrawRect((float)minion_boxX + 55 - minion_buttons_width, minion_costboxY - 150, 120.f, 50.f);
         CP_Settings_TextSize(35);
@@ -724,7 +724,7 @@ void minion_info(void) {
         CP_Font_DrawText("WIZARD", (float)minion_boxX + 60 - minion_buttons_width, minion_costboxY - 110);
     }
     else if (mouseX >= (float)minion_boxX - minion_buttons_width * 2 && mouseX <= (float)minion_boxX - minion_buttons_width &&
-        mouseY >= minion_costboxY && mouseY <= minion_costboxY + minion_costbox_height) {
+        mouseY >= minion_costboxY - 100 && mouseY <= minion_costboxY + minion_costbox_height) {
         CP_Settings_Fill(COLOR_WHITE);
         CP_Graphics_DrawRect((float)minion_boxX + 55 - minion_buttons_width * 2, minion_costboxY - 150, 120.f, 50.f);
         CP_Settings_TextSize(35);
@@ -732,7 +732,7 @@ void minion_info(void) {
         CP_Font_DrawText("TANK", (float)minion_boxX + 70 - minion_buttons_width * 2, minion_costboxY - 110);
     }
     else if (mouseX >= (float)minion_boxX - minion_buttons_width * 3 && mouseX <= (float)minion_boxX - minion_buttons_width * 2 &&
-        mouseY >= minion_costboxY && mouseY <= minion_costboxY + minion_costbox_height) {
+        mouseY >= minion_costboxY - 100 && mouseY <= minion_costboxY + minion_costbox_height) {
         CP_Settings_Fill(COLOR_WHITE);
         CP_Graphics_DrawRect((float)minion_boxX + 55 - minion_buttons_width * 3, minion_costboxY - 150, 140.f, 50.f);
         CP_Settings_TextSize(35);
@@ -740,7 +740,7 @@ void minion_info(void) {
         CP_Font_DrawText("WARRIOR", (float)minion_boxX + 60 - minion_buttons_width * 3, minion_costboxY - 110);
     }
     else if (mouseX >= (float)minion_boxX - minion_buttons_width * 4 && mouseX <= (float)minion_boxX - minion_buttons_width * 3 &&
-        mouseY >= minion_costboxY && mouseY <= minion_costboxY + minion_costbox_height) {
+        mouseY >= minion_costboxY - 100 && mouseY <= minion_costboxY + minion_costbox_height) {
         CP_Settings_Fill(COLOR_WHITE);
         CP_Graphics_DrawRect((float)minion_boxX + 55 - minion_buttons_width * 4, minion_costboxY - 150, 120.f, 50.f);
         CP_Settings_TextSize(35);
