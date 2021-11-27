@@ -235,6 +235,7 @@ void render_win_progress();
 
 /*hover effect*/
 void enemy_info(void);
+void minion_info(void);
 
 /**/
 #define FALSE 0
@@ -450,6 +451,7 @@ void game_update(void) {
         display_money_counter();
         render_enemy();
         enemy_info();
+        minion_info();
         
         if (CP_Input_KeyTriggered(KEY_1))
         {
@@ -680,7 +682,6 @@ void enemy_info(void) {
                     CP_Graphics_DrawRect(col * (float)BLOCK_SIZE + 85, row * (float)BLOCK_SIZE + 20, 100.f, 50.f);
                     CP_Settings_TextSize(35);
                     CP_Settings_Fill(COLOR_BLACK);
-                //    for (int i = 0; i < ENEMY_MAX; ++i) {
                         int i = check_which_enemy(row, col);
                         if (array_EnemyStats[i][ENEMY_TYPE] == GUARD_ENEMY) {
                             CP_Font_DrawText("BLOCK", col * (float)BLOCK_SIZE + 90, row * (float)BLOCK_SIZE + 60);
@@ -694,11 +695,57 @@ void enemy_info(void) {
                         else if (array_EnemyStats[i][ENEMY_TYPE] == HEALING_TOWER) {
                             CP_Font_DrawText("HEAL", col * (float)BLOCK_SIZE + 90, row * (float)BLOCK_SIZE + 60);
                         }
-                    
-
                 }
             }
         }
+    }
+}
+
+void minion_info(void) {
+    float mouseX = CP_Input_GetMouseX();
+    float mouseY = CP_Input_GetMouseY();
+    float minion_costboxY = (float)minion_boxY + 100.f;
+    float minion_costbox_height = 50;
+    //CP_Graphics_DrawRect((float)minion_boxX, minion_costboxY, (float)minion_buttons_width, minion_costbox_height);
+    if (mouseX >= (float)minion_boxX && mouseX <= (float)minion_boxX + minion_buttons_width &&
+        mouseY >= minion_costboxY  && mouseY <= minion_costboxY + minion_costbox_height) {
+        CP_Settings_Fill(COLOR_WHITE);
+        CP_Graphics_DrawRect((float)minion_boxX + 55, minion_costboxY - 150, 120.f, 50.f);
+        CP_Settings_TextSize(35);
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Font_DrawText("HEALER", (float)minion_boxX + 60, minion_costboxY - 110);
+    }
+    else if (mouseX >= (float)minion_boxX - minion_buttons_width && mouseX <= (float)minion_boxX &&
+        mouseY >= minion_costboxY && mouseY <= minion_costboxY + minion_costbox_height) {
+        CP_Settings_Fill(COLOR_WHITE);
+        CP_Graphics_DrawRect((float)minion_boxX + 55 - minion_buttons_width, minion_costboxY - 150, 120.f, 50.f);
+        CP_Settings_TextSize(35);
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Font_DrawText("WIZARD", (float)minion_boxX + 60 - minion_buttons_width, minion_costboxY - 110);
+    }
+    else if (mouseX >= (float)minion_boxX - minion_buttons_width * 2 && mouseX <= (float)minion_boxX - minion_buttons_width &&
+        mouseY >= minion_costboxY && mouseY <= minion_costboxY + minion_costbox_height) {
+        CP_Settings_Fill(COLOR_WHITE);
+        CP_Graphics_DrawRect((float)minion_boxX + 55 - minion_buttons_width * 2, minion_costboxY - 150, 120.f, 50.f);
+        CP_Settings_TextSize(35);
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Font_DrawText("TANK", (float)minion_boxX + 70 - minion_buttons_width * 2, minion_costboxY - 110);
+    }
+    else if (mouseX >= (float)minion_boxX - minion_buttons_width * 3 && mouseX <= (float)minion_boxX - minion_buttons_width * 2 &&
+        mouseY >= minion_costboxY && mouseY <= minion_costboxY + minion_costbox_height) {
+        CP_Settings_Fill(COLOR_WHITE);
+        CP_Graphics_DrawRect((float)minion_boxX + 55 - minion_buttons_width * 3, minion_costboxY - 150, 140.f, 50.f);
+        CP_Settings_TextSize(35);
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Font_DrawText("WARRIOR", (float)minion_boxX + 60 - minion_buttons_width * 3, minion_costboxY - 110);
+    }
+    else if (mouseX >= (float)minion_boxX - minion_buttons_width * 4 && mouseX <= (float)minion_boxX - minion_buttons_width * 3 &&
+        mouseY >= minion_costboxY && mouseY <= minion_costboxY + minion_costbox_height) {
+        CP_Settings_Fill(COLOR_WHITE);
+        CP_Graphics_DrawRect((float)minion_boxX + 55 - minion_buttons_width * 4, minion_costboxY - 150, 120.f, 50.f);
+        CP_Settings_TextSize(35);
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Font_DrawText("SCOUT", (float)minion_boxX + 70 - minion_buttons_width * 4, minion_costboxY - 110);
     }
 }
 
