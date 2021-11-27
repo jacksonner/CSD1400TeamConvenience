@@ -3466,7 +3466,7 @@ void minion_special_attack(int i, int current_row, int current_col) {
                 array_minion_attack_time[i][EFFECT_TIMER] = 0;
                 for (int t = 0; t < ENEMY_MAX; t++) {
                     if (array_enemy_to_attack[i][t] == 1) {
-                        array_EnemyStats[t][ENEMY_HP] -= 30;
+                        array_EnemyStats[t][ENEMY_HP] -= 35;
                         if (array_EnemyStats[t][ENEMY_HP] <= 0) {
                             money += 25;
                             array_enemy_death_timer[t][ENEMY_DEATH_TIMER] = 0;
@@ -3691,7 +3691,7 @@ void assign_minion_stats() {
     if (array_MinionStats[minion_count][MINION_TYPE] == WIZARD_MINION) {
         array_MinionStats[minion_count][MINION_HP] = 80;
         array_MinionStats[minion_count][MINION_MOVEMENT_SPEED] = 4;
-        array_MinionStats[minion_count][MINION_ATTACK] = 10;
+        array_MinionStats[minion_count][MINION_ATTACK] = 4;
         array_MinionStats[minion_count][MINION_ATTACK_SPEED] = 2;
         array_MinionStats[minion_count][MINION_WEIGHT] = 1;
         array_MinionStats[minion_count][MINION_COST] = 160;
