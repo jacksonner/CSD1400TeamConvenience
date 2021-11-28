@@ -446,12 +446,12 @@ void game_update(void) {
         draw_timer_and_pause_button();
         display_money_counter();
         render_enemy();
-        
+        /*
         if (CP_Input_KeyTriggered(KEY_1))
         {
             money += 1000;
         }
-        
+        */
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
         {
             setting_screen_clicked(CP_Input_GetMouseX(), CP_Input_GetMouseY());
@@ -2032,7 +2032,7 @@ void gameplay_screen() {
             : i == 2
             ? "120"
             : i == 3
-            ? "160"
+            ? "150"
             : i == 4
             ? "160"
             : "ERROR")
@@ -2072,9 +2072,9 @@ void gameplay_screen_clicked(float x, float y) {
             }
         }
         else if (x >= (origin_first_boxX + 3 * minion_buttons_width) && x < (origin_first_boxX + 4 * minion_buttons_width)) { //Create Wizard Minion
-            if (money >= 160 && minion_count < MINION_MAX)
+            if (money >= 150 && minion_count < MINION_MAX)
             {
-                money -= 160;
+                money -= 150;
                 array_MinionStats[minion_count][MINION_TYPE] = WIZARD_MINION;
                 assign_minion_stats(); //maybe can throw this function call in render_minion
             }
@@ -3256,7 +3256,7 @@ void renderguardhp_bar(int i) {
 
 void render_special_current_charge() {
     for (int i = 0; i < MINION_MAX; i++) {
-        if (array_MinionStats[i][MINION_TYPE] != SPAM_MINION && array_MinionStats[i][MINION_TYPE]  != WARRIOR_MINION) {
+        if (array_MinionStats[i][MINION_TYPE] != SPAM_MINION && array_MinionStats[i][MINION_TYPE] != WARRIOR_MINION) {
             //ADDED THE != WARRIOR_MINION
             int buffer_space = 0;
             float charge_percentage;
@@ -3690,7 +3690,7 @@ void assign_minion_stats() {
         array_MinionStats[minion_count][MINION_ATTACK] = 4;
         array_MinionStats[minion_count][MINION_ATTACK_SPEED] = 2;
         array_MinionStats[minion_count][MINION_WEIGHT] = 1;
-        array_MinionStats[minion_count][MINION_COST] = 160;
+        array_MinionStats[minion_count][MINION_COST] = 150;
         array_MinionStats[minion_count][MINION_SIZE] = 70;
         array_MinionCurrentCharge[minion_count][MINION_CHARGE_TIME] = 4;
         array_MinionCurrentCharge[minion_count][MINION_BASIC_ATTACK_SPEED] = 0.8f;
@@ -3793,7 +3793,7 @@ void assign_enemy_stats() {
         }
         if (array_EnemyStats[i][ENEMY_TYPE] == RANGED_TOWER) {
             array_EnemyStats[i][ENEMY_HP] = 110;
-            array_EnemyStats[i][ENEMY_ATTACK] = 8;
+            array_EnemyStats[i][ENEMY_ATTACK] = 7;
             array_EnemyStats[i][ENEMY_ATTACK_SPEED] = 3;
             array_EnemyStats[i][ENEMY_BLOCK] = 2;
             array_EnemyStats[i][ENEMY_SIZE] = BLOCK_SIZE / 2;
