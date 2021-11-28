@@ -233,6 +233,10 @@ void display_restart_button(void); //found in gameplay_screen
 /*Win Condition Related*/
 void render_win_progress();
 
+/*hover effect*/
+void enemy_info(void);
+void minion_info(void);
+
 /**/
 #define FALSE 0
 #define TRUE 1
@@ -446,7 +450,9 @@ void game_update(void) {
         draw_timer_and_pause_button();
         display_money_counter();
         render_enemy();
-        /*
+        enemy_info();
+        minion_info();
+        
         if (CP_Input_KeyTriggered(KEY_1))
         {
             money += 1000;
@@ -536,6 +542,7 @@ void game_update(void) {
                     CP_Font_DrawText("MAIN MENU", option_textX, option_textY * 3 + 20);
                     if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
                         Current_Gamestate = MAIN_MENU_SCREEN;
+                        setting_popup = FALSE;
                     }
                 }
 
@@ -548,6 +555,7 @@ void game_update(void) {
                     CP_Font_DrawText("LEVEL", option_textX, option_textY * 4);
                     if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
                         Current_Gamestate = LEVEL_SELECTOR_SCREEN;
+                        setting_popup = FALSE;
                     }
                 }
                 else if (mouseX >= startX * 2 && mouseX <= (startX * 2 + button_width) &&
@@ -559,6 +567,7 @@ void game_update(void) {
                     CP_Font_DrawText("HELP", option_textX * 2, option_textY * 3 + 20);
                     if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
                         Current_Gamestate = HELP_SCREEN;
+                        setting_popup = FALSE;
                     }
                 }
 
@@ -571,6 +580,7 @@ void game_update(void) {
                     CP_Font_DrawText("QUIT", option_textX * 2, option_textY * 4);
                     if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
                         Current_Gamestate = QUIT_SCREEN;
+                        setting_popup = FALSE;
                     }
                 }
                 else   if (mouseX >= backX && mouseX <= (backX + back_width) &&
@@ -598,7 +608,7 @@ void game_update(void) {
                 money += 10;
                 elapsed_timer2 -= 2;
             }
-            snprintf(buffer, sizeof(buffer), "%d", (90 - (int)elapsed_timer));
+            snprintf(buffer, sizeof(buffer), "%d", (120 - (int)elapsed_timer));
             if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
                 gameplay_screen_clicked(CP_Input_GetMouseX(), CP_Input_GetMouseY());
             }
@@ -616,7 +626,7 @@ void game_update(void) {
             render_enemy_death_comeback_bar();
             bring_back_enemy();
             
-            if ((int)elapsed_timer == 90)
+            if ((int)elapsed_timer == 120)
             {
                 Current_Gamestate = LOSE_SCREEN;
             }
@@ -659,6 +669,85 @@ void game_exit(void) {
 }
 
 /*FUNCTIONS START HERE*/
+void enemy_info(void) {
+
+    float mouseX = CP_Input_GetMouseX();
+    float mouseY = CP_Input_GetMouseY();
+    for (int row = 0; row < MAP_GRID_ROWS; ++row) {
+        for (int col = 0; col < MAP_GRID_COLS; ++col) {
+            if ((int)mouseX >= col * BLOCK_SIZE && (int)mouseX <= col * BLOCK_SIZE + BLOCK_SIZE &&
+                (int)mouseY >= row * BLOCK_SIZE && (int)mouseY <= row * BLOCK_SIZE + BLOCK_SIZE) {
+                if (array_GameMap[row][col] == BLOCK_ENEMY || array_GameMap[row][col] == BLOCK_TOWER_ENEMY) {
+                    CP_Settings_Fill(COLOR_WHITE);
+                    CP_Graphics_DrawRect(col * (float)BLOCK_SIZE + 85, row * (float)BLOCK_SIZE + 20, 100.f, 50.f);
+                    CP_Settings_TextSize(35);
+                    CP_Settings_Fill(COLOR_BLACK);
+                        int i = check_which_enemy(row, col);
+                        if (array_EnemyStats[i][ENEMY_TYPE] == GUARD_ENEMY) {
+                            CP_Font_DrawText("BLOCK", col * (float)BLOCK_SIZE + 90, row * (float)BLOCK_SIZE + 60);
+                        }
+                        else if (array_EnemyStats[i][ENEMY_TYPE] == RANGED_TOWER) {
+                            CP_Font_DrawText("AOE", col * (float)BLOCK_SIZE + 90, row * (float)BLOCK_SIZE + 60);
+                        }
+                        else if (array_EnemyStats[i][ENEMY_TYPE] == SLOW_ENEMY) {
+                            CP_Font_DrawText("SLOW", col * (float)BLOCK_SIZE + 90, row * (float)BLOCK_SIZE + 60);
+                        }
+                        else if (array_EnemyStats[i][ENEMY_TYPE] == HEALING_TOWER) {
+                            CP_Font_DrawText("HEAL", col * (float)BLOCK_SIZE + 90, row * (float)BLOCK_SIZE + 60);
+                        }
+                }
+            }
+        }
+    }
+}
+
+void minion_info(void) {
+    float mouseX = CP_Input_GetMouseX();
+    float mouseY = CP_Input_GetMouseY();
+    float minion_costboxY = (float)minion_boxY + 100.f;
+    float minion_costbox_height = 50;
+    //CP_Graphics_DrawRect((float)minion_boxX, minion_costboxY, (float)minion_buttons_width, minion_costbox_height);
+    if (mouseX >= (float)minion_boxX && mouseX <= (float)minion_boxX + minion_buttons_width &&
+        mouseY >= minion_costboxY - 100 && mouseY <= minion_costboxY + minion_costbox_height) {
+        CP_Settings_Fill(COLOR_WHITE);
+        CP_Graphics_DrawRect((float)minion_boxX + 55, minion_costboxY - 150, 120.f, 50.f);
+        CP_Settings_TextSize(35);
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Font_DrawText("HEALER", (float)minion_boxX + 60, minion_costboxY - 110);
+    }
+    else if (mouseX >= (float)minion_boxX - minion_buttons_width && mouseX <= (float)minion_boxX &&
+        mouseY >= minion_costboxY - 100 && mouseY <= minion_costboxY + minion_costbox_height) {
+        CP_Settings_Fill(COLOR_WHITE);
+        CP_Graphics_DrawRect((float)minion_boxX + 55 - minion_buttons_width, minion_costboxY - 150, 120.f, 50.f);
+        CP_Settings_TextSize(35);
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Font_DrawText("WIZARD", (float)minion_boxX + 60 - minion_buttons_width, minion_costboxY - 110);
+    }
+    else if (mouseX >= (float)minion_boxX - minion_buttons_width * 2 && mouseX <= (float)minion_boxX - minion_buttons_width &&
+        mouseY >= minion_costboxY - 100 && mouseY <= minion_costboxY + minion_costbox_height) {
+        CP_Settings_Fill(COLOR_WHITE);
+        CP_Graphics_DrawRect((float)minion_boxX + 55 - minion_buttons_width * 2, minion_costboxY - 150, 120.f, 50.f);
+        CP_Settings_TextSize(35);
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Font_DrawText("TANK", (float)minion_boxX + 70 - minion_buttons_width * 2, minion_costboxY - 110);
+    }
+    else if (mouseX >= (float)minion_boxX - minion_buttons_width * 3 && mouseX <= (float)minion_boxX - minion_buttons_width * 2 &&
+        mouseY >= minion_costboxY - 100 && mouseY <= minion_costboxY + minion_costbox_height) {
+        CP_Settings_Fill(COLOR_WHITE);
+        CP_Graphics_DrawRect((float)minion_boxX + 55 - minion_buttons_width * 3, minion_costboxY - 150, 140.f, 50.f);
+        CP_Settings_TextSize(35);
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Font_DrawText("WARRIOR", (float)minion_boxX + 60 - minion_buttons_width * 3, minion_costboxY - 110);
+    }
+    else if (mouseX >= (float)minion_boxX - minion_buttons_width * 4 && mouseX <= (float)minion_boxX - minion_buttons_width * 3 &&
+        mouseY >= minion_costboxY - 100 && mouseY <= minion_costboxY + minion_costbox_height) {
+        CP_Settings_Fill(COLOR_WHITE);
+        CP_Graphics_DrawRect((float)minion_boxX + 55 - minion_buttons_width * 4, minion_costboxY - 150, 120.f, 50.f);
+        CP_Settings_TextSize(35);
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Font_DrawText("SCOUT", (float)minion_boxX + 70 - minion_buttons_width * 4, minion_costboxY - 110);
+    }
+}
 
 
 
@@ -1958,7 +2047,7 @@ void restart_level(void) {
     gIsPaused = FALSE;
     minions_in_base = 0;
     initialise_pause_and_timer_button();
-    money = 60;
+    money = 80;
     elapsed_timer = 0;
     elapsed_timer2 = 0;
     proj_count = 0;
@@ -2030,11 +2119,11 @@ void gameplay_screen() {
             : i == 1
             ? "60"
             : i == 2
-            ? "120"
+            ? "110"
             : i == 3
-            ? "150"
+            ? "130"
             : i == 4
-            ? "160"
+            ? "150"
             : "ERROR")
             , (float)minion_boxX + 90, minion_costboxY + 32);
     }
@@ -2064,17 +2153,17 @@ void gameplay_screen_clicked(float x, float y) {
 
         }
         else if (x >= (origin_first_boxX + 2 * minion_buttons_width) && x < (origin_first_boxX + 3 * minion_buttons_width)) { //Create Tank Minion
-            if (money >= 120 && minion_count < MINION_MAX)
+            if (money >= 110 && minion_count < MINION_MAX)
             {
-                money -= 120;
+                money -= 110;
                 array_MinionStats[minion_count][MINION_TYPE] = TANK_MINION;
                 assign_minion_stats(); //maybe can throw this function call in render_minion
             }
         }
         else if (x >= (origin_first_boxX + 3 * minion_buttons_width) && x < (origin_first_boxX + 4 * minion_buttons_width)) { //Create Wizard Minion
-            if (money >= 150 && minion_count < MINION_MAX)
+            if (money >= 130 && minion_count < MINION_MAX)
             {
-                money -= 150;
+                money -= 130;
                 array_MinionStats[minion_count][MINION_TYPE] = WIZARD_MINION;
                 assign_minion_stats(); //maybe can throw this function call in render_minion
             }
@@ -3462,7 +3551,7 @@ void minion_special_attack(int i, int current_row, int current_col) {
                 array_minion_attack_time[i][EFFECT_TIMER] = 0;
                 for (int t = 0; t < ENEMY_MAX; t++) {
                     if (array_enemy_to_attack[i][t] == 1) {
-                        array_EnemyStats[t][ENEMY_HP] -= 30;
+                        array_EnemyStats[t][ENEMY_HP] -= 35;
                         if (array_EnemyStats[t][ENEMY_HP] <= 0) {
                             money += 25;
                             array_enemy_death_timer[t][ENEMY_DEATH_TIMER] = 0;
