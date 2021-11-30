@@ -113,7 +113,7 @@ void render_minion_special_attack(void);
                                //limited range BUT higher damage //targets towers
 #define HEALER_MINION 4 //decent health, no attack, heal other minions, relatively ex
 
-/*All Sprite Images*/
+/*All Sprite Images + Block Images*/
 static CP_Image spam_minion;
 static CP_Image warrior_minion;
 static CP_Image tank_minion;
@@ -128,6 +128,12 @@ static CP_Image guard_enemy;
 static CP_Image slow_tower;
 static CP_Image healing_tower;
 static CP_Image ranged_tower;
+static CP_Image empty_block;
+static CP_Image spawn_block;
+static CP_Image base_block0;
+static CP_Image base_block1;
+static CP_Image base_block2;
+static CP_Image base_block3;
 void load_all_sprites(void);
 void render_minion_sprite(int minion);
 void free_all_sprites(void);
@@ -252,6 +258,9 @@ void restart_level();
 void display_restart_button(void); //found in gameplay_screen
 
 /*Win Condition Related*/
+/*Counter for no. of Minions who entered the base*/
+int minions_in_base;
+void minion_enter_base_counter(void);
 void render_win_progress();
 
 /*hover effect*/
@@ -262,14 +271,6 @@ void minion_info(void);
 #define FALSE 0
 #define TRUE 1
 int level_has_been_reset; //checks if level has reset so stats won't constantly be reassigned making the enemies immortal
-
-/*Counter for no. of Minions who entered the base*/
-int minions_in_base;
-void minion_enter_base_counter(void);
-/*
-char base_counter[10];
-//void display_minion_eneter_base_counter(void);
-*/
 
 /*Levels*/
 void level_1(void);
@@ -2416,7 +2417,36 @@ void render_background() {
                 : array_GameMap[row][col] == BLOCK_TELEPORTER
                 ? COLOR_DULLER_BLUE
                 : COLOR_GREY); //BLOCK_ENEMY
-            CP_Graphics_DrawRect((float)BlockPositionX, (float)BlockPositionY, (float)BLOCK_SIZE, (float)BLOCK_SIZE);
+            if (array_GameMap[row][col] == BLOCK_SPAWN) {
+                CP_Settings_ImageMode(CP_POSITION_CORNER);
+                CP_Image_Draw(spawn_block, (float)BlockPositionX, (float)BlockPositionY, (float)BLOCK_SIZE, (float)BLOCK_SIZE, 255);
+                CP_Settings_ImageMode(CP_POSITION_CENTER);
+            }
+            else if (array_GameMap[row][col] == BLOCK_END) {
+                CP_Settings_ImageMode(CP_POSITION_CORNER);
+                if (minions_in_base <= 2) {
+                    CP_Image_Draw(base_block0, (float)BlockPositionX, (float)BlockPositionY, (float)BLOCK_SIZE, (float)BLOCK_SIZE, 255);
+                }
+                else if (minions_in_base > 2 && minions_in_base <= 5) {
+                    CP_Image_Draw(base_block1, (float)BlockPositionX, (float)BlockPositionY, (float)BLOCK_SIZE, (float)BLOCK_SIZE, 255);
+                }
+                else if (minions_in_base > 5 && minions_in_base <= 8) {
+                    CP_Image_Draw(base_block2, (float)BlockPositionX, (float)BlockPositionY, (float)BLOCK_SIZE, (float)BLOCK_SIZE, 255);
+                }
+                else if (minions_in_base == 9) {
+                    CP_Image_Draw(base_block3, (float)BlockPositionX, (float)BlockPositionY, (float)BLOCK_SIZE, (float)BLOCK_SIZE, 255);
+                }
+                
+                CP_Settings_ImageMode(CP_POSITION_CENTER);
+            }
+            else if (array_GameMap[row][col] != BLOCK_EMPTY && array_GameMap[row][col] != BLOCK_ENEMY && array_GameMap[row][col] != BLOCK_ENEMY_DEAD) {
+                CP_Graphics_DrawRect((float)BlockPositionX, (float)BlockPositionY, (float)BLOCK_SIZE, (float)BLOCK_SIZE);
+            }
+            else {
+                CP_Settings_ImageMode(CP_POSITION_CORNER);
+                CP_Image_Draw(empty_block, (float)BlockPositionX, (float)BlockPositionY, (float)BLOCK_SIZE, (float)BLOCK_SIZE, 255);
+                CP_Settings_ImageMode(CP_POSITION_CENTER);
+            }
         }
     }
 }
@@ -2854,6 +2884,13 @@ void load_all_sprites(void) {
     slow_tower = CP_Image_Load("./Assets/sprites/slow_tower_image.png");
     healing_tower = CP_Image_Load("./Assets/sprites/healing_tower_image.png");
     ranged_tower = CP_Image_Load("./Assets/sprites/ranged_tower_image.png");
+
+    empty_block = CP_Image_Load("./Assets/sprites/empty_block_image.png");
+    spawn_block = CP_Image_Load("./Assets/sprites/spawn_block_image.png");
+    base_block0 = CP_Image_Load("./Assets/sprites/base/base_image.png");
+    base_block1 = CP_Image_Load("./Assets/sprites/base/base_image1.png");
+    base_block2 = CP_Image_Load("./Assets/sprites/base/base_image2.png");
+    base_block3 = CP_Image_Load("./Assets/sprites/base/base_image3.png");
 }
 
 void free_all_sprites(void) {
@@ -2873,6 +2910,13 @@ void free_all_sprites(void) {
     CP_Image_Free(&slow_tower);
     CP_Image_Free(&healing_tower);
     CP_Image_Free(&ranged_tower);
+
+    CP_Image_Free(&empty_block);
+    CP_Image_Free(&spawn_block);
+    CP_Image_Free(&base_block0);
+    CP_Image_Free(&base_block1);
+    CP_Image_Free(&base_block2);
+    CP_Image_Free(&base_block3);
 }
 
 void render_minion_sprite(int minion) {
