@@ -203,6 +203,7 @@ int is_minion_being_attacked(int enemy, int minion);
 #define HELP_SCREENP3 9
 #define QUIT_SCREEN 10
 #define CREDIT_SCREEN 11
+#define CREDIT_SCREENP2 12
 int Current_Gamestate;
 
 /*render HP bar for minions*/
@@ -388,8 +389,10 @@ CP_Image Win_Screen = NULL;
 void credit_screen(void);
 void credit_screen_clicked(float x, float y);
 CP_Image Credit_Screen = NULL;
+CP_Image Credit_Screen2 = NULL;
 float creditbackX, creditbackY, creditX, creditY;
 float credit_textX, credit_textY;
+void credit_screen2(void);
 
 /*Level Selector Screen*/
 void level_selector_screen(void);
@@ -451,7 +454,7 @@ void game_init(void) {
     Current_Gamestate = MAIN_MENU_SCREEN;
 
     current_level = 1;
-    
+
     /* get dt, time elapsed from last frame*/
     currentElapsedTime = CP_System_GetDt();
 
@@ -646,7 +649,7 @@ void game_update(void) {
             }
             render_enemy_death_comeback_bar();
             bring_back_enemy();
-            
+
             if ((int)elapsed_timer == 120)
             {
                 Current_Gamestate = LOSE_SCREEN;
@@ -681,10 +684,13 @@ void game_update(void) {
         help_screen3();
     }
     else if (Current_Gamestate == QUIT_SCREEN) {
-    quit_screen();
+        quit_screen();
     }
     else if (Current_Gamestate == CREDIT_SCREEN) {
-    credit_screen();
+        credit_screen();
+    }
+    else if (Current_Gamestate == CREDIT_SCREENP2) {
+    credit_screen2();
     }
 }
 
@@ -706,19 +712,19 @@ void enemy_info(void) {
                     CP_Graphics_DrawRect(col * (float)BLOCK_SIZE + 85, row * (float)BLOCK_SIZE + 20, 100.f, 50.f);
                     CP_Settings_TextSize(35);
                     CP_Settings_Fill(COLOR_BLACK);
-                        int i = check_which_enemy(row, col);
-                        if (array_EnemyStats[i][ENEMY_TYPE] == GUARD_ENEMY) {
-                            CP_Font_DrawText("BLOCK", col * (float)BLOCK_SIZE + 90, row * (float)BLOCK_SIZE + 60);
-                        }
-                        else if (array_EnemyStats[i][ENEMY_TYPE] == RANGED_TOWER) {
-                            CP_Font_DrawText("AOE", col * (float)BLOCK_SIZE + 90, row * (float)BLOCK_SIZE + 60);
-                        }
-                        else if (array_EnemyStats[i][ENEMY_TYPE] == SLOW_ENEMY) {
-                            CP_Font_DrawText("SLOW", col * (float)BLOCK_SIZE + 90, row * (float)BLOCK_SIZE + 60);
-                        }
-                        else if (array_EnemyStats[i][ENEMY_TYPE] == HEALING_TOWER) {
-                            CP_Font_DrawText("HEAL", col * (float)BLOCK_SIZE + 90, row * (float)BLOCK_SIZE + 60);
-                        }
+                    int i = check_which_enemy(row, col);
+                    if (array_EnemyStats[i][ENEMY_TYPE] == GUARD_ENEMY) {
+                        CP_Font_DrawText("BLOCK", col * (float)BLOCK_SIZE + 90, row * (float)BLOCK_SIZE + 60);
+                    }
+                    else if (array_EnemyStats[i][ENEMY_TYPE] == RANGED_TOWER) {
+                        CP_Font_DrawText("AOE", col * (float)BLOCK_SIZE + 90, row * (float)BLOCK_SIZE + 60);
+                    }
+                    else if (array_EnemyStats[i][ENEMY_TYPE] == SLOW_ENEMY) {
+                        CP_Font_DrawText("SLOW", col * (float)BLOCK_SIZE + 90, row * (float)BLOCK_SIZE + 60);
+                    }
+                    else if (array_EnemyStats[i][ENEMY_TYPE] == HEALING_TOWER) {
+                        CP_Font_DrawText("HEAL", col * (float)BLOCK_SIZE + 90, row * (float)BLOCK_SIZE + 60);
+                    }
                 }
             }
         }
@@ -876,11 +882,11 @@ void main_menu_clicked(float x, float y) {
         // Free image /
         CP_Image_Free(&main_menu_image);
 
-            // initialise for gameplay screen /
-                minion_count = 0;
-            restart_level();
-            gIsPaused = FALSE;
-            minions_in_base = 0; //Part of minion counter which has been commented out
+        // initialise for gameplay screen /
+        minion_count = 0;
+        restart_level();
+        gIsPaused = FALSE;
+        minions_in_base = 0; //Part of minion counter which has been commented out
 
         initialise_pause_and_timer_button();
     }
@@ -1952,6 +1958,11 @@ void credit_screen(void) {
     CP_Settings_Fill(COLOR_BLACK);
     CP_Font_DrawText("BACK", 20, button_height + 5);
     CP_Settings_TextSize(50);
+    CP_Settings_Fill(COLOR_WHITE);
+    CP_Graphics_DrawRect(1750, 15, button_width, button_height);
+    CP_Settings_Fill(COLOR_BLACK);
+    CP_Font_DrawText("NEXT", 1780, button_height + 5);
+    CP_Settings_TextSize(50);
     if (mouseX >= 10 && mouseX <= (10 + button_width) && mouseY >= 15 && mouseY <= (15 + button_height)) {
 
         CP_Settings_Fill(COLOR_BLACK);
@@ -1959,13 +1970,60 @@ void credit_screen(void) {
         CP_Settings_Fill(COLOR_WHITE);
         CP_Font_DrawText("BACK", 20, button_height + 5);
         CP_Settings_TextSize(50);
-
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
             CP_Image_Free(&Credit_Screen);
             Current_Gamestate = MAIN_MENU_SCREEN;
         }
     }
+    if (mouseX >= 1750 && mouseX <= (1750 + button_width) && mouseY >= 15 && mouseY <= (15 + button_height)) {
 
+        button_height = 60.f;
+        button_width = 150.f;
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Graphics_DrawRect(1750, 15, button_width, button_height);
+        CP_Settings_Fill(COLOR_WHITE);
+        CP_Font_DrawText("NEXT", 1780, button_height + 5);
+        CP_Settings_TextSize(50);
+
+        if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
+            CP_Image_Free(&Credit_Screen);
+            Current_Gamestate = CREDIT_SCREENP2;
+        }
+    }
+
+}
+void credit_screen2(void) {
+
+    float mouseX = (float)CP_Input_GetMouseX();
+    float mouseY = (float)CP_Input_GetMouseY();
+    float width = (float)CP_System_GetWindowWidth();
+    float height = (float)CP_System_GetWindowHeight();
+    /*Load Image*/
+    Credit_Screen2 = CP_Image_Load("./Assets/Credit_Screen2.jpg");
+    CP_Image_Draw(Credit_Screen2, width / 2, height / 2, width, height, 255);
+    button_height = 60.f;
+    button_width = 150.f;
+    CP_Settings_Fill(COLOR_WHITE);
+    CP_Graphics_DrawRect(1750, 15, button_width, button_height);
+    CP_Settings_Fill(COLOR_BLACK);
+    CP_Font_DrawText("EXIT", 1780, button_height + 5);
+    CP_Settings_TextSize(50);
+
+    if (mouseX >= 1750 && mouseX <= (1750 + button_width) && mouseY >= 15 && mouseY <= (15 + button_height)) {
+
+        button_height = 60.f;
+        button_width = 150.f;
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Graphics_DrawRect(1750, 15, button_width, button_height);
+        CP_Settings_Fill(COLOR_WHITE);
+        CP_Font_DrawText("EXIT", 1780, button_height + 5);
+        CP_Settings_TextSize(50);
+
+        if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
+            CP_Image_Free(&Credit_Screen2);
+            Current_Gamestate = MAIN_MENU_SCREEN;
+        }
+    }
 }
 
 void credit_screen_clicked(float x, float y) {
@@ -1976,7 +2034,6 @@ void credit_screen_clicked(float x, float y) {
             Previous_Gamestate = MAIN_MENU_SCREEN;
         }
     }
-
 }
 
 /*Updates the new origin depending on what the full screen size is*/
@@ -2387,8 +2444,8 @@ void setup_teleport_diffusion_map() {
             for (int col = 0; col < MAP_GRID_COLS; ++col) {
                 if (array_Teleport_DiffusionMap[row][col][1] == TRUE) { //value has been set in stone yay
                     if ((col - 1) >= 0 && array_Teleport_DiffusionMap[row][col - 1][1] == FALSE) {
-                        if (array_GameMap[row][col - 1] == BLOCK_EMPTY || array_GameMap[row][col - 1] == BLOCK_ENEMY 
-                            || array_GameMap[row][col - 1] ==  BLOCK_ENEMY_DEAD) {
+                        if (array_GameMap[row][col - 1] == BLOCK_EMPTY || array_GameMap[row][col - 1] == BLOCK_ENEMY
+                            || array_GameMap[row][col - 1] == BLOCK_ENEMY_DEAD) {
                             array_Teleport_DiffusionMap[row][col - 1][0] = array_Teleport_DiffusionMap[row][col][0] / 2;
                             array_Teleport_DiffusionMap[row][col - 1][1] = TRUE;
                         }
@@ -2945,7 +3002,7 @@ void move_minion() {
                                 }
                             }
                             */
-                            
+
                         }
                     }
                     if (array_MinionStats[i][MINION_HP] <= 0 && array_isMinionBlocked[correct_enemy][i] == 1) { //if minion dies
@@ -2957,8 +3014,8 @@ void move_minion() {
                             array_isMinionBlocked[correct_enemy][i] = 0;
                         }
                     }
-                } 
-            } 
+                }
+            }
         }
         if (array_MinionStats[i][MINION_DIRECTION] == UP || array_MinionStats[i][MINION_DIRECTION] == DOWN) {
             array_MinionStats[i][X] = array_MinionStats[i][X];
@@ -3170,7 +3227,7 @@ void render_special_effect_enemy(int i) {
                     if (array_isMinionSlowed[i][j][0] != TRUE) {
                         array_isMinionSlowed[i][j][1] = array_MinionStats[j][MINION_MOVEMENT_SPEED];
                     }
-                    array_MinionStats[j][MINION_MOVEMENT_SPEED] = find_minion_original_speed(j)/3;
+                    array_MinionStats[j][MINION_MOVEMENT_SPEED] = find_minion_original_speed(j) / 3;
                     array_isMinionSlowed[i][j][0] = TRUE;
                 }
                 //Minion no longer in range
@@ -3306,7 +3363,7 @@ void minion_dies_array_recycle(int dead_minion_number) {
         array_isMinionAttacked[i][dead_minion_number] = 0;
     }
     //
-    
+
     for (int i = 0; i < dead_minion_number; i++) {
         for (int j = 0; j < 2; j++) {
             array_Temp_minion_attack_time[i][j] = array_minion_attack_time[i][j];
@@ -3388,7 +3445,7 @@ void minion_dies_array_recycle(int dead_minion_number) {
         for (int j = 0; j < 2; j++) {
             array_minion_attack_time[i][j] = array_Temp_minion_attack_time[i][j];
             healer_minion_basic_heals[i][j] = array_Temp_healer_minion_basic_heals[i][j];
-            
+
         }
     }
     for (int i = 0; i < dead_minion_number; i++) {
@@ -3660,6 +3717,7 @@ void render_minion_special_attack() {
                     }
                 }
                 CP_Settings_Stroke(COLOR_BLACK);
+                
             }
             else if (array_minion_attack_time[i][EFFECT_TIMER] >= wizard_minion_effect_lasts) {
                 array_minion_attack_time[i][CHECKER] = FALSE;
@@ -3690,7 +3748,7 @@ void minion_special_attack(int i, int current_row, int current_col) {
                     if (array_EnemyStats[t][ENEMY_HP] <= 0) {
                         money += 25;
                         array_enemy_death_timer[t][ENEMY_DEATH_TIMER] = 0;
-                            
+
                     }
                 }
             }
@@ -3983,22 +4041,22 @@ void assign_enemy_color(int i) {
 }
 
 /*probably going to be removed in the final product*/
-void assign_minion_color(int i) { 
-        if (array_MinionStats[i][MINION_TYPE] == SPAM_MINION) {
-            CP_Settings_Fill(COLOR_BLUE);
-        }
-        else if (array_MinionStats[i][MINION_TYPE] == WARRIOR_MINION) {
-            CP_Settings_Fill(COLOR_YELLOW);
-        }
-        else if (array_MinionStats[i][MINION_TYPE] == TANK_MINION) {
-            CP_Settings_Fill(COLOR_BROWN);
-        }
-        else if (array_MinionStats[i][MINION_TYPE] == WIZARD_MINION) {
-            CP_Settings_Fill(COLOR_CYAN);
-        }
-        else if (array_MinionStats[i][MINION_TYPE] == HEALER_MINION) {
-            CP_Settings_Fill(COLOR_HEALER_GREEN);
-        }
+void assign_minion_color(int i) {
+    if (array_MinionStats[i][MINION_TYPE] == SPAM_MINION) {
+        CP_Settings_Fill(COLOR_BLUE);
+    }
+    else if (array_MinionStats[i][MINION_TYPE] == WARRIOR_MINION) {
+        CP_Settings_Fill(COLOR_YELLOW);
+    }
+    else if (array_MinionStats[i][MINION_TYPE] == TANK_MINION) {
+        CP_Settings_Fill(COLOR_BROWN);
+    }
+    else if (array_MinionStats[i][MINION_TYPE] == WIZARD_MINION) {
+        CP_Settings_Fill(COLOR_CYAN);
+    }
+    else if (array_MinionStats[i][MINION_TYPE] == HEALER_MINION) {
+        CP_Settings_Fill(COLOR_HEALER_GREEN);
+    }
 }
 
 void assign_enemy_stats() {
@@ -4073,7 +4131,7 @@ void assign_enemy_stats() {
 void level_1() {
     array_GameMap[0][11] = BLOCK_SPAWN;
     array_GameMap[0][1] = BLOCK_END;
-    
+
     array_GameMap[2][0] = BLOCK_PRESENT;
     array_GameMap[4][0] = BLOCK_PRESENT;
     array_GameMap[3][0] = BLOCK_PRESENT;
@@ -4092,7 +4150,7 @@ void level_1() {
     array_GameMap[0][10] = BLOCK_PRESENT;
     array_GameMap[1][10] = BLOCK_PRESENT;
     array_GameMap[3][10] = BLOCK_PRESENT;
-    
+
     array_GameMap[4][2] = BLOCK_ENEMY;
     array_EnemyStats[1][ENEMY_ROW] = 4;
     array_EnemyStats[1][ENEMY_COL] = 2;
@@ -4136,7 +4194,7 @@ void level_1() {
     array_EnemyStats[8][ENEMY_COL] = 10;
     //array_EnemyStats[8][ENEMY_TYPE] = DAMAGE_ENEMY;
     array_EnemyStats[8][ENEMY_TYPE] = RANGED_TOWER;
-    
+
     initial_direction = DOWN;
     level_has_teleporter = FALSE;
 }
@@ -4345,7 +4403,7 @@ void level_4() {
     array_EnemyStats[4][ENEMY_ROW] = 4;
     array_EnemyStats[4][ENEMY_COL] = 9;
     //array_EnemyStats[4][ENEMY_TYPE] = DAMAGE_ENEMY;
-    array_EnemyStats[4][ENEMY_TYPE] = RANGED_TOWER ;
+    array_EnemyStats[4][ENEMY_TYPE] = RANGED_TOWER;
 
     array_GameMap[2][2] = BLOCK_ENEMY;
     array_EnemyStats[5][ENEMY_ROW] = 2;
@@ -4373,7 +4431,7 @@ void level_4() {
     array_EnemyStats[9][ENEMY_COL] = 4;
     //array_EnemyStats[9][ENEMY_TYPE] = DAMAGE_ENEMY;
     array_EnemyStats[9][ENEMY_TYPE] = RANGED_TOWER;
-    
+
     initial_direction = UP;
 
     /*Using Teleporter*/
@@ -4552,7 +4610,7 @@ void level_6() {
     level_has_teleporter = TRUE;
     array_GameMap[4][0] = BLOCK_TELEPORTER;
     array_GameMap[0][11] = BLOCK_TELEPORT_SPAWN;
-    
+
     initial_direction = RIGHT;
     /*placeholders, please change everything*/
 }
