@@ -492,8 +492,7 @@ void game_update(void) {
         }
         if (gIsPaused == TRUE) {
             for (int i = 0; i < minion_count; i++) {
-                assign_minion_color(i);
-                CP_Graphics_DrawCircle((float)array_MinionStats[i][X], (float)array_MinionStats[i][Y], (float)array_MinionStats[i][MINION_SIZE]); 
+                render_minion_sprite(i);
             }
             renderminionhp_bar();
             render_special_current_charge();
