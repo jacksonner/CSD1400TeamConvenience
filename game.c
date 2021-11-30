@@ -188,6 +188,7 @@ int is_minion_being_attacked(int enemy, int minion);
 #define HELP_SCREENP2 8
 #define HELP_SCREENP3 9
 #define QUIT_SCREEN 10
+#define CREDIT_SCREEN 11
 int Current_Gamestate;
 
 /*render HP bar for minions*/
@@ -369,6 +370,13 @@ float restart_loseX, restart_loseY, main_loseX, main_loseY;
 float restart_textX, restart_textY, main_textX, main_textY;
 CP_Image Win_Screen = NULL;
 
+/*Credit Screen*/
+void credit_screen(void);
+void credit_screen_clicked(float x, float y);
+CP_Image Credit_Screen = NULL;
+float creditbackX, creditbackY, creditX, creditY;
+float credit_textX, credit_textY;
+
 /*Level Selector Screen*/
 void level_selector_screen(void);
 float level1X, level1Y, level1_textX, level1_textY;
@@ -457,7 +465,7 @@ void game_update(void) {
         {
             money += 1000;
         }
-        */
+        
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
         {
             setting_screen_clicked(CP_Input_GetMouseX(), CP_Input_GetMouseY());
@@ -662,6 +670,9 @@ void game_update(void) {
     else if (Current_Gamestate == QUIT_SCREEN) {
     quit_screen();
     }
+    else if (Current_Gamestate == CREDIT_SCREEN) {
+    credit_screen();
+    }
 }
 
 void game_exit(void) {
@@ -778,6 +789,9 @@ void main_menu_screen(void) {
     setting_height = 60.f;
     setting_width = 240.f;
     CP_Graphics_DrawRect(settingX, settingY, setting_width, setting_height);
+    creditX = 130;
+    creditY = 1000.f;
+    CP_Graphics_DrawRect(creditX, creditY, setting_width, setting_height);
     /* Now Text */
     CP_Settings_TextSize(80);
     CP_Settings_Fill(COLOR_BLACK);
@@ -787,10 +801,13 @@ void main_menu_screen(void) {
     levels_textY = level_selectorY + 80;
     setting_textX = settingX + 40;
     setting_textY = settingY + 40;
+    credit_textX = creditX + 40;
+    credit_textY = creditY + 40;
     CP_Font_DrawText("START", start_textX, start_textY);
     CP_Font_DrawText("LEVELS", levels_textX, levels_textY);
     CP_Settings_TextSize(40);
     CP_Font_DrawText("SETTING", setting_textX, setting_textY);
+    CP_Font_DrawText("CREDITS", credit_textX, credit_textY);
 
     float mouseX = (float)CP_Input_GetMouseX();
     float mouseY = (float)CP_Input_GetMouseY();
@@ -820,6 +837,16 @@ void main_menu_screen(void) {
         CP_Settings_Fill(COLOR_WHITE);
         CP_Settings_TextSize(40);
         CP_Font_DrawText("SETTING", setting_textX, setting_textY);
+    }
+
+    if (mouseX >= creditX && mouseX <= (creditX + button_width) &&
+        mouseY >= creditY && mouseY <= creditY + button_height) {
+
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Graphics_DrawRect(creditX, creditY, setting_width, setting_height);
+        CP_Settings_Fill(COLOR_WHITE);
+        CP_Settings_TextSize(40);
+        CP_Font_DrawText("CREDITS", credit_textX, credit_textY);
     }
 
 }
@@ -860,6 +887,13 @@ void main_menu_clicked(float x, float y) {
     else if (x >= settingX && x <= (settingX + setting_width) &&
         y >= settingY && settingY <= settingY + setting_height) {
         Current_Gamestate = SETTING_SCREEN;
+        Previous_Gamestate = MAIN_MENU_SCREEN;
+    }
+
+    // Credit button clicked /
+    else if (x >= creditX && x <= (creditX + button_width) &&
+        y >= creditY && y <= creditY + button_height) {
+        Current_Gamestate = CREDIT_SCREEN;
         Previous_Gamestate = MAIN_MENU_SCREEN;
     }
 
@@ -1891,6 +1925,50 @@ void quit_screen(void) {
 
 }
 
+void credit_screen(void) {
+
+    float mouseX = (float)CP_Input_GetMouseX();
+    float mouseY = (float)CP_Input_GetMouseY();
+    float width = (float)CP_System_GetWindowWidth();
+    float height = (float)CP_System_GetWindowHeight();
+    /*Load Image*/
+    Credit_Screen = CP_Image_Load("./Assets/Credit_Screen.jpg");
+    CP_Image_Draw(Credit_Screen, width / 2, height / 2, width, height, 255);
+    button_height = 60.f;
+    button_width = 150.f;
+    CP_Settings_Fill(COLOR_WHITE);
+    CP_Graphics_DrawRect(10, 15, button_width, button_height);
+    CP_Settings_Fill(COLOR_BLACK);
+    CP_Font_DrawText("BACK", 20, button_height + 5);
+    CP_Settings_TextSize(50);
+    if (mouseX >= 10 && mouseX <= (10 + button_width) && mouseY >= 15 && mouseY <= (15 + button_height)) {
+
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Graphics_DrawRect(10, 15, button_width, button_height);
+        CP_Settings_Fill(COLOR_WHITE);
+        CP_Font_DrawText("BACK", 20, button_height + 5);
+        CP_Settings_TextSize(50);
+
+        if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
+            CP_Image_Free(&Credit_Screen);
+            Current_Gamestate = MAIN_MENU_SCREEN;
+        }
+    }
+
+}
+
+void credit_screen_clicked(float x, float y) {
+    if (Current_Gamestate == MAIN_MENU_SCREEN) {
+        if (x >= creditX && x <= (creditX + button_width) &&
+            y >= creditY && y <= creditY + button_height) {
+            Current_Gamestate = CREDIT_SCREEN;
+            Previous_Gamestate = MAIN_MENU_SCREEN;
+        }
+    }
+
+}
+
+
 /*Updates the new origin depending on what the full screen size is*/
 void update_variables_and_make_screen_nice() {
     int map_border_width, window_width, window_height; //map_border_height;
@@ -2066,6 +2144,7 @@ void gameplay_screen() {
     box_width = BLOCK_SIZE + BLOCK_SIZE / 2;
     options_boxX = origin_map_coordinateX;
     options_boxY = origin_map_coordinateY + (MAP_GRID_ROWS * BLOCK_SIZE);
+
     CP_Settings_Fill(COLOR_LIGHT_GREY);
     CP_Graphics_DrawRect((float)options_boxX, (float)options_boxY, (float)box_length, (float)box_width);
     minion_buttons_width = BLOCK_SIZE + BLOCK_SIZE / 2;
@@ -2078,24 +2157,47 @@ void gameplay_screen() {
         float minion_size = 0;
         int minions_imageX = minion_boxX + minion_buttons_width / 2;
         int minions_imageY = minion_boxY + minion_buttons_height / 2;
+
+        float origin_first_boxX = (float)options_boxX + (float)minion_buttons_width - (float)minion_buttons_width / 2.f;
+
         if (i == 1) {
+            if (money < 30) {
+                CP_Settings_Fill(COLOR_GREY);
+                CP_Graphics_DrawRect(origin_first_boxX, (float)minion_boxY, (float)minion_buttons_width, (float)minion_buttons_height);
+            }
             minion_size = 50;
             CP_Settings_Fill(COLOR_BLUE);
             minions_imageY -= 5;
         }
         else if (i == 2) {
+            if (money < 60) {
+                CP_Settings_Fill(COLOR_GREY);
+                CP_Graphics_DrawRect(origin_first_boxX + 1 * (float)minion_buttons_width, (float)minion_boxY, (float)minion_buttons_width, (float)minion_buttons_height);
+            }
             minion_size = 80;
             CP_Settings_Fill(COLOR_YELLOW);
         }
         else if (i == 3) {
+            if (money < 110) {
+                CP_Settings_Fill(COLOR_GREY);
+                CP_Graphics_DrawRect(origin_first_boxX + 2 * (float)minion_buttons_width, (float)minion_boxY, (float)minion_buttons_width, (float)minion_buttons_height);
+            }
             minion_size = 120;
             CP_Settings_Fill(COLOR_BROWN);
         }
         else if (i == 4) {
+            if (money < 130) {
+                CP_Settings_Fill(COLOR_GREY);
+                CP_Graphics_DrawRect(origin_first_boxX + 3 * (float)minion_buttons_width, (float)minion_boxY, (float)minion_buttons_width, (float)minion_buttons_height);
+            }
             minion_size = 70;
             CP_Settings_Fill(COLOR_CYAN);
         }
         else if (i == 5) {
+            if (money < 150) {
+                CP_Settings_Fill(COLOR_GREY);
+                CP_Graphics_DrawRect(origin_first_boxX + 4 * (float)minion_buttons_width, (float)minion_boxY, (float)minion_buttons_width, (float)minion_buttons_height);
+            }
             minion_size = 55;
             CP_Settings_Fill(COLOR_HEALER_GREEN);
             minions_imageY -= 8;
@@ -2104,6 +2206,8 @@ void gameplay_screen() {
     }
     float minion_costboxY = (float)minion_boxY + 100.f;
     float minion_costbox_height = 50;
+
+
     /*Render minion pictures here BEFORE THE COST BOXES*/
     //
     //
@@ -2159,6 +2263,7 @@ void gameplay_screen_clicked(float x, float y) {
                 array_MinionStats[minion_count][MINION_TYPE] = TANK_MINION;
                 assign_minion_stats(); //maybe can throw this function call in render_minion
             }
+
         }
         else if (x >= (origin_first_boxX + 3 * minion_buttons_width) && x < (origin_first_boxX + 4 * minion_buttons_width)) { //Create Wizard Minion
             if (money >= 130 && minion_count < MINION_MAX)
