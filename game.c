@@ -487,6 +487,7 @@ void game_update(void) {
                 CP_Graphics_DrawCircle((float)array_MinionStats[i][X], (float)array_MinionStats[i][Y], (float)array_MinionStats[i][MINION_SIZE]); 
             }
             renderminionhp_bar();
+            projectile_render();
             render_special_current_charge();
             render_minion_special_attack();
             enemy_special_attack();
@@ -614,7 +615,6 @@ void game_update(void) {
         }
 
         else if (gIsPaused == FALSE) {
-            //test = CP_System_GetDt();
             start_timer();
             update_timer();
             if (elapsed_timer2 > 2) {
@@ -646,13 +646,17 @@ void game_update(void) {
             projectile_logic();
             for (int which_enemy = 0; which_enemy < ENEMY_MAX; which_enemy++) {
                 for (int i = 0; i < PROJ_MAX; i++) {
-
-                    projectile_move(which_enemy, i);
+                    if ((in_range[which_enemy] == TRUE) && (projectile[which_enemy][i][IS_ALIVE] == TRUE) && (array_is_attacking[which_enemy] == TRUE))
+                    {
+                        //projectile_move(which_enemy, i);
+                    }
                 }
             }
             projectile_render();
-            printf("Minion : %f and %f\n", (float)array_target[0][0][X], (float)array_target[0][0][Y]);
-            printf("Projectile : %f and %f\n", fire_timer[8], (float)projectile[8][0][Y]);
+            //printf("Minion : %f and %f\n", (float)array_target[0][0][X], (float)array_target[0][0][Y]);
+            printf("Coords : %f and %f\n", (float)array_EnemyStats[3][ENEMY_ROW_COORDINATES], (float)array_EnemyStats[3][ENEMY_COL_COORDINATES]);
+            printf("Projectile : %f and %f\n", (float)array_EnemyStats[3][ENEMY_COL], (float)array_EnemyStats[3][ENEMY_ROW]);
+            printf("NEWCoords : %f and %f\n", (float)array_EnemyStats[8][ENEMY_ROW_COORDINATES], (float)array_EnemyStats[8][ENEMY_COL_COORDINATES]);
             if (minions_in_base == 10) {
                 Current_Gamestate = WIN_SCREEN;
             }
@@ -2151,12 +2155,12 @@ void restart_level(void) {
     //l_time = 0;
     for (int i = 0; i < ENEMY_MAX; i++) {
         l_time[i] = 0;
-
+        in_range[i] = 0;
         for (int x = 0; x < PROJ_MAX; x++)
         {
-            projectile[i][x][IS_ALIVE] = 0;
             projectile[i][x][X] = (float)array_EnemyStats[i][ENEMY_ROW_COORDINATES];
             projectile[i][x][Y] = (float)array_EnemyStats[i][ENEMY_COL_COORDINATES];
+            projectile[i][x][IS_ALIVE] = 0;
         }
         
     }
@@ -2553,32 +2557,10 @@ void projectile_logic() {
                     array_EnemyStats[which_enemy][ENEMY_COL_COORDINATES] = origin_map_coordinateY + BLOCK_SIZE * row + array_EnemyStats[which_enemy][ENEMY_SIZE];
                     float first_pos = ((float)array_EnemyStats[which_enemy][ENEMY_ROW_COORDINATES] / array_EnemyStats[which_enemy][ENEMY_COL]);
                     float second_pos = ((float)array_EnemyStats[which_enemy][ENEMY_COL_COORDINATES] / array_EnemyStats[which_enemy][ENEMY_ROW]);
-                    float right_limit = (float)array_EnemyStats[which_enemy][ENEMY_ROW_COORDINATES] + first_pos + first_pos / 2;
-                    float left_limit = (float)array_EnemyStats[which_enemy][ENEMY_ROW_COORDINATES] - first_pos - first_pos / 2;
-                    float top_limit = (float)array_EnemyStats[which_enemy][ENEMY_COL_COORDINATES] - second_pos - second_pos / 2;
-                    float bot_limit = (float)array_EnemyStats[which_enemy][ENEMY_COL_COORDINATES] + second_pos + second_pos / 2;
-                    /*
-                    if (minion_count > 0) {
-                        if (target_lock == 0) {
-                            is_Search = 1;
-                        }
-                        else {
-                            is_Search = 0;
-                        }
-                        if (is_Search == 1) {
-                            for (int i = 0; i < minion_count; i++) {
-                                if (((array_MinionStats[i][X]) <= right_limit && ((array_MinionStats[i][X]) >= left_limit)) &&
-                                    (array_MinionStats[i][Y] >= top_limit && array_MinionStats[i][Y] <= bot_limit)) {
-
-                                    projectile[i][X] = (float)array_EnemyStats[which_enemy][ENEMY_ROW_COORDINATES];
-                                    projectile[i][Y] = (float)array_EnemyStats[which_enemy][ENEMY_COL_COORDINATES];
-                                    array_target[i][X] = array_MinionStats[i][X];
-                                    array_target[i][Y] = array_MinionStats[i][Y];
-                                    target_lock = 1;
-                                    in_range = 1;
-                                }
-                            }
-                        } */
+                    float right_limit = (float)array_EnemyStats[which_enemy][ENEMY_ROW_COORDINATES] + first_pos;
+                    float left_limit = (float)array_EnemyStats[which_enemy][ENEMY_ROW_COORDINATES] - first_pos;
+                    float top_limit = (float)array_EnemyStats[which_enemy][ENEMY_COL_COORDINATES] - second_pos;
+                    float bot_limit = (float)array_EnemyStats[which_enemy][ENEMY_COL_COORDINATES] + second_pos;
                     if (minion_count > 0) {
                         int attacked_minion = 0;
                         //array_is_attacking[which_enemy] = FALSE;
@@ -2613,7 +2595,7 @@ void projectile_logic() {
                             fire_timer[which_enemy] += test;
                         }
                         */
-                        if (array_is_attacking[which_enemy] == FALSE) {
+                        if (array_is_attacking[which_enemy] == FALSE && array_EnemyStats[which_enemy][ENEMY_TYPE] != GUARD_ENEMY) {
                             for (int i = 0; i < minion_count; i++) {
                                 if (((array_MinionStats[i][X]) <= right_limit && ((array_MinionStats[i][X]) >= left_limit)) &&
                                     (array_MinionStats[i][Y] >= top_limit && array_MinionStats[i][Y] <= bot_limit)) {
@@ -2625,7 +2607,7 @@ void projectile_logic() {
                                     array_isMinionAttacked[which_enemy][i] = 1;
                                     attacked_minion = i;
                                     in_range[which_enemy] = 1;
-                                    //break; //now that minion is chosen, we break out of the loop
+                                    break; //now that minion is chosen, we break out of the loop
                                 }
                             }
                         }
@@ -2635,7 +2617,7 @@ void projectile_logic() {
                             //printf("%d\n", proj_count);
                             for (int i = 0; i < minion_count; i++) {
                                 //generates new projectiles constantly
-                                if (proj_count < PROJ_MAX) {
+                                if ((proj_count < PROJ_MAX) && (projectile[which_enemy][i][ENEMY_TYPE] != GUARD_ENEMY) && in_range[which_enemy] == 1) {
                                     projectile[which_enemy][i][IS_ALIVE] = 1; //5 projectiles max, with 8 different stats (the array parameters)
                                     proj_count++;
                                     //array_is_attacking[which_enemy] = FALSE;
@@ -2685,6 +2667,10 @@ void projectile_logic() {
                                 if (array_MinionStats[i][MINION_HP] < 0) {
                                     minion_dies_array_recycle(i);
                                 }
+                                if (projectile[which_enemy][i][ENEMY_TYPE] == GUARD_ENEMY)
+                                {
+                                    projectile_recycle(which_enemy, i);
+                                }
                             }
                         }
                     }
@@ -2731,10 +2717,10 @@ void projectile_recycle(int which_enemy, int dead_proj) {
 }
 
 void projectile_colliding(int which_enemy, int i) {
-    float min_limit_right = (float)array_MinionStats[i][X] + (((float)array_MinionStats[i][MINION_SIZE] / 16) * 5);
-    float min_limit_left = (float)array_MinionStats[i][X] - (((float)array_MinionStats[i][MINION_SIZE] / 16) * 5);
-    float min_limit_bot = (float)array_MinionStats[i][Y] + (((float)array_MinionStats[i][MINION_SIZE] / 16) * 5);
-    float min_limit_top = (float)array_MinionStats[i][Y] - (((float)array_MinionStats[i][MINION_SIZE] / 16) * 5);
+    float min_limit_right = (float)array_MinionStats[i][X] + (((float)array_MinionStats[i][MINION_SIZE] / 16) * 10);
+    float min_limit_left = (float)array_MinionStats[i][X] - (((float)array_MinionStats[i][MINION_SIZE] / 16) * 10);
+    float min_limit_bot = (float)array_MinionStats[i][Y] + (((float)array_MinionStats[i][MINION_SIZE] / 16) * 10);
+    float min_limit_top = (float)array_MinionStats[i][Y] - (((float)array_MinionStats[i][MINION_SIZE] / 16) * 10);
     float proj_limit_right = (float)projectile[which_enemy][i][X] + (float)PROJ_SIZE / 2;
     float proj_limit_left = (float)projectile[which_enemy][i][X] - (float)PROJ_SIZE / 2;
     float proj_limit_bot = (float)projectile[which_enemy][i][Y] + (float)PROJ_SIZE / 2;
@@ -2814,9 +2800,9 @@ void projectile_render() {
 
 void projectile_move(int which_enemy, int i) {
     float vectorX = (float)array_target[which_enemy][i][X];
-    float vectorY = (float)array_target[which_enemy][0][Y];
-    projectile[which_enemy][i][X] += (l_time[which_enemy] * ((vectorX - projectile[which_enemy][i][X]))/50);
-    projectile[which_enemy][i][Y] += (l_time[which_enemy] * ((vectorY - projectile[which_enemy][i][Y]))/50);
+    float vectorY = (float)array_target[which_enemy][i][Y];
+    projectile[which_enemy][i][X] += (l_time[which_enemy] * ((vectorX - projectile[which_enemy][i][X]))/20);
+    projectile[which_enemy][i][Y] += (l_time[which_enemy] * ((vectorY - projectile[which_enemy][i][Y]))/20);
 }
 
 void render_minion() {
