@@ -119,6 +119,11 @@ static CP_Image warrior_minion;
 static CP_Image tank_minion;
 static CP_Image wizard_minion;
 static CP_Image healer_minion;
+static CP_Image fspam_minion; //flipped spam minion so it doesn't look like they're moving backwards
+static CP_Image fwarrior_minion;
+static CP_Image ftank_minion;
+static CP_Image fwizard_minion;
+static CP_Image fhealer_minion;
 static CP_Image guard_enemy;
 static CP_Image slow_tower;
 static CP_Image healing_tower;
@@ -2833,15 +2838,22 @@ void render_minion() {
 }
 
 void load_all_sprites(void) {
-    spam_minion = CP_Image_Load("./Assets/spam_minion_image.png");
-    warrior_minion = CP_Image_Load("./Assets/warrior_minion_image.png");
-    tank_minion = CP_Image_Load("./Assets/tank_minion_image.png");
-    wizard_minion = CP_Image_Load("./Assets/wizard_minion_image.png");
-    healer_minion = CP_Image_Load("./Assets/healer_minion_image.png");
-    guard_enemy = CP_Image_Load("./Assets/guard_enemy_image.png");
-    slow_tower = CP_Image_Load("./Assets/slow_tower_image.png");
-    healing_tower = CP_Image_Load("./Assets/healing_tower_image.png");
-    ranged_tower = CP_Image_Load("./Assets/ranged_tower_image.png");
+    spam_minion = CP_Image_Load("./Assets/sprites/spam_minion_image.png");
+    warrior_minion = CP_Image_Load("./Assets/sprites/warrior_minion_image.png");
+    tank_minion = CP_Image_Load("./Assets/sprites/tank_minion_image.png");
+    wizard_minion = CP_Image_Load("./Assets/sprites/wizard_minion_image.png");
+    healer_minion = CP_Image_Load("./Assets/sprites/healer_minion_image.png");
+
+    fspam_minion = CP_Image_Load("./Assets/sprites/spam_minion_flip_image.png");
+    fwarrior_minion = CP_Image_Load("./Assets/sprites/warrior_minion_flip_image.png");
+    ftank_minion = CP_Image_Load("./Assets/sprites/tank_minion_flip_image.png");
+    fwizard_minion = CP_Image_Load("./Assets/sprites/wizard_minion_flip_image.png");
+    fhealer_minion = CP_Image_Load("./Assets/sprites/healer_minion_flip_image.png");
+
+    guard_enemy = CP_Image_Load("./Assets/sprites/guard_enemy_image.png");
+    slow_tower = CP_Image_Load("./Assets/sprites/slow_tower_image.png");
+    healing_tower = CP_Image_Load("./Assets/sprites/healing_tower_image.png");
+    ranged_tower = CP_Image_Load("./Assets/sprites/ranged_tower_image.png");
 }
 
 void free_all_sprites(void) {
@@ -2850,6 +2862,13 @@ void free_all_sprites(void) {
     CP_Image_Free(&tank_minion);
     CP_Image_Free(&wizard_minion);
     CP_Image_Free(&healer_minion);
+
+    CP_Image_Free(&fspam_minion);
+    CP_Image_Free(&fwarrior_minion);
+    CP_Image_Free(&ftank_minion);
+    CP_Image_Free(&fwizard_minion);
+    CP_Image_Free(&fhealer_minion);
+
     CP_Image_Free(&guard_enemy);
     CP_Image_Free(&slow_tower);
     CP_Image_Free(&healing_tower);
@@ -2858,19 +2877,45 @@ void free_all_sprites(void) {
 
 void render_minion_sprite(int minion) {
     if (array_MinionStats[minion][MINION_TYPE] == SPAM_MINION) {
-        CP_Image_Draw(spam_minion, (float)array_MinionStats[minion][X], (float)array_MinionStats[minion][Y], (float)array_MinionStats[minion][MINION_SIZE], (float)array_MinionStats[minion][MINION_SIZE], 255);
+        if (array_MinionStats[minion][MINION_DIRECTION] == RIGHT) {
+            CP_Image_Draw(fspam_minion, (float)array_MinionStats[minion][X], (float)array_MinionStats[minion][Y], (float)array_MinionStats[minion][MINION_SIZE], (float)array_MinionStats[minion][MINION_SIZE], 255);
+        }
+        else {
+            CP_Image_Draw(spam_minion, (float)array_MinionStats[minion][X], (float)array_MinionStats[minion][Y], (float)array_MinionStats[minion][MINION_SIZE], (float)array_MinionStats[minion][MINION_SIZE], 255);
+        }
     }
     else if (array_MinionStats[minion][MINION_TYPE] == WARRIOR_MINION) {
-        CP_Image_Draw(warrior_minion, (float)array_MinionStats[minion][X], (float)array_MinionStats[minion][Y], (float)array_MinionStats[minion][MINION_SIZE], (float)array_MinionStats[minion][MINION_SIZE], 255);
+        if (array_MinionStats[minion][MINION_DIRECTION] == RIGHT) {
+            CP_Image_Draw(fwarrior_minion, (float)array_MinionStats[minion][X], (float)array_MinionStats[minion][Y], (float)array_MinionStats[minion][MINION_SIZE], (float)array_MinionStats[minion][MINION_SIZE], 255);
+        }
+        else {
+            CP_Image_Draw(warrior_minion, (float)array_MinionStats[minion][X], (float)array_MinionStats[minion][Y], (float)array_MinionStats[minion][MINION_SIZE], (float)array_MinionStats[minion][MINION_SIZE], 255);
+        }
     }
     else if (array_MinionStats[minion][MINION_TYPE] == TANK_MINION) {
-        CP_Image_Draw(tank_minion, (float)array_MinionStats[minion][X], (float)array_MinionStats[minion][Y], (float)array_MinionStats[minion][MINION_SIZE], (float)array_MinionStats[minion][MINION_SIZE], 255);
+        if (array_MinionStats[minion][MINION_DIRECTION] == RIGHT) {
+            CP_Image_Draw(ftank_minion, (float)array_MinionStats[minion][X], (float)array_MinionStats[minion][Y], (float)array_MinionStats[minion][MINION_SIZE], (float)array_MinionStats[minion][MINION_SIZE], 255);
+        }
+        else {
+            CP_Image_Draw(tank_minion, (float)array_MinionStats[minion][X], (float)array_MinionStats[minion][Y], (float)array_MinionStats[minion][MINION_SIZE], (float)array_MinionStats[minion][MINION_SIZE], 255);
+        }
     }
     else if (array_MinionStats[minion][MINION_TYPE] == WIZARD_MINION) {
-        CP_Image_Draw(wizard_minion, (float)array_MinionStats[minion][X], (float)array_MinionStats[minion][Y], (float)array_MinionStats[minion][MINION_SIZE], (float)array_MinionStats[minion][MINION_SIZE], 255);
+        if (array_MinionStats[minion][MINION_DIRECTION] == RIGHT) {
+            CP_Image_Draw(fwizard_minion, (float)array_MinionStats[minion][X], (float)array_MinionStats[minion][Y], (float)array_MinionStats[minion][MINION_SIZE], (float)array_MinionStats[minion][MINION_SIZE], 255);
+        }
+        else {
+            CP_Image_Draw(wizard_minion, (float)array_MinionStats[minion][X], (float)array_MinionStats[minion][Y], (float)array_MinionStats[minion][MINION_SIZE], (float)array_MinionStats[minion][MINION_SIZE], 255);
+        }
     }
     else if (array_MinionStats[minion][MINION_TYPE] == HEALER_MINION) {
-        CP_Image_Draw(healer_minion, (float)array_MinionStats[minion][X], (float)array_MinionStats[minion][Y], (float)array_MinionStats[minion][MINION_SIZE], (float)array_MinionStats[minion][MINION_SIZE], 255);
+        if (array_MinionStats[minion][MINION_DIRECTION] == RIGHT) {
+            CP_Image_Draw(fhealer_minion, (float)array_MinionStats[minion][X], (float)array_MinionStats[minion][Y], (float)array_MinionStats[minion][MINION_SIZE], (float)array_MinionStats[minion][MINION_SIZE], 255);
+
+        }
+        else {
+            CP_Image_Draw(healer_minion, (float)array_MinionStats[minion][X], (float)array_MinionStats[minion][Y], (float)array_MinionStats[minion][MINION_SIZE], (float)array_MinionStats[minion][MINION_SIZE], 255);
+        }
     }
 }
 
