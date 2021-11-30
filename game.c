@@ -452,7 +452,7 @@ void game_update(void) {
         render_enemy();
         enemy_info();
         minion_info();
-        
+        /*
         if (CP_Input_KeyTriggered(KEY_1))
         {
             money += 1000;
