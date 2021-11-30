@@ -462,7 +462,7 @@ void game_update(void) {
         {
             money += 1000;
         }
-        */
+        
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
         {
             setting_screen_clicked(CP_Input_GetMouseX(), CP_Input_GetMouseY());
