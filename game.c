@@ -134,9 +134,13 @@ static CP_Image base_block0;
 static CP_Image base_block1;
 static CP_Image base_block2;
 static CP_Image base_block3;
+static CP_Image present_block;
 void load_all_sprites(void);
 void render_minion_sprite(int minion);
 void free_all_sprites(void);
+
+/*Music and BGM stuff*/
+static CP_Sound minion_voice;
 
 /*Directions*/
 #define STOP 0
@@ -2404,14 +2408,6 @@ void render_background() {
             BlockPositionY = origin_map_coordinateY + BLOCK_SIZE * row;
             CP_Settings_Fill(array_GameMap[row][col] == BLOCK_EMPTY //ternary operator
                 ? COLOR_GREY
-                : array_GameMap[row][col] == BLOCK_END //add something to include text to show that this is the end point
-                ? COLOR_BLACK
-                : array_GameMap[row][col] == BLOCK_PRESENT || array_GameMap[row][col] == BLOCK_TOWER_ENEMY
-                ? COLOR_WHITE
-                : array_GameMap[row][col] == BLOCK_SPAWN
-                ? COLOR_GREEN
-                : array_GameMap[row][col] == BLOCK_INVISIBLE
-                ? COLOR_GREY
                 : array_GameMap[row][col] == BLOCK_TELEPORT_SPAWN
                 ? COLOR_BRIGHT_BLUE
                 : array_GameMap[row][col] == BLOCK_TELEPORTER
@@ -2433,10 +2429,14 @@ void render_background() {
                 else if (minions_in_base > 5 && minions_in_base <= 8) {
                     CP_Image_Draw(base_block2, (float)BlockPositionX, (float)BlockPositionY, (float)BLOCK_SIZE, (float)BLOCK_SIZE, 255);
                 }
-                else if (minions_in_base == 9) {
+                else if (minions_in_base >= 9) {
                     CP_Image_Draw(base_block3, (float)BlockPositionX, (float)BlockPositionY, (float)BLOCK_SIZE, (float)BLOCK_SIZE, 255);
                 }
-                
+                CP_Settings_ImageMode(CP_POSITION_CENTER);
+            }
+            else if (array_GameMap[row][col] == BLOCK_PRESENT || array_GameMap[row][col] == BLOCK_TOWER_ENEMY) {
+                CP_Settings_ImageMode(CP_POSITION_CORNER);
+                CP_Image_Draw(present_block, (float)BlockPositionX, (float)BlockPositionY, (float)BLOCK_SIZE, (float)BLOCK_SIZE, 255);
                 CP_Settings_ImageMode(CP_POSITION_CENTER);
             }
             else if (array_GameMap[row][col] != BLOCK_EMPTY && array_GameMap[row][col] != BLOCK_ENEMY && array_GameMap[row][col] != BLOCK_ENEMY_DEAD) {
@@ -2591,7 +2591,7 @@ void render_enemy() {
                         CP_Image_Draw(slow_tower, (float)array_EnemyStats[which_enemy][ENEMY_ROW_COORDINATES], (float)array_EnemyStats[which_enemy][ENEMY_COL_COORDINATES] - 40, 110, 160, 255);
                     }
                     else if (array_EnemyStats[which_enemy][ENEMY_TYPE] == HEALING_TOWER) {
-                        CP_Image_Draw(healing_tower, (float)array_EnemyStats[which_enemy][ENEMY_ROW_COORDINATES], (float)array_EnemyStats[which_enemy][ENEMY_COL_COORDINATES] - 40, 110, 160, 255);
+                        CP_Image_Draw(healing_tower, (float)array_EnemyStats[which_enemy][ENEMY_ROW_COORDINATES], (float)array_EnemyStats[which_enemy][ENEMY_COL_COORDINATES] - 40, 120, 160, 255);
                     }
                     else if (array_EnemyStats[which_enemy][ENEMY_TYPE] == RANGED_TOWER) {
                         CP_Image_Draw(ranged_tower, (float)array_EnemyStats[which_enemy][ENEMY_ROW_COORDINATES], (float)array_EnemyStats[which_enemy][ENEMY_COL_COORDINATES] - 40, 100, 180, 255);
@@ -2891,6 +2891,7 @@ void load_all_sprites(void) {
     base_block1 = CP_Image_Load("./Assets/sprites/base/base_image1.png");
     base_block2 = CP_Image_Load("./Assets/sprites/base/base_image2.png");
     base_block3 = CP_Image_Load("./Assets/sprites/base/base_image3.png");
+    present_block = CP_Image_Load("./Assets/sprites/present_block_image.png");
 }
 
 void free_all_sprites(void) {
@@ -2917,6 +2918,7 @@ void free_all_sprites(void) {
     CP_Image_Free(&base_block1);
     CP_Image_Free(&base_block2);
     CP_Image_Free(&base_block3);
+    CP_Image_Free(&present_block);
 }
 
 void render_minion_sprite(int minion) {
@@ -2976,10 +2978,13 @@ void move_minion() {
         minion_special_attack(i, current_boxROW, current_boxCOL);
         /*now we check, we want to move in the direction of the one with the highest value*/
         array_MinionStats[i][MINION_PAST_DIRECTION] = array_MinionStats[i][MINION_DIRECTION];
+        /*
         if (array_MinionStats[i][MINION_TRAVEL_DIST] < BLOCK_SIZE) {
             array_MinionStats[i][MINION_DIRECTION] = array_MinionStats[i][MINION_PAST_DIRECTION];
         }
-        else if (level_has_teleporter == TRUE && array_MinionStats[i][MINION_TELEPORTED] == FALSE
+        */
+        //else 
+        if (level_has_teleporter == TRUE && array_MinionStats[i][MINION_TELEPORTED] == FALSE
             && array_MinionStats[i][MINION_TRAVEL_DIST] >= BLOCK_SIZE) {
             array_MinionStats[i][MINION_TRAVEL_DIST] = 0;
             array_MinionStats[i][MINION_DIRECTION] = //i'm pretty sure these conditions aren't working tbh
@@ -3094,6 +3099,7 @@ void move_minion() {
 
                         }
                     }
+                    /*
                     if (array_MinionStats[i][MINION_HP] <= 0 && array_isMinionBlocked[correct_enemy][i] == 1) { //if minion dies
                         array_EnemyStats[correct_enemy][ENEMY_CURRENT_MINIONS_ON_BLOCK] -= array_MinionStats[i][MINION_WEIGHT];
                         if (array_isMinionBlocked[correct_enemy][i + 1] == 1) {
@@ -3103,6 +3109,7 @@ void move_minion() {
                             array_isMinionBlocked[correct_enemy][i] = 0;
                         }
                     }
+                    */
                 }
             }
         }
@@ -4111,43 +4118,6 @@ void assign_minion_stats() {
     }
 }
 
-void assign_enemy_color(int i) {
-    if (array_EnemyStats[i][ENEMY_TYPE] == GUARD_ENEMY) {
-        CP_Settings_Fill(COLOR_RED);
-    }
-    if (array_EnemyStats[i][ENEMY_TYPE] == DAMAGE_ENEMY) {
-        CP_Settings_Fill(COLOR_BLUE);
-    }
-    if (array_EnemyStats[i][ENEMY_TYPE] == SLOW_ENEMY) {
-        CP_Settings_Fill(COLOR_TURQUOISE);
-    }
-    if (array_EnemyStats[i][ENEMY_TYPE] == HEALING_TOWER) {
-        CP_Settings_Fill(COLOR_DULL_GREEN);
-    }
-    if (array_EnemyStats[i][ENEMY_TYPE] == RANGED_TOWER) {
-        CP_Settings_Fill(COLOR_WEIRD_PURPLE);
-    }
-}
-
-/*probably going to be removed in the final product*/
-void assign_minion_color(int i) {
-    if (array_MinionStats[i][MINION_TYPE] == SPAM_MINION) {
-        CP_Settings_Fill(COLOR_BLUE);
-    }
-    else if (array_MinionStats[i][MINION_TYPE] == WARRIOR_MINION) {
-        CP_Settings_Fill(COLOR_YELLOW);
-    }
-    else if (array_MinionStats[i][MINION_TYPE] == TANK_MINION) {
-        CP_Settings_Fill(COLOR_BROWN);
-    }
-    else if (array_MinionStats[i][MINION_TYPE] == WIZARD_MINION) {
-        CP_Settings_Fill(COLOR_CYAN);
-    }
-    else if (array_MinionStats[i][MINION_TYPE] == HEALER_MINION) {
-        CP_Settings_Fill(COLOR_HEALER_GREEN);
-    }
-}
-
 void assign_enemy_stats() {
     for (int i = 0; i < ENEMY_MAX; i++) {
         if (array_EnemyStats[i][ENEMY_TYPE] == GUARD_ENEMY) {
@@ -4216,6 +4186,9 @@ void assign_enemy_stats() {
         }
     }
 }
+
+
+/*Levels*/
 
 void level_1() {
     array_GameMap[0][11] = BLOCK_SPAWN;
