@@ -141,6 +141,7 @@ void free_all_sprites(void);
 
 /*Music and BGM stuff*/
 static CP_Sound minion_voice;
+static CP_Sound knock;
 
 /*Directions*/
 #define STOP 0
@@ -219,6 +220,11 @@ int is_minion_being_attacked(int enemy, int minion);
 #define QUIT_SCREEN 10
 #define CREDIT_SCREEN 11
 #define CREDIT_SCREENP2 12
+#define TUTORIAL_SCREEN 13
+#define TUTORIAL_SCREEN2 14
+#define TUTORIAL_SCREEN3 15
+#define TUTORIAL_SCREEN4 16
+#define TUTORIAL_SCREEN5 17
 int Current_Gamestate;
 
 /*render HP bar for minions*/
@@ -277,6 +283,7 @@ void minion_info(void);
 int level_has_been_reset; //checks if level has reset so stats won't constantly be reassigned making the enemies immortal
 
 /*Levels*/
+void level_tutorial(void);
 void level_1(void);
 void level_2(void);
 void level_3(void);
@@ -284,6 +291,16 @@ void level_4(void);
 void level_5(void);
 void level_6(void);
 int current_level;
+
+/*Tutorial*/
+int tutorial_played;
+static CP_Image tutorial_background;
+int play_effect_once[10];
+void tutorial(void);
+void tutorial1(void);
+void tutorial2(void);
+void tutorial3(void);
+void tutorial4(void);
 
 /*Timer and Pause button*/
 int t_time;
@@ -459,6 +476,7 @@ void game_init(void) {
     update_variables_and_make_screen_nice();
 
     current_guide = 1;
+    tutorial_played = FALSE;
 
     /*Initialise to Main_Menu*/
     Current_Gamestate = MAIN_MENU_SCREEN;
@@ -471,6 +489,11 @@ void game_init(void) {
     /*updating total elapsed time*/
     totalElapsedTime = 0;
     totalElapsedTime += currentElapsedTime;
+
+    /*things for my tutorial*/
+    for (int i = 0; i < 10; i++) {
+        play_effect_once[i] = 0;
+    }
 }
 
 void game_update(void) {
@@ -700,7 +723,22 @@ void game_update(void) {
         credit_screen();
     }
     else if (Current_Gamestate == CREDIT_SCREENP2) {
-    credit_screen2();
+        credit_screen2();
+    }
+    else if (Current_Gamestate == TUTORIAL_SCREEN) {
+        tutorial();
+    }
+    else if (Current_Gamestate == TUTORIAL_SCREEN2) {
+        tutorial1();
+    }
+    else if (Current_Gamestate == TUTORIAL_SCREEN3) {
+        tutorial2();
+    }
+    else if (Current_Gamestate == TUTORIAL_SCREEN4) {
+        tutorial3();
+    }
+    else if (Current_Gamestate == TUTORIAL_SCREEN5) {
+        tutorial4();
     }
 }
 
@@ -885,20 +923,15 @@ void main_menu_clicked(float x, float y) {
     if (x >= start_game_buttonX && x <= (start_game_buttonX + button_width) &&
         y >= start_game_buttonY && y <= start_game_buttonY + button_height) {
 
-        // Game will start at level 1
-        current_level = 1;
-        Current_Gamestate = GAMEPLAY_SCREEN;
-
-        // Free image /
-        CP_Image_Free(&main_menu_image);
-
-        // initialise for gameplay screen /
-        minion_count = 0;
-        restart_level();
-        gIsPaused = FALSE;
-        minions_in_base = 0; //Part of minion counter which has been commented out
-
-        initialise_pause_and_timer_button();
+        if (tutorial_played == FALSE) {
+            tutorial_played = TRUE;
+            Current_Gamestate = TUTORIAL_SCREEN;
+            
+        }
+        else if (tutorial_played == TRUE) {
+            Current_Gamestate = GAMEPLAY_SCREEN;
+            restart_level();
+        }
     }
     // Level selector button clicked /
     else if (x >= level_selectorX && x <= (level_selectorX + button_width) &&
@@ -923,8 +956,6 @@ void main_menu_clicked(float x, float y) {
         Current_Gamestate = CREDIT_SCREEN;
         Previous_Gamestate = MAIN_MENU_SCREEN;
     }
-
-
 }
 
 void lose_screen(void) {
@@ -1952,6 +1983,173 @@ void quit_screen(void) {
 
 }
 
+void tutorial(void) {
+    
+    if (Current_Gamestate == TUTORIAL_SCREEN) {
+        CP_Graphics_ClearBackground(COLOR_BLACK);
+        if (play_effect_once[0] == 0) {
+            knock = CP_Sound_Load("./Assets/music/frantic_knock.wav");
+            minion_voice = CP_Sound_Load("./Assets/music/random_minion_voice.wav");
+            CP_Sound_PlayAdvanced(knock, 1.2f, 1.f, FALSE, CP_SOUND_GROUP_0);
+            CP_Sound_PlayAdvanced(minion_voice, 0.5f, 1.f, FALSE, CP_SOUND_GROUP_0);
+            play_effect_once[0] = 1;
+        }
+        float window_width = (float)CP_System_GetWindowWidth();
+        float window_height = (float)CP_System_GetWindowHeight();
+        CP_Settings_Fill(TRANSLUCENT_WHITE);
+        CP_Graphics_DrawRect(100, window_height - 200, window_width - 200, 150);
+        CP_Settings_TextSize(80);
+        CP_Settings_Fill(COLOR_BLACK);
+        CP_Font_DrawText("Commander please wake up!", 120, window_height - 100);
+        CP_Settings_Fill(COLOR_GREY);
+        CP_Settings_TextSize(30);
+        CP_Font_DrawText("click to continue>>", window_width - 330, window_height - 60);
+        if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && Current_Gamestate == TUTORIAL_SCREEN) {
+            Current_Gamestate = TUTORIAL_SCREEN2;
+            CP_Sound_Free(&knock);
+        }
+    }
+}
+void tutorial1(void) {
+    float window_width = (float)CP_System_GetWindowWidth();
+    float window_height = (float)CP_System_GetWindowHeight();
+    CP_Graphics_ClearBackground(COLOR_BLACK);
+    tutorial_background = CP_Image_Load("./Assets/tutorial_background.png");
+    static float middleX, middleY, width, height;
+    middleX = (float)(CP_System_GetWindowWidth() / 2);
+    middleY = (float)(CP_System_GetWindowHeight() / 2);
+    width = (float)CP_Image_GetWidth(tutorial_background);
+    height = (float)CP_Image_GetWidth(tutorial_background) * 0.6f;
+    CP_Image_Draw(tutorial_background, middleX, middleY, width, height, 255);
+    CP_Settings_Fill(TRANSLUCENT_WHITE);
+    CP_Graphics_DrawRect(100, window_height - 200, window_width - 200, 150);
+    CP_Settings_TextSize(80);
+    CP_Settings_Fill(COLOR_BLACK);
+    
+    if (play_effect_once[1] == 0) {
+        minion_voice = CP_Sound_Load("./Assets/music/random_minion_voice.wav");
+        CP_Sound_PlayAdvanced(minion_voice, 0.3f, 1.f, FALSE, CP_SOUND_GROUP_0);
+        play_effect_once[1] = 1;
+    }
+    
+    CP_Font_DrawText("The squares... They... They came...", 120, window_height - 100);
+    CP_Settings_Fill(COLOR_GREY);
+    CP_Settings_TextSize(30);
+    CP_Font_DrawText("click to continue>>", window_width - 330, window_height - 60);
+    if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && Current_Gamestate == TUTORIAL_SCREEN2) {
+        Current_Gamestate = TUTORIAL_SCREEN3;
+    }
+}
+void tutorial2(void) {
+    float window_width = (float)CP_System_GetWindowWidth();
+    float window_height = (float)CP_System_GetWindowHeight();
+    static float middleX, middleY, width, height;
+    middleX = (float)(CP_System_GetWindowWidth() / 2);
+    middleY = (float)(CP_System_GetWindowHeight() / 2);
+    width = (float)CP_Image_GetWidth(tutorial_background);
+    height = (float)CP_Image_GetWidth(tutorial_background) * 0.6f;
+    CP_Image_Draw(tutorial_background, middleX, middleY, width, height, 255);
+    if (play_effect_once[2] == 0) {
+        minion_voice = CP_Sound_Load("./Assets/music/random_minion_voice.wav");
+        CP_Sound_PlayAdvanced(minion_voice, 0.8f, 1.f, FALSE, CP_SOUND_GROUP_0);
+        play_effect_once[2] = 1;
+    }
+    CP_Settings_Fill(TRANSLUCENT_WHITE);
+    CP_Graphics_DrawRect(100, window_height - 200, window_width - 200, 150);
+    CP_Settings_Fill(COLOR_BLACK);
+    CP_Settings_TextSize(80);
+    CP_Font_DrawText("THEY KIDNAPPED OUR PEOPLE!", 120, window_height - 100);
+    CP_Settings_Fill(COLOR_GREY);
+    CP_Settings_TextSize(30);
+    CP_Font_DrawText("click to continue>>", window_width - 330, window_height - 60);
+    if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && Current_Gamestate == TUTORIAL_SCREEN3) {
+        Current_Gamestate = TUTORIAL_SCREEN4;
+    }
+}
+void tutorial3(void) {
+    float window_width = (float)CP_System_GetWindowWidth();
+    float window_height = (float)CP_System_GetWindowHeight();
+    static float middleX, middleY, width, height;
+    middleX = (float)(CP_System_GetWindowWidth() / 2);
+    middleY = (float)(CP_System_GetWindowHeight() / 2);
+    width = (float)CP_Image_GetWidth(tutorial_background);
+    height = (float)CP_Image_GetWidth(tutorial_background) * 0.6f;
+    CP_Image_Draw(tutorial_background, middleX, middleY, width, height, 255);
+    if (play_effect_once[3] == 0) {
+        minion_voice = CP_Sound_Load("./Assets/music/random_minion_voice.wav");
+        CP_Sound_PlayAdvanced(minion_voice, 0.2f, 1.f, FALSE, CP_SOUND_GROUP_0);
+        play_effect_once[3] = 1;
+    }
+    CP_Settings_Fill(TRANSLUCENT_WHITE);
+    CP_Graphics_DrawRect(100, window_height - 200, window_width - 200, 150);
+    CP_Settings_Fill(COLOR_BLACK);
+    CP_Settings_TextSize(60);
+    CP_Font_DrawText("Commander, you need to lead our forces and save them. Please,", 120, window_height - 130);
+    CP_Font_DrawText("We need you.", 120, window_height - 80);
+    CP_Settings_Fill(COLOR_GREY);
+    CP_Settings_TextSize(30);
+    CP_Font_DrawText("click to continue>>", window_width - 330, window_height - 60);
+    if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && Current_Gamestate == TUTORIAL_SCREEN4) {
+        Current_Gamestate = TUTORIAL_SCREEN5;
+    }
+}
+void tutorial4(void) {
+    float window_width = (float)CP_System_GetWindowWidth();
+    float window_height = (float)CP_System_GetWindowHeight();
+    static float middleX, middleY, width, height;
+    middleX = (float)(CP_System_GetWindowWidth() / 2);
+    middleY = (float)(CP_System_GetWindowHeight() / 2);
+    width = (float)CP_Image_GetWidth(tutorial_background);
+    height = (float)CP_Image_GetWidth(tutorial_background) * 0.6f;
+    CP_Image_Draw(tutorial_background, middleX, middleY, width, height, 255);
+    if (play_effect_once[4] == 0) {
+        minion_voice = CP_Sound_Load("./Assets/music/random_minion_voice.wav");
+        CP_Sound_PlayAdvanced(minion_voice, 0.3f, 1.f, FALSE, CP_SOUND_GROUP_0);
+        play_effect_once[4] = 1;
+    }
+    CP_Settings_Fill(COLOR_WHITE);
+    CP_Graphics_DrawRect(100, window_height - 200, window_width - 200, 150);
+    CP_Settings_Fill(COLOR_BLACK);
+    CP_Settings_TextSize(60);
+    CP_Font_DrawText("Do you remember how to lead our people into battle?", 120, window_height - 130);
+    CP_Font_DrawText("If no, let's head to the training ground first.", 120, window_height - 80);
+    CP_Settings_Fill(COLOR_WHITE);
+    CP_Graphics_DrawRect(window_width - 580, window_height - 250, 480, 50);
+    CP_Graphics_DrawRect(window_width - 580, window_height - 300, 480, 50);
+    CP_Settings_TextSize(32);
+    CP_Settings_Fill(COLOR_BLACK);
+    CP_Font_DrawText("I remember.", window_width - 570, window_height - 270);
+    CP_Font_DrawText("Let's head to the training ground first!", window_width - 570, window_height - 220);
+    float mouseX = (float)CP_Input_GetMouseX();
+    float mouseY = (float)CP_Input_GetMouseY();
+    if (mouseX >= window_width - 580 && mouseX < window_width - 100) {
+        if (mouseY >= window_height - 250 && mouseY < window_height - 200) {
+            CP_Settings_Fill(COLOR_BLACK);
+            CP_Graphics_DrawRect(window_width - 580, window_height - 250, 480, 50);
+            CP_Settings_Fill(COLOR_WHITE);
+            CP_Font_DrawText("Let's head to the training ground first!", window_width - 570, window_height - 220);
+            if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
+
+            }
+        }
+        if (mouseY >= (window_height - 300) && mouseY < window_height - 250) {
+            CP_Settings_Fill(COLOR_BLACK);
+            CP_Graphics_DrawRect(window_width - 580, window_height - 300, 480, 50);
+            CP_Settings_Fill(COLOR_WHITE);
+            CP_Font_DrawText("I remember.", window_width - 570, window_height - 270);
+            if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
+                CP_Graphics_ClearBackground(COLOR_BLACK);
+                CP_Image_Free(&tutorial_background);
+                CP_Sound_Free(&minion_voice);
+                
+                current_level = 1;
+                restart_level();
+                Current_Gamestate = GAMEPLAY_SCREEN;
+            }
+        }
+    }
+}
+
 void credit_screen(void) {
 
     float mouseX = (float)CP_Input_GetMouseX();
@@ -1960,7 +2158,7 @@ void credit_screen(void) {
     float height = (float)CP_System_GetWindowHeight();
     /*Load Image*/
     Credit_Screen = CP_Image_Load("./Assets/Credit_Screen.jpg");
-    CP_Image_Draw(Credit_Screen, width / 2, height / 2, width, height, 255);
+    CP_Image_Draw(Credit_Screen, (width / 2), (height / 2), width, height, 255);
     button_height = 60.f;
     button_width = 150.f;
     CP_Settings_Fill(COLOR_WHITE);
@@ -2210,6 +2408,8 @@ void restart_level(void) {
     for (int i = 0; i < ENEMY_MAX; i++) {
         l_time[i] = 0;
     }
+    gameplay_screen();
+    render_background();
     draw_timer_and_pause_button();
     display_money_counter();
 }
@@ -2919,6 +3119,8 @@ void free_all_sprites(void) {
     CP_Image_Free(&base_block2);
     CP_Image_Free(&base_block3);
     CP_Image_Free(&present_block);
+
+    CP_Image_Free(&main_menu_image);
 }
 
 void render_minion_sprite(int minion) {
@@ -4187,8 +4389,16 @@ void assign_enemy_stats() {
     }
 }
 
-
 /*Levels*/
+void level_tutorial() {
+    array_GameMap[0][11] = BLOCK_SPAWN;
+    array_GameMap[0][1] = BLOCK_END;
+
+
+
+    initial_direction = DOWN;
+    level_has_teleporter = FALSE;
+}
 
 void level_1() {
     array_GameMap[0][11] = BLOCK_SPAWN;
@@ -4418,7 +4628,6 @@ void level_3() {
     level_has_teleporter = FALSE;
 }
 
-/*Example on how to use Teleporter*/
 void level_4() {
     array_GameMap[2][5] = BLOCK_SPAWN;
     array_GameMap[4][2] = BLOCK_END;

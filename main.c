@@ -24,7 +24,7 @@ void game_exit(void);
 int main(void)
 {
     CP_Engine_SetNextGameState(game_init, game_update, game_exit);
-    //CP_System_ShowConsole();
+    CP_System_ShowConsole();
     CP_Engine_Run();
     return 0;
 }
