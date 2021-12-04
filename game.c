@@ -460,6 +460,9 @@ void move_minion(void);
 /*HP*/
 int find_full_hp(int i);
 
+/*Tank tanking damage if nearby*/
+int tank_minion_tanking(int minion);
+
 /*Functions*/
 void reset_map_and_minions(void);
 void render_background(void); //for the gameplay_screen
@@ -3338,7 +3341,7 @@ void projectile_logic() {
                                 //l_time = 0;
                                 l_time[which_enemy] = 0;
                             }
-                            if (array_MinionStats[i][MINION_HP] < 0) {
+                            if (array_MinionStats[i][MINION_HP] <= 0) {
                                 minion_dies_array_recycle(i);
                             }
                         }
@@ -3655,19 +3658,37 @@ void move_minion() {
                 /*Finds out which is the right enemy, since there can be 10 enemies at a time*/
                 if ((array_EnemyStats[r][ENEMY_ROW] == row_enemy) && (array_EnemyStats[r][ENEMY_COL] == col_enemy)) {
                     correct_enemy = r;
+                    int min_X, min_Y; //coordinates of the top left hand corner of the block
+                    min_X = origin_map_coordinateX + col_enemy * BLOCK_SIZE;
+                    min_Y = origin_map_coordinateY + row_enemy * BLOCK_SIZE;
                     /*Guard blocking minion*/
                     if (array_MinionStats[i][MINION_IS_STOPPED] == correct_enemy) {
-                        array_MinionStats[i][MINION_DIRECTION] = STOP;
+                        int check_for_tank = 0;
+                        for (int t = 0; t < minion_count; t++) {
+                            if (array_MinionStats[t][MINION_TYPE] == TANK_MINION) {
+                                if (array_MinionStats[t][X] > min_X && array_MinionStats[t][X] <= min_X + BLOCK_SIZE
+                                    && array_MinionStats[t][Y] > min_Y && array_MinionStats[t][Y] <= min_Y + BLOCK_SIZE) {
+                                    check_for_tank++;
+                                }
+                            }
+                        }
+                        if (array_MinionStats[i][MINION_TYPE] == TANK_MINION) {
+                            check_for_tank = 0;
+                        }
+                        if (check_for_tank == 0) {
+                            array_MinionStats[i][MINION_DIRECTION] = STOP;
+                        }
+                        else if (check_for_tank > 0) {
+                            array_MinionStats[i][MINION_IS_STOPPED] = 20;
+                            array_MinionStats[i][MINION_DIRECTION] = array_MinionStats[i][MINION_PAST_DIRECTION];
+                        }
                     }
                     else {
-                        int min_X, min_Y; //coordinates of the top left hand corner of the block
                         int counter = 0;
-                        min_X = origin_map_coordinateX + col_enemy * BLOCK_SIZE;
-                        min_Y = origin_map_coordinateY + row_enemy * BLOCK_SIZE;
                         for (int t = 0; t < minion_count; t++) {
                             if (array_MinionStats[t][MINION_IS_STOPPED] == correct_enemy) {
-                                if (array_MinionStats[t][MINION_TYPE] == TANK_MINION) {
-                                    counter++; //can comment out if we don't make tank minion let other minions pass
+                                if (array_MinionStats[t][MINION_TYPE] == TANK_MINION) { //this just let's other minions know if that there is a tank minion here already, they can pass
+                                    counter++; //can comment out if we don't make tank minion let other minions pass, will make counter 2 automatically
                                 }
                                 counter++; //checks number of minions currently being blocked by this enemy.
                             }
@@ -3697,7 +3718,8 @@ void move_minion() {
                             int can_attack = is_minion_being_attacked(correct_enemy, i);
                             if (enemy_charged_up == 1 && can_attack == 1) {
                                 if (array_MinionStats[i][MINION_HP] > 0) {
-                                    array_MinionStats[i][MINION_HP] -= array_EnemyStats[correct_enemy][ENEMY_ATTACK];
+                                    int minion_attacked = tank_minion_tanking(i);
+                                    array_MinionStats[minion_attacked][MINION_HP] -= array_EnemyStats[correct_enemy][ENEMY_ATTACK];
                                 }
                                 else if (array_MinionStats[i][MINION_HP] <= 0) {
                                     array_isMinionAttacked[correct_enemy][i] = 0;
@@ -3744,6 +3766,28 @@ void move_minion() {
         }
     }
 }
+
+int tank_minion_tanking(int minion) {
+    int col, row; 
+    col = (array_MinionStats[minion][X] - origin_map_coordinateX) / BLOCK_SIZE;
+    row = (array_MinionStats[minion][Y] - origin_map_coordinateY) / BLOCK_SIZE;
+    int min_X, min_Y; //coordinates of the top left hand corner of the block
+    /*[X][ ][ ]
+      [ ][o][ ]
+      [ ][ ][ ] - x marks the spot*/
+    min_X = origin_map_coordinateX + col * BLOCK_SIZE - BLOCK_SIZE;
+    min_Y = origin_map_coordinateY + row * BLOCK_SIZE - BLOCK_SIZE;
+    for (int i = 0; i < minion_count; i++) {
+        if (array_MinionStats[i][MINION_TYPE] == TANK_MINION) {
+            if (array_MinionStats[i][X] > min_X && array_MinionStats[i][X] <= (min_X + (3 * BLOCK_SIZE))
+                && array_MinionStats[i][Y] > min_Y && array_MinionStats[i][Y] <= (min_Y + (3 * BLOCK_SIZE))) {
+                return i; //returns the tank's number since the tank will be taking the damage
+            }
+        }
+    }
+    return minion; //no tank nearby so minion takes all the damage. sad.
+}
+
 
 /*Check if the current minion is the one to be attacked by the enemy*/
 int is_minion_being_attacked(int enemy, int minion) {
@@ -3880,7 +3924,8 @@ void enemy_special_attack() {
                     for (int j = 0; j < minion_count; j++) {
                         if (array_MinionStats[j][X] > minX && array_MinionStats[j][X] < maxX
                             && array_MinionStats[j][Y] > minY && array_MinionStats[j][Y] < maxY) {
-                            array_MinionStats[j][MINION_HP] -= array_EnemyStats[i][ENEMY_ATTACK];
+                            int minion_attacked = tank_minion_tanking(j);
+                            array_MinionStats[minion_attacked][MINION_HP] -= array_EnemyStats[i][ENEMY_ATTACK];
                         }
                     }
                 }
