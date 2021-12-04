@@ -515,6 +515,27 @@ void game_update(void) {
         enemy_info();
         minion_info();
         if (current_level == 0) {
+            //skip tutorial button
+            CP_Settings_Fill(COLOR_WHITE);
+            CP_Graphics_DrawRect(0, 0, (float)BLOCK_SIZE - 20, 50);
+            CP_Settings_Fill(COLOR_BLACK);
+            CP_Settings_TextSize(25);
+            CP_Font_DrawText("SKIP", 5, 23);
+            CP_Font_DrawText("TUTORIAL", 5, 43);
+            float mouseX = (float)CP_Input_GetMouseX();
+            float mouseY = (float)CP_Input_GetMouseY();
+            if (mouseX >= 0 && mouseX < BLOCK_SIZE - 20 && mouseY >= 0 && mouseY < 50) {
+                CP_Settings_Fill(COLOR_BLACK);
+                CP_Graphics_DrawRect(0, 0, (float)BLOCK_SIZE - 20, 50);
+                CP_Settings_Fill(COLOR_WHITE);
+                CP_Settings_TextSize(25);
+                CP_Font_DrawText("SKIP", 5, 23);
+                CP_Font_DrawText("TUTORIAL", 5, 43);
+                if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
+                    current_level = 1;
+                    restart_level();
+                }
+            }
             elapsed_timer = 0;
             int endX, endY, spawnX, spawnY;
             endX = endY = spawnX = spawnY = 0;
