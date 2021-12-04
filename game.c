@@ -1,6 +1,10 @@
 #include <stdio.h>
 #include "cprocessing.h"
 
+void game_init(void);
+void game_update(void);
+void game_exit(void);
+
 /*Window Dimension of Game*/
 int origin_map_coordinateX; //cause I have a border around everything
 int origin_map_coordinateY;
@@ -469,6 +473,53 @@ void render_minion(void);
 void assign_minion_stats(void);
 void assign_enemy_stats(void);
 void render_enemy(void);
+
+/*Digipen Splash Screen */
+CP_Image Digipen_logo = NULL;
+float current_seconds;
+int splash_opacity;
+
+void splash_init(void) {
+    Digipen_logo = CP_Image_Load("./Assets/Digipen_logo.png");
+    /*Setting the FrameRate to 60fps*/
+    CP_System_SetFrameRate(60.0f);
+
+    /*Initialising variables for Fullscreen etc.*/
+    CP_System_SetWindowSize(1920, 1080);
+    update_variables_and_make_screen_nice();
+    // Store seconds taken to load the digipen logo
+    current_seconds = CP_System_GetSeconds();
+};
+
+void splash_update(void) {
+    // Clear background
+    CP_Graphics_ClearBackground(COLOR_BLACK);
+    float width = (float)CP_System_GetWindowWidth();
+    float height = (float)CP_System_GetWindowHeight();
+
+
+    // Draw splash screen; fades in and start fading out after 2 seconds
+    if (CP_System_GetSeconds() - current_seconds < 2 && splash_opacity != 255) {
+        splash_opacity += 15;
+    }
+    else if (CP_System_GetSeconds() - current_seconds >= 2 && splash_opacity != 0) {
+        splash_opacity -= 15;
+    }
+    CP_Image_Draw(Digipen_logo, width / 2, height / 2, width, height, splash_opacity);
+    // If mouse click or splash opacity == 0, skip splashscreen
+    if (splash_opacity == 0 || CP_Input_MouseTriggered(MOUSE_BUTTON_1) || CP_Input_MouseTriggered(MOUSE_BUTTON_2)) {
+        // Reset splash opacity
+        splash_opacity = 0;
+
+        // Go to the menu screen
+        CP_Engine_SetNextGameState(game_init, game_update, game_exit);
+    }
+};
+
+void splash_exit(void) {
+    CP_Image_Free(&Digipen_logo);
+
+}
 
 void game_init(void) {
     /*Setting the FrameRate to 60fps*/
