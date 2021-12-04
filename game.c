@@ -756,7 +756,8 @@ void game_update(void) {
                     CP_Settings_Fill(COLOR_BLACK);
                     CP_Image_Draw(tutorial_minion, (float)minion_position[0], (float)minion_position[1], 200, 200, 255);
                     if (array_EnemyStats[1][ENEMY_HP] > 80) {
-                        CP_Font_DrawText("Great job!", 120, window_height - 365);
+                        CP_Font_DrawText("Great job! By the way, warrior minions will passively earn money. I wonder what", 120, window_height - 380);
+                        CP_Font_DrawText("shady things they're doing on the side...", 120, window_height - 320);
                     }
                     else if (array_EnemyStats[1][ENEMY_HP] <= 80) {
                         CP_Font_DrawText("Notice how the enemy tower isn't being attacked? Only tank and wizard", 120, window_height - 380);
@@ -4203,7 +4204,6 @@ void minion_dies_array_recycle(int dead_minion_number) {
     minion_count--;
 }
 
-/*There's issues with basic attack*/
 int check_minion_basic_attack_charge(int i) {
     if (array_MinionCurrentCharge[i][MINION_BASIC_CURRENT_CHARGE] >= array_MinionCurrentCharge[i][MINION_BASIC_ATTACK_SPEED]) {
         array_MinionCurrentCharge[i][MINION_BASIC_CURRENT_CHARGE] = 0;
