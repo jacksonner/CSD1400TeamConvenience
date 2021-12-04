@@ -73,6 +73,7 @@ int teleport_spawn_X, teleport_spawn_Y;
 #define COLOR_LIGHT_GREY CP_Color_Create(224, 224, 224, 255)
 #define COLOR_GREYISH_BLUE CP_Color_Create(201, 223, 235, 255)
 #define TRANSLUCENT_PINK CP_Color_Create(255, 204, 255, 100)
+#define TRANSLUCENT_GOLD CP_Color_Create(255, 195, 54, 100)
 
 /*Minion Stats*/
 #define X 0 //x-coordinates
@@ -4301,8 +4302,7 @@ void renderguardhp_bar(int i) {
 
 void render_special_current_charge() {
     for (int i = 0; i < MINION_MAX; i++) {
-        if (array_MinionStats[i][MINION_TYPE] != SPAM_MINION && array_MinionStats[i][MINION_TYPE] != WARRIOR_MINION) {
-            //ADDED THE != WARRIOR_MINION
+        if (array_MinionStats[i][MINION_TYPE] != SPAM_MINION) {
             int buffer_space = 0;
             float charge_percentage;
             if (array_MinionStats[i][MINION_HP] > 0) {
@@ -4318,6 +4318,9 @@ void render_special_current_charge() {
                     buffer_space = array_MinionStats[i][MINION_SIZE] / 2 + 7;
                 }
                 else if (array_MinionStats[i][MINION_TYPE] == HEALER_MINION) {
+                    buffer_space = array_MinionStats[i][MINION_SIZE] / 2 + 7;
+                }
+                else if (array_MinionStats[i][MINION_TYPE] == WARRIOR_MINION) {
                     buffer_space = array_MinionStats[i][MINION_SIZE] / 2 + 7;
                 }
                 charge_percentage = array_MinionCurrentCharge[i][MINION_CURRENT_CHARGE] / array_MinionCurrentCharge[i][MINION_CHARGE_TIME];
@@ -4385,7 +4388,22 @@ void render_minion_special_attack() {
     float tank_minion_effect_lasts = 0.4f;
     float healer_minion_effect_lasts = 0.4f;
     float wizard_minion_effect_lasts = 0.4f;
+    float warrior_minion_effect_lasts = 0.4f;
     for (int i = 0; i < minion_count; i++) {
+        if (array_MinionStats[i][MINION_TYPE] == WARRIOR_MINION) {
+            if (array_minion_attack_time[i][CHECKER] == TRUE && array_minion_attack_time[i][EFFECT_TIMER] < warrior_minion_effect_lasts) {
+                float counter_X = (float)CP_System_GetWindowWidth() - (float)origin_map_coordinateX - BLOCK_SIZE/2 + 5;
+                float counter_Y = (float)origin_map_coordinateY + (float)MAP_GRID_ROWS * (float)BLOCK_SIZE + 50;
+                CP_Settings_Fill(TRANSLUCENT_GOLD);
+                CP_Settings_Stroke(TRANSLUCENT_GOLD);
+                CP_Graphics_DrawCircle(counter_X, counter_Y, (float)BLOCK_SIZE/2);
+                CP_Settings_Stroke(COLOR_BLACK);
+            }
+            else if (array_minion_attack_time[i][EFFECT_TIMER] >= warrior_minion_effect_lasts) {
+                array_minion_attack_time[i][CHECKER] = FALSE;
+                array_minion_attack_time[i][EFFECT_TIMER] = 0; //pretty sure this is redundant lol
+            }
+        }
         if (array_MinionStats[i][MINION_TYPE] == TANK_MINION) {
             if (array_minion_attack_time[i][CHECKER] == TRUE && array_minion_attack_time[i][EFFECT_TIMER] < tank_minion_effect_lasts) {
                 if (gIsPaused == FALSE) {
@@ -4459,6 +4477,12 @@ void render_minion_special_attack() {
 void minion_special_attack(int i, int current_row, int current_col) {
     int tank_range = 2, wizard_range = 3;
     if (array_MinionCurrentCharge[i][MINION_CURRENT_CHARGE] >= array_MinionCurrentCharge[i][MINION_CHARGE_TIME]) {
+        if (array_MinionStats[i][MINION_TYPE] == WARRIOR_MINION) {
+            money += 5;
+            array_MinionCurrentCharge[i][MINION_CURRENT_CHARGE] = 0;
+            array_minion_attack_time[i][CHECKER] = TRUE;
+            array_minion_attack_time[i][EFFECT_TIMER] = 0;
+        }
         if (array_MinionStats[i][MINION_TYPE] == TANK_MINION) { //restores HP and attack tower
             int full_hp = find_full_hp(i);
             if (array_MinionStats[i][MINION_HP] != full_hp) {
@@ -4712,7 +4736,7 @@ void assign_minion_stats() {
         array_MinionStats[minion_count][MINION_WEIGHT] = 1;
         array_MinionStats[minion_count][MINION_COST] = 60;
         array_MinionStats[minion_count][MINION_SIZE] = 110;
-        array_MinionCurrentCharge[minion_count][MINION_CHARGE_TIME] = 5; //one strong attack?
+        array_MinionCurrentCharge[minion_count][MINION_CHARGE_TIME] = 5; //+5 money
         array_MinionCurrentCharge[minion_count][MINION_BASIC_ATTACK_SPEED] = 0.7f;
     }
     if (array_MinionStats[minion_count][MINION_TYPE] == TANK_MINION) { //is tall so can attack tower
