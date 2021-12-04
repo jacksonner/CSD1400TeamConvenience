@@ -147,6 +147,11 @@ void free_all_sprites(void);
 /*Music and BGM stuff*/
 static CP_Sound minion_voice;
 static CP_Sound knock;
+static CP_Sound gameplay_bgm;
+static CP_Sound main_menu_bgm;
+
+/*Music arrays*/
+int play_bgm[5];
 
 /*Directions*/
 #define STOP 0
@@ -499,11 +504,29 @@ void game_init(void) {
     for (int i = 0; i < 10; i++) {
         play_effect_once[i] = 0;
     }
+
+    /*BGM Music*/
+    for (int i = 0; i < 5; i++) {
+        play_bgm[i] = 0;
+    }
+    main_menu_bgm = CP_Sound_Load("./Assets/music/main_menu_bgm.wav");
 }
 
 void game_update(void) {
+    printf("%d\n", play_bgm[1]);
     if (Current_Gamestate == MAIN_MENU_SCREEN) {
         main_menu_screen();
+        if (play_bgm[1] == 0)
+        {
+            printf("Yes\n");
+            //CP_Sound_StopAll();
+            CP_Sound_ResumeGroup(CP_SOUND_GROUP_1);
+            CP_Sound_PlayAdvanced(main_menu_bgm, 0.3f, 1.f, TRUE, CP_SOUND_GROUP_1);
+            play_bgm[1] = 1;
+        }
+        
+
+        
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
             main_menu_clicked(CP_Input_GetMouseX(), CP_Input_GetMouseY());
         }
@@ -515,6 +538,17 @@ void game_update(void) {
         render_enemy();
         enemy_info();
         minion_info();
+        if (play_bgm[0] == 0)
+        {
+            CP_Sound_StopAll();
+            gameplay_bgm = CP_Sound_Load("./Assets/music/action_gameplay_bgm.wav");
+            CP_Sound_PlayAdvanced(gameplay_bgm, 0.3f, 1.f, TRUE, CP_SOUND_GROUP_0);
+            play_bgm[0] = 1;
+        }
+        if (play_bgm[0] == 1)
+        {
+            CP_Sound_ResumeAll();
+        }
         if (current_level == 0) {
             elapsed_timer = 0;
             int endX, endY, spawnX, spawnY;
@@ -857,7 +891,7 @@ void game_update(void) {
                 render_minion_sprite(i);
             }
             renderminionhp_bar();
-            projectile_render();
+            //projectile_render();
             render_special_current_charge();
             render_minion_special_attack();
             enemy_special_attack();
@@ -873,6 +907,7 @@ void game_update(void) {
                 }
             }
             if (setting_popup == TRUE) {
+                CP_Sound_PauseAll();
                 setting_image = CP_Image_Load("./Assets/bg_mainmenu.png"); //temp image
 
                 static float middleX, middleY, width, height;
@@ -927,6 +962,7 @@ void game_update(void) {
                     CP_Settings_Fill(COLOR_WHITE);
                     CP_Font_DrawText("MAIN MENU", option_textX, option_textY * 3 + 20);
                     if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
+                        play_bgm[1] = 0;
                         Current_Gamestate = MAIN_MENU_SCREEN;
                         setting_popup = FALSE;
                     }
@@ -965,6 +1001,7 @@ void game_update(void) {
                     CP_Settings_Fill(COLOR_WHITE);
                     CP_Font_DrawText("QUIT", option_textX * 2, option_textY * 4);
                     if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
+                        CP_Sound_StopAll();
                         Current_Gamestate = QUIT_SCREEN;
                         setting_popup = FALSE;
                     }
@@ -987,13 +1024,8 @@ void game_update(void) {
         }
 
         else if (gIsPaused == FALSE) {
-            printf("Coords : %f and %f\n", (float)array_EnemyStats[3][ENEMY_ROW_COORDINATES], (float)array_EnemyStats[3][ENEMY_COL_COORDINATES]);
-            printf("Projectile : %f and %f\n", (float)array_EnemyStats[3][ENEMY_COL], (float)array_EnemyStats[3][ENEMY_ROW]);
-            printf("Range : %f and %f\n", (float)(array_EnemyStats[3][ENEMY_ROW_COORDINATES] / array_EnemyStats[3][ENEMY_COL]), (float)(array_EnemyStats[3][ENEMY_COL_COORDINATES] / array_EnemyStats[3][ENEMY_COL]));
-            printf("NEWCoords : %f and %f\n", (float)array_EnemyStats[8][ENEMY_ROW_COORDINATES], (float)array_EnemyStats[8][ENEMY_COL_COORDINATES]);
-            printf("Projectile : %f and %f\n", (float)array_EnemyStats[8][ENEMY_COL], (float)array_EnemyStats[8][ENEMY_ROW]);
-            printf("Range : %f and %f\n", (float)(array_EnemyStats[8][ENEMY_ROW_COORDINATES] / array_EnemyStats[8][ENEMY_COL]), (float)(array_EnemyStats[8][ENEMY_COL_COORDINATES] / array_EnemyStats[8][ENEMY_COL]));
-            projectile_logic();
+            //projectile_logic();
+            /*
             for (int which_enemy = 0; which_enemy < ENEMY_MAX; which_enemy++) {
                 for (int i = 0; i < PROJ_MAX; i++) {
                     if ((in_range[which_enemy] == TRUE) && (projectile[which_enemy][i][IS_ALIVE] == TRUE) && (array_is_attacking[which_enemy] == TRUE))
@@ -1002,7 +1034,7 @@ void game_update(void) {
                     }
                 }
             }
-            projectile_render();
+            projectile_render();*/
             start_timer();
             update_timer();
             if (elapsed_timer2 > 2) {
@@ -1029,9 +1061,11 @@ void game_update(void) {
 
             if ((int)elapsed_timer == 120)
             {
+                CP_Sound_StopAll();
                 Current_Gamestate = LOSE_SCREEN;
             }
             if (minions_in_base == 10) {
+                CP_Sound_StopAll();
                 Current_Gamestate = WIN_SCREEN;
             }
         }
@@ -1261,6 +1295,7 @@ void main_menu_screen(void) {
 
 /*When Main Menu is clicked on different screens*/
 void main_menu_clicked(float x, float y) {
+    CP_Sound_PauseGroup(CP_SOUND_GROUP_1);
     if (x >= start_game_buttonX && x <= (start_game_buttonX + button_width) &&
         y >= start_game_buttonY && y <= start_game_buttonY + button_height) {
 
@@ -1397,6 +1432,7 @@ void lose_screen(void) {
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
         {
             CP_Image_Free(&Lose_Screen);
+            play_bgm[1] = 2;
             Current_Gamestate = MAIN_MENU_SCREEN;
 
 
@@ -1461,6 +1497,7 @@ void win_screen(void) {
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
         {
             CP_Image_Free(&Win_Screen);
+            play_bgm[1] = 2;
             Current_Gamestate = MAIN_MENU_SCREEN;
 
 
@@ -1950,6 +1987,7 @@ void setting_screen(void) {
         CP_Font_DrawText("MAIN MENU", option_textX, option_textY * 3 + 20);
 
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
+            CP_Sound_StopGroup(CP_SOUND_GROUP_0);
             Current_Gamestate = MAIN_MENU_SCREEN;
             Previous_Gamestate = SETTING_SCREEN;
         }
@@ -2023,7 +2061,8 @@ void setting_screen(void) {
 
 /*When Setting is clicked from the different screens*/
 void setting_screen_clicked(float x, float y) {
-
+    play_bgm[1] = 0;
+    CP_Sound_PauseAll();
     /*Free image*/
     CP_Image_Free(&setting_image);
     if (Current_Gamestate == MAIN_MENU_SCREEN) {
@@ -2706,6 +2745,7 @@ void update_timer(void)
         array_enemy_attack_time[i][EFFECT_TIMER] += test;
         array_enemy_death_timer[i][ENEMY_DEATH_TIMER] += test;
     }
+    /*
     for (int j = 0; j < ENEMY_MAX; j++) {
         for (int i = 0; i < proj_count; i++) {
             projectile[j][i][PROJ_CHARGE] += test;
@@ -2718,7 +2758,7 @@ void update_timer(void)
     }
     for (int j = 0; j < ENEMY_MAX; j++) {
         fire_timer[j] += test;
-    }
+    }*/
 }
 
 /*Restart Game during Gameplay*/
