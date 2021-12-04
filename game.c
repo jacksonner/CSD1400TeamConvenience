@@ -532,6 +532,7 @@ void game_update(void) {
                 CP_Font_DrawText("SKIP", 5, 23);
                 CP_Font_DrawText("TUTORIAL", 5, 43);
                 if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
+                    tutorial_part = 26;
                     current_level = 1;
                     restart_level();
                 }
@@ -637,7 +638,7 @@ void game_update(void) {
                 || tutorial_part == 12 || tutorial_part == 13 || tutorial_part == 14 || tutorial_part == 15
                 || tutorial_part == 16 || tutorial_part == 17 || tutorial_part == 18 || tutorial_part == 19
                 || tutorial_part == 20 || tutorial_part == 21 || tutorial_part == 22 || tutorial_part == 23 || tutorial_part == 24
-                || tutorial_part == 25) {
+                || tutorial_part == 25 || tutorial_part == 26) {
                 CP_Settings_Fill(COLOR_WHITE);
                 CP_Graphics_DrawRect(100, window_height - 450, window_width - 200, 150);
                 //CP_Image_Draw(tutorial_minion, (float)minion_position[0], (float)minion_position[1], 200, 200, 255);
@@ -813,6 +814,9 @@ void game_update(void) {
                 }
                 if (tutorial_part == 25) {
                     minions_in_base = 10;
+                }
+                if (tutorial_part == 26) {
+
                 }
                 if (tutorial_part != 12 || (tutorial_part == 12 && array_EnemyStats[1][ENEMY_HP] <= 80) || (tutorial_part == 17 && array_EnemyStats[0][ENEMY_HP] != 200)) {
                     CP_Settings_Fill(COLOR_GREY);
