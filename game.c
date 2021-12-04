@@ -518,6 +518,7 @@ void game_update(void) {
         enemy_info();
         minion_info();
         if (current_level == 0) {
+            elapsed_timer = 0;
             int endX, endY, spawnX, spawnY;
             endX = endY = spawnX = spawnY = 0;
             float window_width = (float)CP_System_GetWindowWidth();
@@ -578,7 +579,6 @@ void game_update(void) {
                 || tutorial_part == 7) {
                 CP_Settings_Fill(COLOR_WHITE);
                 CP_Graphics_DrawRect(100, window_height - 450, window_width - 200, 150);
-                CP_Image_Draw(tutorial_minion, (float)minion_position[0], (float)minion_position[1], 200, 200, 255);
                 CP_Settings_Fill(COLOR_BLACK);
                 CP_Settings_TextSize(55);
                 if (tutorial_part == 3) {
@@ -613,13 +613,16 @@ void game_update(void) {
                 CP_Settings_Fill(COLOR_GREY);
                 CP_Settings_TextSize(30);
                 CP_Font_DrawText("click to continue>>", window_width - 330, window_height - 310);
+                CP_Image_Draw(tutorial_minion, (float)minion_position[0], (float)minion_position[1], 200, 200, 255);
             }
             if (tutorial_part == 8 || tutorial_part == 9 || tutorial_part == 10 || tutorial_part == 11
                 || tutorial_part == 12 || tutorial_part == 13 || tutorial_part == 14 || tutorial_part == 15
-                || tutorial_part == 16 || tutorial_part == 17 || tutorial_part == 18 || tutorial_part == 19) {
+                || tutorial_part == 16 || tutorial_part == 17 || tutorial_part == 18 || tutorial_part == 19
+                || tutorial_part == 20 || tutorial_part == 21 || tutorial_part == 22 || tutorial_part == 23 || tutorial_part == 24
+                || tutorial_part == 25) {
                 CP_Settings_Fill(COLOR_WHITE);
                 CP_Graphics_DrawRect(100, window_height - 450, window_width - 200, 150);
-                CP_Image_Draw(tutorial_minion, (float)minion_position[0], (float)minion_position[1], 200, 200, 255);
+                //CP_Image_Draw(tutorial_minion, (float)minion_position[0], (float)minion_position[1], 200, 200, 255);
                 CP_Settings_Fill(COLOR_BLACK);
                 CP_Settings_TextSize(55);
                 if (tutorial_part == 8) {
@@ -632,7 +635,7 @@ void game_update(void) {
                     }
                     CP_Image_Draw(ftutorial_minion, (float)minion_position[0], (float)minion_position[1], 200, 200, 255);
                     if (minion_position[1] <= minion_topY) {
-                        CP_Font_DrawText("You can check you progress on this bar. Everytime one more bar turns", 120, window_height - 380);
+                        CP_Font_DrawText("You can check you progress on this bar. Every time one more bar turns", 120, window_height - 380);
                         CP_Font_DrawText("white, you become one step closer to freeing everyone!", 120, window_height - 320);
                         CP_Settings_Fill(TRANSLUCENT_PINK);
                         CP_Graphics_DrawCircle(window_width - 200, (float)origin_map_coordinateY - 20, (float)BLOCK_SIZE);
@@ -682,20 +685,22 @@ void game_update(void) {
                         CP_Font_DrawText("Great job!", 120, window_height - 365);
                     }
                     else if (array_EnemyStats[1][ENEMY_HP] <= 80) {
-                        CP_Font_DrawText("Notice how the enemy tower isn't being attacked? Only tank", 120, window_height - 380);
-                        CP_Font_DrawText("and wizard minions will be capable of attacking these towers.", 120, window_height - 320);
+                        CP_Font_DrawText("Notice how the enemy tower isn't being attacked? Only tank and wizard", 120, window_height - 380);
+                        CP_Font_DrawText("minions are capable of attacking these towers.", 120, window_height - 320);
                         CP_Settings_Fill(TRANSLUCENT_PINK);
                         CP_Graphics_DrawCircle((float)array_EnemyStats[0][ENEMY_ROW_COORDINATES], (float)array_EnemyStats[0][ENEMY_COL_COORDINATES] - 40, 1.5f * (float)BLOCK_SIZE);
                     }
                 }
                 if (tutorial_part == 13) {
                     CP_Settings_Fill(COLOR_BLACK);
+                    array_EnemyStats[1][ENEMY_TYPE] = DUMMY_ENEMY;
                     CP_Font_DrawText("Also, everytime a Square is defeated, they drop money! Isn't that just great?", 120, window_height - 380);
                     CP_Font_DrawText("However, do note enemy guards can come back, tho with lowered HP.", 120, window_height - 320);
                     CP_Image_Draw(tutorial_minion, (float)minion_position[0], (float)minion_position[1], 200, 200, 255);
                 }
                 if (tutorial_part == 14) {
                     CP_Settings_Fill(COLOR_BLACK);
+                    array_EnemyStats[1][ENEMY_TYPE] = DUMMY_ENEMY;
                     CP_Font_DrawText("See this bar? This let's you know how long you have before they come back", 120, window_height - 380);
                     CP_Font_DrawText("And everytime they come back and are defeated, you get more money!", 120, window_height - 320);
                     CP_Image_Draw(tutorial_minion, (float)minion_position[0], (float)minion_position[1], 200, 200, 255);
@@ -703,6 +708,7 @@ void game_update(void) {
                     CP_Graphics_DrawCircle((float)array_EnemyStats[1][ENEMY_ROW_COORDINATES], (float)array_EnemyStats[1][ENEMY_COL_COORDINATES] + 50, (float)BLOCK_SIZE);
                 }
                 if (tutorial_part == 15) {
+                    array_EnemyStats[1][ENEMY_TYPE] = DUMMY_ENEMY;
                     CP_Font_DrawText("To speed things up, I have replaced the dummy.", 120, window_height - 365);
                     money = 0;
                     array_GameMap[2][6] = BLOCK_ENEMY;
@@ -710,23 +716,24 @@ void game_update(void) {
                 }
                 if (tutorial_part == 16) {
                     money = 110;
+                    array_EnemyStats[1][ENEMY_TYPE] = DUMMY_ENEMY;
                     CP_Font_DrawText("Now try summoning a tank minion! For learning purposes, tank minion won't have", 120, window_height - 380);
                     CP_Font_DrawText("full HP for now.", 120, window_height - 320);
                 }
                 if (tutorial_part == 17) {
                     money = 110;
                     if (array_MinionStats[0][MINION_TYPE] == TANK_MINION) {
-                        array_MinionStats[0][ENEMY_HP] = find_full_hp(0) / 2;
+                        array_MinionStats[0][ENEMY_HP] = find_full_hp(0);
                         CP_Font_DrawText("Tank minion is quite tanky, and will focus all guard attacks onto himself! When", 120, window_height - 380);
                         CP_Font_DrawText("their special attack charges up, they regain health and deal AOE damage.", 120, window_height - 320);
                         money = 0;
+                        if (array_MinionStats[1][ENEMY_HP] < 20) {
+                            array_MinionStats[1][ENEMY_HP] = 100;
+                        }
                     }
                     else if (array_MinionStats[0][MINION_TYPE] != TANK_MINION) {
                         CP_Font_DrawText("Um, that isn't tank minion.", 120, window_height - 365);
                         array_MinionStats[0][MINION_HP] = 0;
-                    }
-                    if (array_EnemyStats[0][ENEMY_HP] < 200) {
-                       tutorial_part += 1;
                     }
                 }
                 if (tutorial_part == 18) {
@@ -734,24 +741,67 @@ void game_update(void) {
                     CP_Font_DrawText("Isn't tank minion just amazing?", 120, window_height - 380);
                     CP_Font_DrawText("Now let's move on to Wizard minion!", 120, window_height - 320);
                     array_MinionStats[0][MINION_HP] = 0;
+                    if (array_MinionStats[1][ENEMY_HP] < 20) {
+                        array_MinionStats[1][ENEMY_HP] = 100;
+                    }
+
                 }
                 if (tutorial_part == 19) {
                     money = 130;
                     if (array_MinionStats[0][MINION_TYPE] == WIZARD_MINION) {
-                        CP_Font_DrawText("Wizard minion is rather weak BUT he has a huge 3x3 range with high damage", 120, window_height - 380);
+                        money = 0;
+                        CP_Font_DrawText("Wizard minion is rather weak but he has a huge 3x3 range with high damage", 120, window_height - 380);
                         CP_Font_DrawText("though his special attack does take quite some time to charge up.", 120, window_height - 320);
                     }
-                    else if (array_MinionStats[0][MINION_TYPE] != WIZARD_MINION && array_MinionStats[0][MINION_HP] > 0) {
+                    else if (array_MinionStats[0][MINION_TYPE] != WIZARD_MINION) {
                         CP_Font_DrawText("Hey uh, wizard minion first.", 120, window_height - 365);
-                        money = 0;
                         array_MinionStats[0][MINION_HP] = 0;
                     }
                 }
-                if (tutorial_part != 12 || (tutorial_part == 12 && array_EnemyStats[1][ENEMY_HP] <= 80)) {
+                if (tutorial_part == 20) {
+                    money = 0;
+                    CP_Font_DrawText("Apart from wizard minion, there is also healer minion. Unfortunately, it", 120, window_height - 380);
+                    CP_Font_DrawText("seems that time is getting a bit tight now.", 120, window_height - 320);
+                }
+                if (tutorial_part == 21) {
+                    if (minion_position[1] < window_height - 200) {
+                        minion_position[1] += 10;
+                    }
+                    money = 0;
+                    if (minion_position[1] >= window_height - 200) {
+                    CP_Font_DrawText("When you're out there, keep an eye on the timer. Because, once it counts ", 120, window_height - 380);
+                    CP_Font_DrawText("down to 0, you'll need to try again.", 120, window_height - 320);
+                    CP_Settings_Fill(TRANSLUCENT_PINK);
+                    CP_Graphics_DrawCircle(window_width - 540, window_height - 180, (float)BLOCK_SIZE / 2);
+                    }
+                }
+                if (tutorial_part == 22) {
+                    CP_Font_DrawText("On a side note, if you ever need a quick refresher, you can always refer to the", 120, window_height - 380);
+                    CP_Font_DrawText("guide here. It has information on enemies, minions, and terrain.", 120, window_height - 320);
+                    CP_Settings_Fill(TRANSLUCENT_PINK);
+                    CP_Graphics_DrawCircle(window_width - 110, window_height - 56, (float)BLOCK_SIZE/2);
+                }
+                if (tutorial_part == 23) {
+                    CP_Font_DrawText("Or you can take a look at the settings button and find the help guide there instead.", 120, window_height - 380);
+                    CP_Settings_Fill(TRANSLUCENT_PINK);
+                    CP_Graphics_DrawCircle(window_width - 260, window_height - 56, (float)BLOCK_SIZE);
+                }
+                if (tutorial_part == 24) {
+                    CP_Font_DrawText("With all that said and done, good luck. I hope you manage to bring everyone back.", 120, window_height - 365);
+                    //CP_Font_DrawText("With all that said and done... Good luck. ", 120, window_height - 380);
+                    //CP_Font_DrawText("I hope you manage to bring everyone back.", 120, window_height - 320);
+                    CP_Settings_Fill(TRANSLUCENT_PINK);
+                    CP_Graphics_DrawCircle(window_width - 260, window_height - 56, (float)BLOCK_SIZE);
+                }
+                if (tutorial_part == 25) {
+                    minions_in_base = 10;
+                }
+                if (tutorial_part != 12 || (tutorial_part == 12 && array_EnemyStats[1][ENEMY_HP] <= 80) || (tutorial_part == 17 && array_EnemyStats[0][ENEMY_HP] != 200)) {
                     CP_Settings_Fill(COLOR_GREY);
                     CP_Settings_TextSize(30);
                     CP_Font_DrawText("click to continue>>", window_width - 330, window_height - 310);
                 }
+                CP_Image_Draw(tutorial_minion, (float)minion_position[0], (float)minion_position[1], 200, 200, 255);
             }
             if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
                 float x = (float)CP_Input_GetMouseX();
@@ -777,10 +827,13 @@ void game_update(void) {
                 else if (tutorial_part == 14 && array_EnemyStats[1][ENEMY_HP] > 0) {
                     tutorial_part += 1;
                 }
-                else if (tutorial_part == 17 && array_MinionStats[0][MINION_TYPE] != TANK_MINION) {
+                else if ((tutorial_part == 17 && array_MinionStats[0][MINION_TYPE] != TANK_MINION) || (tutorial_part == 17 && array_EnemyStats[0][ENEMY_HP] == 200)) {
                     tutorial_part -= 1;
                 }
                 else if (tutorial_part == 19 && array_MinionStats[0][MINION_TYPE] != WIZARD_MINION) {
+                    tutorial_part -= 1;
+                }
+                else if (tutorial_part == 21 && minion_position[1] < window_height - 200) {
                     tutorial_part -= 1;
                 }
                 tutorial_part += 1;
