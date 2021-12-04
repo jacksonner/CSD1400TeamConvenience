@@ -497,11 +497,6 @@ void game_init(void) {
     }
 }
 
-    for (int j = 0; j < ENEMY_MAX; j++) {
-        fire_timer[j] = 0.0f;
-    }
-}
-
 void game_update(void) {
     if (Current_Gamestate == MAIN_MENU_SCREEN) {
         main_menu_screen();
