@@ -1,6 +1,10 @@
 #include <stdio.h>
 #include "cprocessing.h"
 
+void game_init(void);
+void game_update(void);
+void game_exit(void);
+
 /*Window Dimension of Game*/
 int origin_map_coordinateX; //cause I have a border around everything
 int origin_map_coordinateY;
@@ -476,6 +480,53 @@ void assign_minion_stats(void);
 void assign_enemy_stats(void);
 void render_enemy(void);
 
+/*Digipen Splash Screen */
+CP_Image Digipen_logo = NULL;
+float current_seconds;
+int splash_opacity;
+
+void splash_init(void) {
+    Digipen_logo = CP_Image_Load("./Assets/Digipen_logo.png");
+    /*Setting the FrameRate to 60fps*/
+    CP_System_SetFrameRate(60.0f);
+
+    /*Initialising variables for Fullscreen etc.*/
+    CP_System_SetWindowSize(1920, 1080);
+    update_variables_and_make_screen_nice();
+    // Store seconds taken to load the digipen logo
+    current_seconds = CP_System_GetSeconds();
+};
+
+void splash_update(void) {
+    // Clear background
+    CP_Graphics_ClearBackground(COLOR_BLACK);
+    float width = (float)CP_System_GetWindowWidth();
+    float height = (float)CP_System_GetWindowHeight();
+
+
+    // Draw splash screen; fades in and start fading out after 2 seconds
+    if (CP_System_GetSeconds() - current_seconds < 2 && splash_opacity != 255) {
+        splash_opacity += 15;
+    }
+    else if (CP_System_GetSeconds() - current_seconds >= 2 && splash_opacity != 0) {
+        splash_opacity -= 15;
+    }
+    CP_Image_Draw(Digipen_logo, width / 2, height / 2, width, height, splash_opacity);
+    // If mouse click or splash opacity == 0, skip splashscreen
+    if (splash_opacity == 0 || CP_Input_MouseTriggered(MOUSE_BUTTON_1) || CP_Input_MouseTriggered(MOUSE_BUTTON_2)) {
+        // Reset splash opacity
+        splash_opacity = 0;
+
+        // Go to the menu screen
+        CP_Engine_SetNextGameState(game_init, game_update, game_exit);
+    }
+};
+
+void splash_exit(void) {
+    CP_Image_Free(&Digipen_logo);
+
+}
+
 void game_init(void) {
     /*Setting the FrameRate to 60fps*/
     CP_System_SetFrameRate(60.0f);
@@ -550,12 +601,37 @@ void game_update(void) {
             CP_Sound_ResumeAll();
         }
         if (current_level == 0) {
+            //skip tutorial button
+            CP_Settings_Fill(COLOR_WHITE);
+            CP_Graphics_DrawRect(0, 0, (float)BLOCK_SIZE - 20, 50);
+            CP_Settings_Fill(COLOR_BLACK);
+            CP_Settings_TextSize(25);
+            CP_Font_DrawText("SKIP", 5, 23);
+            CP_Font_DrawText("TUTORIAL", 5, 43);
+            float mouseX = (float)CP_Input_GetMouseX();
+            float mouseY = (float)CP_Input_GetMouseY();
+            if (mouseX >= 0 && mouseX < BLOCK_SIZE - 20 && mouseY >= 0 && mouseY < 50) {
+                CP_Settings_Fill(COLOR_BLACK);
+                CP_Graphics_DrawRect(0, 0, (float)BLOCK_SIZE - 20, 50);
+                CP_Settings_Fill(COLOR_WHITE);
+                CP_Settings_TextSize(25);
+                CP_Font_DrawText("SKIP", 5, 23);
+                CP_Font_DrawText("TUTORIAL", 5, 43);
+                if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
+                    tutorial_part = 26; //so it doesn't initialise with 0 money...
+                    current_level = 1;
+                    restart_level();
+                }
+            }
             elapsed_timer = 0;
             int endX, endY, spawnX, spawnY;
             endX = endY = spawnX = spawnY = 0;
             float window_width = (float)CP_System_GetWindowWidth();
             float window_height = (float)CP_System_GetWindowHeight();
             float minion_topY = (float)origin_map_coordinateY + 100; //used in tutorial part 8
+            if (tutorial_part == 26) {
+                money = 80;
+            }
             if (tutorial_part == 0 || tutorial_part == 1 || tutorial_part == 2) {
                 for (int row = 0; row < MAP_GRID_ROWS; ++row) {
                     for (int col = 0; col < MAP_GRID_COLS; ++col) {
@@ -727,7 +803,7 @@ void game_update(void) {
                     CP_Settings_Fill(COLOR_BLACK);
                     array_EnemyStats[1][ENEMY_TYPE] = DUMMY_ENEMY;
                     CP_Font_DrawText("Also, everytime a Square is defeated, they drop money! Isn't that just great?", 120, window_height - 380);
-                    CP_Font_DrawText("However, do note enemy guards can come back, tho with lowered HP.", 120, window_height - 320);
+                    CP_Font_DrawText("However, do note enemy guards can come back, albeit with lowered HP.", 120, window_height - 320);
                     CP_Image_Draw(tutorial_minion, (float)minion_position[0], (float)minion_position[1], 200, 200, 255);
                 }
                 if (tutorial_part == 14) {
@@ -776,7 +852,6 @@ void game_update(void) {
                     if (array_MinionStats[1][ENEMY_HP] < 20) {
                         array_MinionStats[1][ENEMY_HP] = 100;
                     }
-
                 }
                 if (tutorial_part == 19) {
                     money = 130;
@@ -846,7 +921,7 @@ void game_update(void) {
                     && x >= origin_first_boxX && x < origin_first_boxX + minion_buttons_width)) { //not spam minion being produced
                     tutorial_part -= 1;
                 }
-                else if (tutorial_part == 8 && minion_position[1] > minion_topY) {
+                else if ((tutorial_part == 8 && minion_position[1] > minion_topY) || (tutorial_part == 8 && minions_in_base != 1)) {
                     tutorial_part -= 1;
                 }
                 else if (tutorial_part == 11 && !(y >= minion_boxY && y <= minion_boxY + minion_buttons_height
@@ -858,6 +933,9 @@ void game_update(void) {
                 }
                 else if (tutorial_part == 14 && array_EnemyStats[1][ENEMY_HP] > 0) {
                     tutorial_part += 1;
+                }
+                else if (tutorial_part == 15 && minions_in_base < 2) {
+                    tutorial_part -= 1;
                 }
                 else if ((tutorial_part == 17 && array_MinionStats[0][MINION_TYPE] != TANK_MINION) || (tutorial_part == 17 && array_EnemyStats[0][ENEMY_HP] == 200)) {
                     tutorial_part -= 1;
@@ -2922,6 +3000,7 @@ void gameplay_screen_clicked(float x, float y) {
                 money = money - 30;
                 array_MinionStats[minion_count][MINION_TYPE] = SPAM_MINION;
                 assign_minion_stats(); //maybe can throw this function call in render_minion
+                render_minion();
             }
         }
         else if (x >= (origin_first_boxX + minion_buttons_width) && x < (origin_first_boxX + 2 * minion_buttons_width)) { //Create Warrior Minion
@@ -2930,6 +3009,7 @@ void gameplay_screen_clicked(float x, float y) {
                 money -= 60;
                 array_MinionStats[minion_count][MINION_TYPE] = WARRIOR_MINION;
                 assign_minion_stats(); //maybe can throw this function call in render_minion
+                render_minion();
             }
 
         }
@@ -2939,6 +3019,7 @@ void gameplay_screen_clicked(float x, float y) {
                 money -= 110;
                 array_MinionStats[minion_count][MINION_TYPE] = TANK_MINION;
                 assign_minion_stats(); //maybe can throw this function call in render_minion
+                render_minion();
             }
 
         }
@@ -2948,6 +3029,7 @@ void gameplay_screen_clicked(float x, float y) {
                 money -= 130;
                 array_MinionStats[minion_count][MINION_TYPE] = WIZARD_MINION;
                 assign_minion_stats(); //maybe can throw this function call in render_minion
+                render_minion();
             }
         }
         else if (x >= (origin_first_boxX + 4 * minion_buttons_width) && x < (origin_first_boxX + 5 * minion_buttons_width)) { //Create Healer Minion
@@ -2956,9 +3038,9 @@ void gameplay_screen_clicked(float x, float y) {
                 money -= 160;
                 array_MinionStats[minion_count][MINION_TYPE] = HEALER_MINION;
                 assign_minion_stats(); //maybe can throw this function call in render_minion
+                render_minion();
             }
         }
-        render_minion();
     }
     if (current_level != 0) {
         if (y >= restartY && (y <= (restartY + restart_width)) && (x >= restartX && (x <= (restartX + restart_length)))) {
@@ -3515,8 +3597,6 @@ void render_minion() {
                 if (minion_count < 7) {
                     array_MinionStats[minion_count][X] = SpawnX;
                     array_MinionStats[minion_count][Y] = SpawnY;
-                    //assign_minion_color(minion_count);
-                    //CP_Graphics_DrawCircle((float)array_MinionStats[minion_count][X], (float)array_MinionStats[minion_count][Y], (float)array_MinionStats[minion_count][MINION_SIZE]);
                     render_minion_sprite(minion_count);
                     array_MinionStats[minion_count][MINION_TRAVEL_DIST] = 0;
                     array_MinionStats[minion_count][MINION_DIRECTION] = initial_direction;
@@ -4266,9 +4346,9 @@ void minion_enter_base_counter() {
     }
 }
 
-
 void renderminionhp_bar() {
-    for (int i = 0; i < MINION_MAX; i++) {
+
+    for (int i = 0; i < minion_count; i++) {
         int buffer_space = 0;
         max_hp = (float)find_full_hp(i);
         if (array_MinionStats[i][MINION_HP] > 0) {

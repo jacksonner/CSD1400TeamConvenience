@@ -16,15 +16,17 @@
 
 
 /* Forward declarations */
-void game_init(void);
-void game_update(void);
-void game_exit(void);
+void splash_init(void);
+void splash_update(void);
+void splash_exit(void);
+
+
 
 /* Entry point */
 int main(void)
 {
-    CP_Engine_SetNextGameState(game_init, game_update, game_exit);
     CP_System_ShowConsole();
+    CP_Engine_SetNextGameState(splash_init, splash_update, splash_exit);
     CP_Engine_Run();
     return 0;
 }
