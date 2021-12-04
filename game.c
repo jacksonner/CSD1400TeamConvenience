@@ -83,7 +83,7 @@ int teleport_spawn_X, teleport_spawn_Y;
 #define MINION_MOVEMENT_SPEED 4
 #define MINION_ATTACK 5
 #define MINION_ATTACK_SPEED 6
-#define MINION_WEIGHT 7 //used to calculate how many minions an enemy can block, some minions are considered >1
+#define MINION_IS_STOPPED 7 //if minion is stopped, value stored is the value to enemy stopping the minion
 #define MINION_COST 8
 #define MINION_SIZE 9 //like the radius of the minion, might be removed when actualy sprites are included?
 #define MINION_DIRECTION 10
@@ -91,8 +91,8 @@ int teleport_spawn_X, teleport_spawn_Y;
 #define MINION_TRAVEL_DIST 12
 #define MINION_PAST_DIRECTION 13
 #define MINION_TELEPORTED 14
+int not_stopped = 20; //used to initialise minions to well, not be blocked by any enemy since the value stored would be the enemy blocking the minion.
 
-/*can add a MINION_COLOUR too maybe?*/
 #define MINION_MAX 7 //Maximum number of minions in the game at any one time
 #define MINION_TOTAL_STATS 15
 int array_MinionStats[MINION_MAX][MINION_TOTAL_STATS]; //MUST edit reset_map_and_minions() when the array size is changed
@@ -179,9 +179,6 @@ static CP_Sound knock;
 #define ENEMY_TOTAL_STATS 13
 int array_EnemyStats[ENEMY_MAX][ENEMY_TOTAL_STATS];
 int enemy_count;
-
-/*Used for checking if the minion will be blocked or not*/
-int array_isMinionBlocked[ENEMY_MAX][MINION_MAX];
 
 /*Enemy Charged Attacks*/
 #define ENEMY_BASIC_ATTACK_SPEED 0 //this is attack speed in the main array...
@@ -2383,7 +2380,7 @@ void tutorial(void) {
             knock = CP_Sound_Load("./Assets/music/frantic_knock.wav");
             minion_voice = CP_Sound_Load("./Assets/music/random_minion_voice.wav");
             CP_Sound_PlayAdvanced(knock, 1.2f, 1.f, FALSE, CP_SOUND_GROUP_0);
-            CP_Sound_PlayAdvanced(minion_voice, 0.5f, 1.f, FALSE, CP_SOUND_GROUP_0);
+            CP_Sound_PlayAdvanced(minion_voice, 0.4f, 1.f, FALSE, CP_SOUND_GROUP_0);
             play_effect_once[0] = 1;
         }
         float window_width = (float)CP_System_GetWindowWidth();
@@ -2420,7 +2417,7 @@ void tutorial1(void) {
     
     if (play_effect_once[1] == 0) {
         minion_voice = CP_Sound_Load("./Assets/music/random_minion_voice.wav");
-        CP_Sound_PlayAdvanced(minion_voice, 0.3f, 1.f, FALSE, CP_SOUND_GROUP_0);
+        CP_Sound_PlayAdvanced(minion_voice, 0.2f, 1.f, FALSE, CP_SOUND_GROUP_0);
         play_effect_once[1] = 1;
     }
     
@@ -2443,7 +2440,7 @@ void tutorial2(void) {
     CP_Image_Draw(tutorial_background, middleX, middleY, width, height, 255);
     if (play_effect_once[2] == 0) {
         minion_voice = CP_Sound_Load("./Assets/music/random_minion_voice.wav");
-        CP_Sound_PlayAdvanced(minion_voice, 0.8f, 1.f, FALSE, CP_SOUND_GROUP_0);
+        CP_Sound_PlayAdvanced(minion_voice, 0.6f, 1.f, FALSE, CP_SOUND_GROUP_0);
         play_effect_once[2] = 1;
     }
     CP_Settings_Fill(TRANSLUCENT_WHITE);
@@ -2669,14 +2666,6 @@ void reset_map_and_minions(void) {
             array_MinionStats[row][col] = 0;
         }
     }
-    for (int row = 0; row < ENEMY_MAX; ++row) {
-        for (int col = 0; col < MINION_MAX; ++col) {
-            array_isMinionBlocked[row][col] = 0;
-        }
-    }
-    for (int i = 0; i < ENEMY_MAX; i++) {
-        array_EnemyStats[i][ENEMY_CURRENT_MINIONS_ON_BLOCK] = 0;
-    }
     for (int i = 0; i < ENEMY_MAX; i++) {
         for (int j = 0; j < MINION_MAX; j++) {
             array_isMinionSlowed[i][j][0] = FALSE;
@@ -2698,6 +2687,7 @@ void reset_map_and_minions(void) {
         array_minion_attack_time[i][CHECKER] = 0;
         healer_minion_basic_heals[i][EFFECT_TIMER] = 0;
         healer_minion_basic_heals[i][CHECKER] = 0;
+        array_MinionStats[i][MINION_IS_STOPPED] = not_stopped;
     }
     level_has_been_reset = TRUE;
 }
@@ -3233,11 +3223,9 @@ void render_enemy() {
                 }
                 else if (array_EnemyStats[which_enemy][ENEMY_HP] <= 0) {
                     for (int i = 0; i < MINION_MAX; i++) {
-                        array_isMinionAttacked[which_enemy][i] = 0; //now attacking anyone anymore
-                        array_isMinionBlocked[which_enemy][i] = 0;
+                        array_isMinionAttacked[which_enemy][i] = 0; //not attacking anyone anymore
                     }
                     if (array_EnemyStats[which_enemy][ENEMY_TYPE] == GUARD_ENEMY || array_EnemyStats[which_enemy][ENEMY_TYPE] == DUMMY_ENEMY) {
-                        array_EnemyStats[which_enemy][ENEMY_CURRENT_MINIONS_ON_BLOCK] = 0;
                         array_GameMap[row][col] = BLOCK_ENEMY_DEAD;
                         if (array_enemy_death_timer[which_enemy][ENEMY_DEATH_TIMER_STARTED] == FALSE) {
                             array_enemy_death_timer[which_enemy][ENEMY_DEATH_TIMER] = 0;
@@ -3246,7 +3234,6 @@ void render_enemy() {
                     }
                     else if (array_EnemyStats[which_enemy][ENEMY_TYPE] == SLOW_ENEMY || array_EnemyStats[which_enemy][ENEMY_TYPE] == HEALING_TOWER
                         || array_EnemyStats[which_enemy][ENEMY_TYPE] == RANGED_TOWER || array_EnemyStats[which_enemy][ENEMY_TYPE] == DAMAGE_ENEMY) {
-                        array_EnemyStats[which_enemy][ENEMY_CURRENT_MINIONS_ON_BLOCK] = 0;
                         array_GameMap[row][col] = BLOCK_PRESENT;
                     }
                 }
@@ -3628,64 +3615,31 @@ void move_minion() {
         minion_special_attack(i, current_boxROW, current_boxCOL);
         /*now we check, we want to move in the direction of the one with the highest value*/
         array_MinionStats[i][MINION_PAST_DIRECTION] = array_MinionStats[i][MINION_DIRECTION];
-        /*
-        if (array_MinionStats[i][MINION_TRAVEL_DIST] < BLOCK_SIZE) {
-            array_MinionStats[i][MINION_DIRECTION] = array_MinionStats[i][MINION_PAST_DIRECTION];
-        }
-        */
         //else 
         if (level_has_teleporter == TRUE && array_MinionStats[i][MINION_TELEPORTED] == FALSE
             && array_MinionStats[i][MINION_TRAVEL_DIST] >= BLOCK_SIZE) {
             array_MinionStats[i][MINION_TRAVEL_DIST] = 0;
             array_MinionStats[i][MINION_DIRECTION] = //i'm pretty sure these conditions aren't working tbh
-                (current_boxCOL + 1 < MAP_GRID_COLS && array_Teleport_DiffusionMap[current_boxROW][current_boxCOL + 1][0] > array_Teleport_DiffusionMap[current_boxROW][current_boxCOL][0]
-                    && array_GameMap[current_boxROW][current_boxCOL + 1] != BLOCK_TOWER_ENEMY && array_GameMap[current_boxROW][current_boxCOL + 1] != BLOCK_PRESENT
-                    && (array_GameMap[current_boxROW][current_boxCOL + 1] == BLOCK_ENEMY || array_GameMap[current_boxROW][current_boxCOL + 1] == BLOCK_EMPTY
-                        || array_GameMap[current_boxROW][current_boxCOL + 1] == BLOCK_END || array_GameMap[current_boxROW][current_boxCOL + 1] == BLOCK_TELEPORTER
-                        || array_GameMap[current_boxROW][current_boxCOL + 1] == BLOCK_ENEMY_DEAD))
+                (current_boxCOL + 1 < MAP_GRID_COLS && array_Teleport_DiffusionMap[current_boxROW][current_boxCOL + 1][0] > array_Teleport_DiffusionMap[current_boxROW][current_boxCOL][0])
                 ? RIGHT
-                : (current_boxCOL - 1 >= 0 && array_Teleport_DiffusionMap[current_boxROW][current_boxCOL - 1][0] > array_Teleport_DiffusionMap[current_boxROW][current_boxCOL][0]
-                    && array_GameMap[current_boxROW][current_boxCOL - 1] != BLOCK_TOWER_ENEMY && array_GameMap[current_boxROW][current_boxCOL - 1] != BLOCK_PRESENT
-                    && (array_GameMap[current_boxROW][current_boxCOL - 1] == BLOCK_ENEMY || array_GameMap[current_boxROW][current_boxCOL - 1] == BLOCK_EMPTY
-                        || array_GameMap[current_boxROW][current_boxCOL - 1] == BLOCK_END || array_GameMap[current_boxROW][current_boxCOL - 1] == BLOCK_TELEPORTER
-                        || array_GameMap[current_boxROW][current_boxCOL - 1] == BLOCK_ENEMY_DEAD))
+                : (current_boxCOL - 1 >= 0 && array_Teleport_DiffusionMap[current_boxROW][current_boxCOL - 1][0] > array_Teleport_DiffusionMap[current_boxROW][current_boxCOL][0])
                 ? LEFT
-                : (current_boxROW + 1 < MAP_GRID_ROWS && array_Teleport_DiffusionMap[current_boxROW + 1][current_boxCOL][0] > array_Teleport_DiffusionMap[current_boxROW][current_boxCOL][0]
-                    && array_GameMap[current_boxROW + 1][current_boxCOL] != BLOCK_TOWER_ENEMY && array_GameMap[current_boxROW + 1][current_boxCOL] != BLOCK_PRESENT
-                    && (array_GameMap[current_boxROW + 1][current_boxCOL] == BLOCK_ENEMY || array_GameMap[current_boxROW + 1][current_boxCOL] == BLOCK_EMPTY
-                        || array_GameMap[current_boxROW + 1][current_boxCOL] == BLOCK_END || array_GameMap[current_boxROW + 1][current_boxCOL] == BLOCK_TELEPORTER
-                        || array_GameMap[current_boxROW + 1][current_boxCOL] == BLOCK_ENEMY_DEAD))
+                : (current_boxROW + 1 < MAP_GRID_ROWS && array_Teleport_DiffusionMap[current_boxROW + 1][current_boxCOL][0] > array_Teleport_DiffusionMap[current_boxROW][current_boxCOL][0])
                 ? DOWN
-                : (current_boxROW - 1 >= 0 && array_Teleport_DiffusionMap[current_boxROW - 1][current_boxCOL][0] > array_Teleport_DiffusionMap[current_boxROW][current_boxCOL][0]
-                    && array_GameMap[current_boxROW - 1][current_boxCOL] != BLOCK_TOWER_ENEMY && array_GameMap[current_boxROW - 1][current_boxCOL] != BLOCK_PRESENT
-                    && (array_GameMap[current_boxROW - 1][current_boxCOL] == BLOCK_ENEMY || array_GameMap[current_boxROW - 1][current_boxCOL] == BLOCK_EMPTY
-                        || array_GameMap[current_boxROW - 1][current_boxCOL] == BLOCK_END || array_GameMap[current_boxROW - 1][current_boxCOL] == BLOCK_TELEPORTER
-                        || array_GameMap[current_boxROW - 1][current_boxCOL] == BLOCK_ENEMY_DEAD))
+                : (current_boxROW - 1 >= 0 && array_Teleport_DiffusionMap[current_boxROW - 1][current_boxCOL][0] > array_Teleport_DiffusionMap[current_boxROW][current_boxCOL][0])
                 ? UP
                 : STOP;
         }
         else if (array_MinionStats[i][MINION_TRAVEL_DIST] >= BLOCK_SIZE) {
             array_MinionStats[i][MINION_TRAVEL_DIST] = 0;
             array_MinionStats[i][MINION_DIRECTION] =
-                (current_boxCOL + 1 < MAP_GRID_COLS && array_Collaborative_DiffusionMap[current_boxROW][current_boxCOL + 1][0] > array_Collaborative_DiffusionMap[current_boxROW][current_boxCOL][0]
-                    && array_GameMap[current_boxROW][current_boxCOL + 1] != BLOCK_TOWER_ENEMY && array_GameMap[current_boxROW][current_boxCOL + 1] != BLOCK_PRESENT
-                    && (array_GameMap[current_boxROW][current_boxCOL + 1] == BLOCK_ENEMY || array_GameMap[current_boxROW][current_boxCOL + 1] == BLOCK_EMPTY
-                        || array_GameMap[current_boxROW][current_boxCOL + 1] == BLOCK_END || array_GameMap[current_boxROW][current_boxCOL + 1] == BLOCK_ENEMY_DEAD))
+                (current_boxCOL + 1 < MAP_GRID_COLS && array_Collaborative_DiffusionMap[current_boxROW][current_boxCOL + 1][0] > array_Collaborative_DiffusionMap[current_boxROW][current_boxCOL][0])
                 ? RIGHT
-                : (current_boxCOL - 1 >= 0 && array_Collaborative_DiffusionMap[current_boxROW][current_boxCOL - 1][0] > array_Collaborative_DiffusionMap[current_boxROW][current_boxCOL][0]
-                    && array_GameMap[current_boxROW][current_boxCOL - 1] != BLOCK_TOWER_ENEMY && array_GameMap[current_boxROW][current_boxCOL - 1] != BLOCK_PRESENT
-                    && (array_GameMap[current_boxROW][current_boxCOL - 1] == BLOCK_ENEMY || array_GameMap[current_boxROW][current_boxCOL - 1] == BLOCK_EMPTY
-                        || array_GameMap[current_boxROW][current_boxCOL - 1] == BLOCK_END || array_GameMap[current_boxROW][current_boxCOL - 1] == BLOCK_ENEMY_DEAD))
+                : (current_boxCOL - 1 >= 0 && array_Collaborative_DiffusionMap[current_boxROW][current_boxCOL - 1][0] > array_Collaborative_DiffusionMap[current_boxROW][current_boxCOL][0])
                 ? LEFT
-                : (current_boxROW + 1 < MAP_GRID_ROWS && array_Collaborative_DiffusionMap[current_boxROW + 1][current_boxCOL][0] > array_Collaborative_DiffusionMap[current_boxROW][current_boxCOL][0]
-                    && array_GameMap[current_boxROW + 1][current_boxCOL] != BLOCK_TOWER_ENEMY && array_GameMap[current_boxROW + 1][current_boxCOL] != BLOCK_PRESENT
-                    && (array_GameMap[current_boxROW + 1][current_boxCOL] == BLOCK_ENEMY || array_GameMap[current_boxROW + 1][current_boxCOL] == BLOCK_EMPTY
-                        || array_GameMap[current_boxROW + 1][current_boxCOL] == BLOCK_END || array_GameMap[current_boxROW + 1][current_boxCOL] == BLOCK_ENEMY_DEAD))
+                : (current_boxROW + 1 < MAP_GRID_ROWS && array_Collaborative_DiffusionMap[current_boxROW + 1][current_boxCOL][0] > array_Collaborative_DiffusionMap[current_boxROW][current_boxCOL][0])
                 ? DOWN
-                : (current_boxROW - 1 >= 0 && array_Collaborative_DiffusionMap[current_boxROW - 1][current_boxCOL][0] > array_Collaborative_DiffusionMap[current_boxROW][current_boxCOL][0]
-                    && array_GameMap[current_boxROW - 1][current_boxCOL] != BLOCK_TOWER_ENEMY && array_GameMap[current_boxROW - 1][current_boxCOL] != BLOCK_PRESENT
-                    && (array_GameMap[current_boxROW - 1][current_boxCOL] == BLOCK_ENEMY || array_GameMap[current_boxROW - 1][current_boxCOL] == BLOCK_EMPTY
-                        || array_GameMap[current_boxROW - 1][current_boxCOL] == BLOCK_END || array_GameMap[current_boxROW - 1][current_boxCOL] == BLOCK_ENEMY_DEAD))
+                : (current_boxROW - 1 >= 0 && array_Collaborative_DiffusionMap[current_boxROW - 1][current_boxCOL][0] > array_Collaborative_DiffusionMap[current_boxROW][current_boxCOL][0])
                 ? UP
                 : STOP;
         }
@@ -3702,17 +3656,32 @@ void move_minion() {
                 if ((array_EnemyStats[r][ENEMY_ROW] == row_enemy) && (array_EnemyStats[r][ENEMY_COL] == col_enemy)) {
                     correct_enemy = r;
                     /*Guard blocking minion*/
-                    if (array_isMinionBlocked[correct_enemy][i] == 0) {
-                        array_EnemyStats[correct_enemy][ENEMY_CURRENT_MINIONS_ON_BLOCK] += array_MinionStats[i][MINION_WEIGHT];
-                        array_isMinionBlocked[correct_enemy][i] = 1;
+                    if (array_MinionStats[i][MINION_IS_STOPPED] == correct_enemy) {
+                        array_MinionStats[i][MINION_DIRECTION] = STOP;
                     }
-                    if (array_EnemyStats[correct_enemy][ENEMY_CURRENT_MINIONS_ON_BLOCK] > array_EnemyStats[correct_enemy][ENEMY_BLOCK]) {
-                        array_EnemyStats[correct_enemy][ENEMY_CURRENT_MINIONS_ON_BLOCK] -= array_MinionStats[i][MINION_WEIGHT];
-                        //array_MinionStats[i][MINION_DIRECTION] = array_MinionStats[i][MINION_PAST_DIRECTION];
-                        array_isMinionBlocked[correct_enemy][i] = 0;
+                    else {
+                        int min_X, min_Y; //coordinates of the top left hand corner of the block
+                        int counter = 0;
+                        min_X = origin_map_coordinateX + col_enemy * BLOCK_SIZE;
+                        min_Y = origin_map_coordinateY + row_enemy * BLOCK_SIZE;
+                        for (int t = 0; t < minion_count; t++) {
+                            if (array_MinionStats[t][MINION_IS_STOPPED] == correct_enemy) {
+                                if (array_MinionStats[t][MINION_TYPE] == TANK_MINION) {
+                                    counter++; //can comment out if we don't make tank minion let other minions pass
+                                }
+                                counter++; //checks number of minions currently being blocked by this enemy.
+                            }
+                        }
+                        if (counter < 2) {
+                            array_MinionStats[i][MINION_DIRECTION] = STOP;
+                            array_MinionStats[i][MINION_IS_STOPPED] = correct_enemy;
+                        }
+                        else if (counter >= 2) {
+                            //array_MinionStats[i][MINION_DIRECTION] = array_MinionStats[i][MINION_PAST_DIRECTION];
+                        }
                     }
                     /*Minion attacking ground guard if blocked and guard attacking minion in return*/
-                    else {
+                    if (array_MinionStats[i][MINION_DIRECTION] == STOP) {
                         if (array_EnemyStats[correct_enemy][ENEMY_HP] > 0) {
                             array_MinionStats[i][MINION_DIRECTION] = STOP;
                             int check_if_can_attack = check_minion_basic_attack_charge(i);
@@ -3734,32 +3703,10 @@ void move_minion() {
                                     array_isMinionAttacked[correct_enemy][i] = 0;
                                 }
                             }
-                            /*
-                            int previous_minion = i - 1;
-                            if (enemy_charged_up == 1) {
-                                if (previous_minion >= 0 && array_MinionStats[previous_minion][MINION_HP] > 0) {
-                                    array_MinionStats[previous_minion][MINION_HP] -= array_EnemyStats[correct_enemy][ENEMY_ATTACK];
-                                }
-                                else {
-                                    int new_minion = previous_minion + 1;
-                                    array_MinionStats[new_minion][MINION_HP] -= array_EnemyStats[correct_enemy][ENEMY_ATTACK];
-                                }
-                            }
-                            */
 
                         }
                     }
-                    /*
-                    if (array_MinionStats[i][MINION_HP] <= 0 && array_isMinionBlocked[correct_enemy][i] == 1) { //if minion dies
-                        array_EnemyStats[correct_enemy][ENEMY_CURRENT_MINIONS_ON_BLOCK] -= array_MinionStats[i][MINION_WEIGHT];
-                        if (array_isMinionBlocked[correct_enemy][i + 1] == 1) {
-                            array_isMinionBlocked[correct_enemy][i] = 1;
-                        }
-                        else {
-                            array_isMinionBlocked[correct_enemy][i] = 0;
-                        }
-                    }
-                    */
+
                 }
             }
         }
@@ -3793,8 +3740,6 @@ void move_minion() {
             minion_dies_array_recycle(i);
         }
         else if (array_MinionStats[i][MINION_HP] > 0) { //only live minion are drawn
-            // assign_minion_color(i);
-            //CP_Graphics_DrawCircle((float)array_MinionStats[i][X], (float)array_MinionStats[i][Y], (float)array_MinionStats[i][MINION_SIZE]);
             render_minion_sprite(i);
         }
     }
@@ -4723,7 +4668,6 @@ void assign_minion_stats() {
         array_MinionStats[minion_count][MINION_MOVEMENT_SPEED] = 6; //original speed was 8
         array_MinionStats[minion_count][MINION_ATTACK] = 10;
         array_MinionStats[minion_count][MINION_ATTACK_SPEED] = 2;
-        array_MinionStats[minion_count][MINION_WEIGHT] = 1;
         array_MinionStats[minion_count][MINION_COST] = 30;
         array_MinionStats[minion_count][MINION_SIZE] = 65;
         array_MinionCurrentCharge[minion_count][MINION_BASIC_ATTACK_SPEED] = 0.5f;
@@ -4733,7 +4677,6 @@ void assign_minion_stats() {
         array_MinionStats[minion_count][MINION_MOVEMENT_SPEED] = 5;
         array_MinionStats[minion_count][MINION_ATTACK] = 20;
         array_MinionStats[minion_count][MINION_ATTACK_SPEED] = 2;
-        array_MinionStats[minion_count][MINION_WEIGHT] = 1;
         array_MinionStats[minion_count][MINION_COST] = 60;
         array_MinionStats[minion_count][MINION_SIZE] = 110;
         array_MinionCurrentCharge[minion_count][MINION_CHARGE_TIME] = 5; //+5 money
@@ -4744,7 +4687,6 @@ void assign_minion_stats() {
         array_MinionStats[minion_count][MINION_MOVEMENT_SPEED] = 3; //original speed was 3
         array_MinionStats[minion_count][MINION_ATTACK] = 1;
         array_MinionStats[minion_count][MINION_ATTACK_SPEED] = 2;
-        array_MinionStats[minion_count][MINION_WEIGHT] = 2; //holds the line so other minions can pass
         array_MinionStats[minion_count][MINION_COST] = 120;
         array_MinionStats[minion_count][MINION_SIZE] = 140;
         array_MinionCurrentCharge[minion_count][MINION_CHARGE_TIME] = 4;
@@ -4755,7 +4697,6 @@ void assign_minion_stats() {
         array_MinionStats[minion_count][MINION_MOVEMENT_SPEED] = 4;
         array_MinionStats[minion_count][MINION_ATTACK] = 4;
         array_MinionStats[minion_count][MINION_ATTACK_SPEED] = 2;
-        array_MinionStats[minion_count][MINION_WEIGHT] = 1;
         array_MinionStats[minion_count][MINION_COST] = 150;
         array_MinionStats[minion_count][MINION_SIZE] = 100;
         array_MinionCurrentCharge[minion_count][MINION_CHARGE_TIME] = 4;
@@ -4766,7 +4707,6 @@ void assign_minion_stats() {
         array_MinionStats[minion_count][MINION_MOVEMENT_SPEED] = 3;
         array_MinionStats[minion_count][MINION_ATTACK] = 0; //i mean... self defence?
         array_MinionStats[minion_count][MINION_ATTACK_SPEED] = 2;
-        array_MinionStats[minion_count][MINION_WEIGHT] = 1;
         array_MinionStats[minion_count][MINION_COST] = 160;
         array_MinionStats[minion_count][MINION_SIZE] = 90;
         array_MinionStats[minion_count][MINION_HEAL] = 20;
