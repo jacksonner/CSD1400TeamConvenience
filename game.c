@@ -412,6 +412,9 @@ float restart_loseX, restart_loseY, main_loseX, main_loseY;
 float restart_textX, restart_textY, main_textX, main_textY;
 void lose_screen(void);
 CP_Image Lose_Screen = NULL;
+CP_Sound lose_sound = NULL;
+void lose_screen_sound(void);
+int lose_sound_played;
 
 /*Win Screen*/
 void win_screen(void);
@@ -571,6 +574,8 @@ void game_update(void) {
         enemy_info();
         minion_info();
         win_sound_played = FALSE;
+        lose_sound_played = FALSE;
+
         if (current_level == 0) {
             //skip tutorial button
             CP_Settings_Fill(COLOR_WHITE);
@@ -1108,6 +1113,7 @@ void game_update(void) {
     else if (Current_Gamestate == LOSE_SCREEN)
     {
         lose_screen();
+        lose_screen_sound();
     }
     else if (Current_Gamestate == LEVEL_SELECTOR_SCREEN)
     {
@@ -1437,6 +1443,7 @@ void lose_screen(void) {
             /*initialise for gameplay screen*/
 
             CP_Image_Free(&Lose_Screen);
+            CP_Sound_Free(&lose_sound);
             minion_count = 0;
             reset_map_and_minions();
             initialise_level();
@@ -1467,10 +1474,18 @@ void lose_screen(void) {
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
         {
             CP_Image_Free(&Lose_Screen);
+            CP_Sound_Free(&lose_sound);
             Current_Gamestate = MAIN_MENU_SCREEN;
 
 
         }
+    }
+}
+void lose_screen_sound() {
+    lose_sound = CP_Sound_Load("./Assets/music/lose_sound.wav");
+    if (lose_sound_played == FALSE) {
+        CP_Sound_PlayAdvanced(lose_sound, (float)0.7, 1, FALSE, CP_SOUND_GROUP_1);
+        lose_sound_played = TRUE;
     }
 }
 void win_screen_sound() {
