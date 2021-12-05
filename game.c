@@ -1,3 +1,14 @@
+/*!
+@file game.c
+@primary author: Jan Tiong Shu Ling         tiong.j@digipen.edu.sg
+@co-authors:     Raiyan Faliq Bin Zahid     raiyanfaliq.b@digipen.edu	
+	             Tan Yuan Cheng             yuancheng.tan@digipen.edu	
+	             Amirah Binte Isa           amirah.b@digipen.edu
+@course CSD 1400
+@section D
+@brief This file contains all the functions required to run Horde.
+*//*_____________________________________________________________*/
+
 #include <stdio.h>
 #include "cprocessing.h"
 
