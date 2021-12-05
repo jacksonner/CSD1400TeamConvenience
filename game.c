@@ -369,8 +369,9 @@ int spawn_col;
 void update_variables_and_make_screen_nice(); //since it's full screen, need to update the various variables so everything still looks nice
 
 /*Money Code*/
-void display_money_counter(void);
-char money_buffer[400];
+void display_money_and_minions_counter(void); //shows current amount of money and number of minions on the map
+char money_buffer[100];
+char minion_number_buffer[2];
 int money = 60;
 int money_test = 0;
 
@@ -463,7 +464,7 @@ int find_full_hp(int i);
 /*Tank tanking damage if nearby*/
 int tank_minion_tanking(int minion);
 
-/*Functions*/
+/*Gameplay related functions*/
 void reset_map_and_minions(void);
 void render_background(void); //for the gameplay_screen
 void gameplay_screen(void);
@@ -562,7 +563,7 @@ void game_update(void) {
     else if (Current_Gamestate == GAMEPLAY_SCREEN) {
         gameplay_screen();
         draw_timer_and_pause_button();
-        display_money_counter();
+        display_money_and_minions_counter();
         render_enemy();
         enemy_info();
         minion_info();
@@ -2813,7 +2814,7 @@ void restart_level(void) {
     gameplay_screen();
     render_background();
     draw_timer_and_pause_button();
-    display_money_counter();
+    display_money_and_minions_counter();
 }
 
 /*Display Gameplay Screen*/
@@ -3063,7 +3064,7 @@ void render_background() {
     }
 }
 
-/*Teleporters*/
+/*For pathfinding: Spawn point to teleportation point*/
 void setup_teleport_diffusion_map() {
     for (int row = 0; row < MAP_GRID_ROWS; ++row) {
         for (int col = 0; col < MAP_GRID_COLS; ++col) {
@@ -3125,6 +3126,7 @@ void setup_teleport_diffusion_map() {
     }
 }
 
+/*For pathfinding: Any point to end point*/
 void setup_collaborative_diffusion_map() {
     //Reset everything to 0?
     for (int row = 0; row < MAP_GRID_ROWS; ++row) {
@@ -3767,6 +3769,7 @@ void move_minion() {
     }
 }
 
+/*Checks if there is a tank minion nearby, and if there is returns the number of the tank minion, else return the minion's number*/
 int tank_minion_tanking(int minion) {
     int col, row; 
     col = (array_MinionStats[minion][X] - origin_map_coordinateX) / BLOCK_SIZE;
@@ -3788,7 +3791,6 @@ int tank_minion_tanking(int minion) {
     return minion; //no tank nearby so minion takes all the damage. sad.
 }
 
-
 /*Check if the current minion is the one to be attacked by the enemy*/
 int is_minion_being_attacked(int enemy, int minion) {
     if (array_isMinionAttacked[enemy][minion] == 1) {
@@ -3805,6 +3807,7 @@ int is_minion_being_attacked(int enemy, int minion) {
     return 1;
 }
 
+/*The healer minion's basic heal*/
 void healer_minion_basic_heal(int i) {
     float basic_heal_time = 0.4f;
     int check_if_can_attack = check_minion_basic_attack_charge(i);
@@ -3853,6 +3856,7 @@ void healer_minion_basic_heal(int i) {
     }
 }
 
+/*rendering of enemies' special effects*/
 void render_enemy_special_attack_bar(int i) {
     float charge_percentage;
     if (array_EnemyStats[i][ENEMY_TYPE] == HEALING_TOWER || array_EnemyStats[i][ENEMY_TYPE] == SLOW_ENEMY
@@ -3866,6 +3870,7 @@ void render_enemy_special_attack_bar(int i) {
     }
 }
 
+/*returns the max HP of the enemy depending on type*/
 int find_enemy_full_hp(int n) {
     int full_hp = (array_EnemyStats[n][ENEMY_TYPE] == GUARD_ENEMY)
         ? 150
@@ -3881,7 +3886,7 @@ int find_enemy_full_hp(int n) {
     return full_hp;
 }
 
-/*Should be tgt with render_special_effect_enemy() tbh*/
+/*Enemies' special effects logic*/
 void enemy_special_attack() {
     int i = 0;
     for (int row = 0; row < MAP_GRID_ROWS; ++row) {
@@ -4325,19 +4330,39 @@ void render_special_current_charge() {
     }
 }
 
-void display_money_counter() {
+void display_money_and_minions_counter() {
     float counter_X, counter_Y, counter_width, counter_height;
     counter_height = 80;
     counter_width = (float)BLOCK_SIZE - 20;
     counter_X = (float)CP_System_GetWindowWidth() - (float)origin_map_coordinateX - (float)BLOCK_SIZE + 10;
     counter_Y = (float)origin_map_coordinateY + (float)MAP_GRID_ROWS * (float)BLOCK_SIZE + 10;
     snprintf(money_buffer, sizeof(money_buffer), "%d", money);
+    snprintf(minion_number_buffer, sizeof(minion_number_buffer), "%d", minion_count);
     CP_Settings_Fill(COLOR_WHITE);
     CP_Graphics_DrawRect(counter_X, counter_Y, counter_width, counter_height);
+    CP_Graphics_DrawRect(counter_X, counter_Y + counter_height + 10, counter_width, counter_height/2);
     CP_Settings_Fill(COLOR_BLACK);
     CP_Settings_TextSize(50);
     CP_Font_DrawText("Money: ", (counter_X - 150.f), (counter_Y + 55));
-    CP_Font_DrawText(money_buffer, (counter_X + 40.f), (counter_Y + 55));
+    float money_text = counter_X + 40.f;;
+    if (strlen(money_buffer) == 1) {
+        money_text = counter_X + 50.f;
+    }
+    else if (strlen(money_buffer) == 3) {
+        money_text = counter_X + 30.f;
+    }
+    else if (strlen(money_buffer) == 4) {
+        money_text = counter_X + 20.f;
+    }
+    else if (strlen(money_buffer) > 4) {
+        money_text = counter_X + 10.f;
+    }
+    CP_Font_DrawText(money_buffer, money_text, (counter_Y + 55));
+    CP_Settings_TextSize(42);
+    CP_Font_DrawText("Minions: ", (counter_X - 150.f), counter_Y + counter_height + 42);
+    CP_Settings_TextSize(35);
+    CP_Font_DrawText(minion_number_buffer, counter_X + 40.f, counter_Y + counter_height + 42);
+    CP_Font_DrawText("/7", (counter_X + 60.f), counter_Y + counter_height + 42);
 }
 
 void render_win_progress() {
