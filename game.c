@@ -157,6 +157,8 @@ static CP_Sound main_menu_bgm;
 
 /*Music arrays*/
 int play_bgm[5];
+void gameplay_sound(void);
+void main_menu_sound(void);
 
 /*Directions*/
 #define STOP 0
@@ -576,15 +578,11 @@ void game_update(void) {
         main_menu_screen();
         if (play_bgm[1] == 0)
         {
-            printf("Yes\n");
-            CP_Sound_StopAll();
-            main_menu_bgm = CP_Sound_Load("./Assets/music/main_menu_bgm.wav");
-            CP_Sound_PlayAdvanced(main_menu_bgm, 0.3f, 1.f, TRUE, CP_SOUND_GROUP_1);
-            play_bgm[1] = 1;
+            main_menu_sound();
         }
         if (play_bgm[1] == 1)
         {
-            CP_Sound_ResumeAll();
+            CP_Sound_ResumeGroup(CP_SOUND_GROUP_1);
         }
 
         
@@ -602,9 +600,8 @@ void game_update(void) {
         if (play_bgm[0] == 0)
         {
             CP_Sound_StopAll();
-            gameplay_bgm = CP_Sound_Load("./Assets/music/action_gameplay_bgm.wav");
-            CP_Sound_PlayAdvanced(gameplay_bgm, 0.3f, 1.f, TRUE, CP_SOUND_GROUP_0);
-            play_bgm[0] = 1;
+            gameplay_sound();
+
         }
         if (play_bgm[0] == 1)
         {
@@ -1389,10 +1386,10 @@ void main_menu_screen(void) {
 
 /*When Main Menu is clicked on different screens*/
 void main_menu_clicked(float x, float y) {
-    CP_Sound_PauseGroup(CP_SOUND_GROUP_1);
+    
     if (x >= start_game_buttonX && x <= (start_game_buttonX + button_width) &&
         y >= start_game_buttonY && y <= start_game_buttonY + button_height) {
-
+        play_bgm[0] = 0;
         if (tutorial_played == FALSE) {
             tutorial_played = TRUE;
             Current_Gamestate = TUTORIAL_SCREEN;
@@ -1418,6 +1415,10 @@ void main_menu_clicked(float x, float y) {
         y >= settingY && settingY <= settingY + setting_height) {
         Current_Gamestate = SETTING_SCREEN;
         Previous_Gamestate = MAIN_MENU_SCREEN;
+        if (play_bgm[1] == 1)
+        {
+            CP_Sound_PauseGroup(CP_SOUND_GROUP_1);
+        }
     }
 
     // Credit button clicked /
@@ -1426,6 +1427,18 @@ void main_menu_clicked(float x, float y) {
         Current_Gamestate = CREDIT_SCREEN;
         Previous_Gamestate = MAIN_MENU_SCREEN;
     }
+}
+
+void gameplay_sound() {
+    gameplay_bgm = CP_Sound_Load("./Assets/music/action_gameplay_bgm.wav");
+    CP_Sound_PlayAdvanced(gameplay_bgm, 0.3f, 1.f, TRUE, CP_SOUND_GROUP_0);
+    play_bgm[0] = 1;
+}
+
+void main_menu_sound() {
+    main_menu_bgm = CP_Sound_Load("./Assets/music/main_menu_bgm.wav");
+    CP_Sound_PlayAdvanced(main_menu_bgm, 0.3f, 1.f, TRUE, CP_SOUND_GROUP_1);
+    play_bgm[1] = 1;
 }
 
 /*Display Lose Screen*/
@@ -1790,6 +1803,8 @@ void level_selector_screen(void) {
 
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
         {
+            play_bgm[0] = 0;
+
             /*Free image*/
             CP_Image_Free(&Level_Selector_Screen);
             current_level = 1;
@@ -1826,6 +1841,8 @@ void level_selector_screen(void) {
 
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
         {
+            play_bgm[0] = 0;
+
             CP_Image_Free(&Level_Selector_Screen);
             current_level = 2;
             Current_Gamestate = GAMEPLAY_SCREEN;
@@ -1858,6 +1875,8 @@ void level_selector_screen(void) {
 
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
         {
+            play_bgm[0] = 0;
+
             CP_Image_Free(&Level_Selector_Screen);
             current_level = 3;
             Current_Gamestate = GAMEPLAY_SCREEN;
@@ -1893,6 +1912,8 @@ void level_selector_screen(void) {
 
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
         {
+            play_bgm[0] = 0;
+
             CP_Image_Free(&Level_Selector_Screen);
             current_level = 4;
             Current_Gamestate = GAMEPLAY_SCREEN;
@@ -1927,6 +1948,8 @@ void level_selector_screen(void) {
 
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
         {
+            play_bgm[0] = 0;
+
             CP_Image_Free(&Level_Selector_Screen);
             current_level = 5;
             Current_Gamestate = GAMEPLAY_SCREEN;
@@ -1960,6 +1983,8 @@ void level_selector_screen(void) {
 
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
         {
+            play_bgm[0] = 0;
+
             CP_Image_Free(&Level_Selector_Screen);
             current_level = 6;
             Current_Gamestate = GAMEPLAY_SCREEN;
@@ -2099,7 +2124,6 @@ void setting_screen(void) {
         CP_Font_DrawText("MAIN MENU", option_textX, option_textY * 3 + 20);
 
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
-            CP_Sound_StopGroup(CP_SOUND_GROUP_0);
             Current_Gamestate = MAIN_MENU_SCREEN;
             Previous_Gamestate = SETTING_SCREEN;
         }
@@ -2173,8 +2197,6 @@ void setting_screen(void) {
 
 /*When Setting is clicked from the different screens*/
 void setting_screen_clicked(float x, float y) {
-    play_bgm[1] = 0;
-    CP_Sound_PauseAll();
     /*Free image*/
     CP_Image_Free(&setting_image);
     if (Current_Gamestate == MAIN_MENU_SCREEN) {
