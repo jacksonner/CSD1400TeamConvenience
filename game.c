@@ -605,7 +605,7 @@ void game_update(void) {
         }
         if (play_bgm[0] == 1)
         {
-            CP_Sound_ResumeAll();
+            CP_Sound_ResumeGroup(CP_SOUND_GROUP_0);
         }
         win_sound_played = FALSE;
         lose_sound_played = FALSE;
@@ -964,6 +964,10 @@ void game_update(void) {
         if (CP_Input_KeyTriggered(KEY_1))
         {
             money += 1000;
+        }
+        if (CP_Input_KeyTriggered(KEY_2))
+        {
+            elapsed_timer = 115;
         }
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
         {
@@ -1522,12 +1526,13 @@ void lose_screen(void) {
 
             CP_Image_Free(&Lose_Screen);
             CP_Sound_Free(&lose_sound);
+            CP_Sound_Free(&gameplay_bgm);
             minion_count = 0;
             reset_map_and_minions();
             initialise_level();
             gIsPaused = FALSE;
             restart_level();
-
+            play_bgm[0] = 0;
 
         }
 
@@ -1553,8 +1558,9 @@ void lose_screen(void) {
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
         {
             CP_Image_Free(&Lose_Screen);
-            play_bgm[1] = 2;
+            play_bgm[1] = 0;
             CP_Sound_Free(&lose_sound);
+            CP_Sound_Free(&gameplay_bgm);
             Current_Gamestate = MAIN_MENU_SCREEN;
 
 
@@ -1629,8 +1635,9 @@ void win_screen(void) {
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
         {
             CP_Image_Free(&Win_Screen);
-            play_bgm[1] = 2;
+            play_bgm[1] = 0;
             CP_Sound_Free(&win_sound);
+            CP_Sound_Free(&gameplay_bgm);
             Current_Gamestate = MAIN_MENU_SCREEN;
 
 
@@ -1660,6 +1667,8 @@ void win_screen(void) {
         {
             CP_Image_Free(&Win_Screen);
             CP_Sound_Free(&win_sound);
+            CP_Sound_Free(&gameplay_bgm);
+            play_bgm[0] = 0;
             current_level++; //Go to the next level
 
             Current_Gamestate = GAMEPLAY_SCREEN;
