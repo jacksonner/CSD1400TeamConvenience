@@ -1301,7 +1301,7 @@ void main_menu_screen(void) {
     if (mouseX >= start_game_buttonX && mouseX <= (start_game_buttonX + button_width) &&
         mouseY >= start_game_buttonY && mouseY <= start_game_buttonY + button_height) {
         CP_Settings_Fill(COLOR_BLACK);
-        CP_Graphics_DrawRect(start_game_buttonX, start_game_buttonY, button_width, button_height);
+        CP_Graphics_DrawRect(start_game_buttonX, start_game_buttonY, button_width + 100, button_height);
         CP_Settings_TextSize(80);
         CP_Settings_Fill(COLOR_WHITE);
         CP_Font_DrawText("Start Game", start_textX, start_textY);
@@ -1310,7 +1310,7 @@ void main_menu_screen(void) {
     if (mouseX >= level_selectorX && mouseX <= (level_selectorX + button_width) &&
         mouseY >= level_selectorY && mouseY <= level_selectorY + button_height) {
         CP_Settings_Fill(COLOR_BLACK);
-        CP_Graphics_DrawRect(level_selectorX, level_selectorY, button_width, button_height);
+        CP_Graphics_DrawRect(level_selectorX, level_selectorY, button_width + 100, button_height);
         CP_Settings_TextSize(80);
         CP_Settings_Fill(COLOR_WHITE);
         CP_Font_DrawText("Select Level", levels_textX, levels_textY);
