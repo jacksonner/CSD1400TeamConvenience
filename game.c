@@ -3038,7 +3038,7 @@ void gameplay_screen() {
         float origin_first_boxX = (float)options_boxX + (float)minion_buttons_width - (float)minion_buttons_width / 2.f;
 
         if (i == 1) {
-            if (money < 30) {
+            if (money < 30 || (money >= 30 && minion_count == 7)) {
                 CP_Settings_Fill(COLOR_GREY);
                 CP_Graphics_DrawRect(origin_first_boxX, (float)minion_boxY, (float)minion_buttons_width, (float)minion_buttons_height);
             }
@@ -3047,7 +3047,7 @@ void gameplay_screen() {
             CP_Image_Draw(spam_minion, (float)minions_imageX, (float)minions_imageY, minion_size, minion_size, 255);
         }
         else if (i == 2) {
-            if (money < 60) {
+            if (money < 60 || (money >= 60 && minion_count == 7)) {
                 CP_Settings_Fill(COLOR_GREY);
                 CP_Graphics_DrawRect(origin_first_boxX + 1 * (float)minion_buttons_width, (float)minion_boxY, (float)minion_buttons_width, (float)minion_buttons_height);
             }
@@ -3055,7 +3055,7 @@ void gameplay_screen() {
             CP_Image_Draw(warrior_minion, (float)minions_imageX, (float)minions_imageY, minion_size, minion_size, 255);
         }
         else if (i == 3) {
-            if (money < 110) {
+            if (money < 110 || (money >= 110 && minion_count == 7)) {
                 CP_Settings_Fill(COLOR_GREY);
                 CP_Graphics_DrawRect(origin_first_boxX + 2 * (float)minion_buttons_width, (float)minion_boxY, (float)minion_buttons_width, (float)minion_buttons_height);
             }
@@ -3063,7 +3063,7 @@ void gameplay_screen() {
             CP_Image_Draw(tank_minion, (float)minions_imageX, (float)minions_imageY, minion_size, minion_size, 255);
         }
         else if (i == 4) {
-            if (money < 130) {
+            if (money < 130 || (money >= 130 && minion_count == 7)) {
                 CP_Settings_Fill(COLOR_GREY);
                 CP_Graphics_DrawRect(origin_first_boxX + 3 * (float)minion_buttons_width, (float)minion_boxY, (float)minion_buttons_width, (float)minion_buttons_height);
             }
@@ -3072,7 +3072,7 @@ void gameplay_screen() {
             CP_Image_Draw(wizard_minion, (float)minions_imageX, (float)minions_imageY, minion_size, minion_size, 255);
         }
         else if (i == 5) {
-            if (money < 150) {
+            if (money < 150 || (money >= 150 && minion_count == 7)) {
                 CP_Settings_Fill(COLOR_GREY);
                 CP_Graphics_DrawRect(origin_first_boxX + 4 * (float)minion_buttons_width, (float)minion_boxY, (float)minion_buttons_width, (float)minion_buttons_height);
             }
