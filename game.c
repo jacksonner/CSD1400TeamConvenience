@@ -31,7 +31,6 @@ float array_Collaborative_DiffusionMap[MAP_GRID_ROWS][MAP_GRID_COLS][2];
 #define BLOCK_INVISIBLE 5 //ignore
 #define BLOCK_ENEMY_DEAD 6 
 #define BLOCK_TOWER_ENEMY 7 //used to mark location for tower enemies
-
 #define BLOCK_TELEPORTER 8
 #define BLOCK_TELEPORT_SPAWN 9
 
@@ -115,8 +114,7 @@ void render_minion_special_attack(void);
 #define SPAM_MINION 0 //weak everything, but low cost
 #define WARRIOR_MINION 1 //decent health, decent attack
 #define TANK_MINION 2 //tanky but low attack //targets tower but very low damage rip
-#define WIZARD_MINION 3 //low health, after x amount of time, lightning from the skies hits all enemies BUT not so high damage ||
-                               //limited range BUT higher damage //targets towers
+#define WIZARD_MINION 3 //low health, but very long range
 #define HEALER_MINION 4 //decent health, no attack, heal other minions, relatively ex
 
 /*All Sprite Images + Block Images*/
@@ -1454,7 +1452,7 @@ void main_menu_sound() {
 void lose_screen_sound() {
     lose_sound = CP_Sound_Load("./Assets/music/lose_sound.wav");
     if (lose_sound_played == FALSE) {
-        CP_Sound_PlayAdvanced(lose_sound, (float)1.0, 1, FALSE, CP_SOUND_GROUP_1);
+        CP_Sound_PlayAdvanced(lose_sound, (float)1.0, 1, TRUE, CP_SOUND_GROUP_1);
         lose_sound_played = TRUE;
     }
 }
@@ -1576,9 +1574,14 @@ void lose_screen(void) {
 }
 
 void win_screen_sound() {
-    win_sound = CP_Sound_Load("./Assets/music/win_sound.wav");
+    if (current_level != 6) {
+        win_sound = CP_Sound_Load("./Assets/music/win_sound.wav");
+    }
+    else {
+        win_sound = CP_Sound_Load("./Assets/music/nostalgic_sound.wav");
+    }
     if (win_sound_played == FALSE) {
-        CP_Sound_PlayAdvanced(win_sound, (float)0.7, 1, FALSE, CP_SOUND_GROUP_1);
+        CP_Sound_PlayAdvanced(win_sound, (float)0.7, 1, TRUE, CP_SOUND_GROUP_1);
         win_sound_played = TRUE;
     }
 }
@@ -1625,6 +1628,9 @@ void win_screen(void) {
             CP_Font_DrawText("MAIN MENU", middleX + 30 - button_width / 2, middleY + quarter_blockY + 35);
             if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
                 CP_Image_Free(&End_Screen);
+                play_bgm[1] = 0;
+                CP_Sound_Free(&win_sound);
+                CP_Sound_Free(&gameplay_bgm);
                 Current_Gamestate = MAIN_MENU_SCREEN;
             }
         }
@@ -1683,8 +1689,6 @@ void win_screen(void) {
             CP_Sound_Free(&win_sound);
             CP_Sound_Free(&gameplay_bgm);
             Current_Gamestate = MAIN_MENU_SCREEN;
-
-
             }
 
         }
@@ -4970,7 +4974,6 @@ void render_enemy_death_comeback_bar() {
     }
 }
 
-
 void assign_minion_stats() {
     if (array_MinionStats[minion_count][MINION_TYPE] == SPAM_MINION) {
         array_MinionStats[minion_count][MINION_HP] = 60;
@@ -5023,7 +5026,6 @@ void assign_minion_stats() {
         array_MinionCurrentCharge[minion_count][MINION_BASIC_ATTACK_SPEED] = 2.f;
     }
 }
-
 
 void assign_enemy_stats() {
     for (int i = 0; i < ENEMY_MAX; i++) {
