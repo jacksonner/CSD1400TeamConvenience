@@ -95,6 +95,7 @@ void game_init(void) {
 /*Updates the game, part of the tutorial is also contained here*/
 void game_update(void) {
     printf("%d\n", play_bgm[1]);
+    mouse_click();
     if (Current_Gamestate == MAIN_MENU_SCREEN) {
         main_menu_screen();
         if (play_bgm[1] == 0)
@@ -743,6 +744,14 @@ void game_exit(void) {
 }
 
 /*FUNCTIONS START HERE*/
+
+/*SFX for mouse click*/
+void mouse_click(void) {
+    if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
+        mouse_click_sfx = CP_Sound_Load("./Assets/music/mouse_click_sfx.wav");
+        CP_Sound_PlayAdvanced(mouse_click_sfx, (float)1.5, 2, FALSE, CP_SOUND_GROUP_1);
+    }
+}
 
 /*Display enemy info during gameplay*/
 void enemy_info(void) {
