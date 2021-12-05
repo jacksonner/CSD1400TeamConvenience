@@ -379,7 +379,7 @@ void game_update(void) {
                         CP_Font_DrawText("Um, that isn't tank minion.", 120, window_height - 365);
                         array_MinionStats[0][MINION_HP] = 0;
                     }
-                    if (minions_in_base > 1) {
+                    if (minions_in_base > 2) { //if 3
                         tutorial_part += 1;
                     }
                 }
@@ -403,7 +403,7 @@ void game_update(void) {
                         CP_Font_DrawText("Hey uh, wizard minion first.", 120, window_height - 365);
                         array_MinionStats[0][MINION_HP] = 0;
                     }
-                    if (minions_in_base > 2) {
+                    if (minions_in_base > 3) {
                         tutorial_part += 1;
                     }
                 }
