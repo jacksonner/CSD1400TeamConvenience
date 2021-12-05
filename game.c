@@ -743,6 +743,7 @@ void game_update(void) {
 
 void game_exit(void) {
     free_all_sprites();
+    CP_Sound_Free(&mouse_click_sfx);
 }
 
 /*FUNCTIONS START HERE*/
@@ -1654,16 +1655,8 @@ void level_selector_screen(void) {
             else {
                 Current_Gamestate = SETTING_SCREEN;
             }
-
-
         }
-
-
-
     }
-
-
-
 }
 /*
 void setting_screen_sound() {
