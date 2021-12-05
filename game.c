@@ -749,7 +749,7 @@ void game_exit(void) {
 void mouse_click(void) {
     if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
         mouse_click_sfx = CP_Sound_Load("./Assets/music/mouse_click_sfx.wav");
-        CP_Sound_PlayAdvanced(mouse_click_sfx, (float)1.5, 2, FALSE, CP_SOUND_GROUP_1);
+        CP_Sound_PlayAdvanced(mouse_click_sfx, (float)5, 2, FALSE, CP_SOUND_GROUP_2);
     }
 }
 
@@ -1674,7 +1674,7 @@ void setting_screen_sound() {
 
 /*Display Setting Screen*/
 void setting_screen(void) {
-
+    mouse_click();
     setting_image = CP_Image_Load("./Assets/bg_mainmenu.png"); //temp image
     //CP_Graphics_ClearBackground(COLOR_WHITE);
     static float middleX, middleY, width, height;
