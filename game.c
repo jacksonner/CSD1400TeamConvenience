@@ -379,6 +379,9 @@ void game_update(void) {
                         CP_Font_DrawText("Um, that isn't tank minion.", 120, window_height - 365);
                         array_MinionStats[0][MINION_HP] = 0;
                     }
+                    if (minions_in_base > 1) {
+                        tutorial_part += 1;
+                    }
                 }
                 if (tutorial_part == 18) {
                     money = 130;
@@ -399,6 +402,9 @@ void game_update(void) {
                     else if (array_MinionStats[0][MINION_TYPE] != WIZARD_MINION) {
                         CP_Font_DrawText("Hey uh, wizard minion first.", 120, window_height - 365);
                         array_MinionStats[0][MINION_HP] = 0;
+                    }
+                    if (minions_in_base > 2) {
+                        tutorial_part += 1;
                     }
                 }
                 if (tutorial_part == 20) {
