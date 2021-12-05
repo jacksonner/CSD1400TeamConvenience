@@ -424,6 +424,7 @@ float button_heightL, button_widthL;
 float restart_loseX, restart_loseY, main_loseX, main_loseY;
 float restart_textX, restart_textY, main_textX, main_textY;
 CP_Image Win_Screen = NULL;
+CP_Image End_Screen = NULL;
 CP_Sound win_sound = NULL;
 void win_screen_sound(void);
 int win_sound_played;
@@ -1298,7 +1299,7 @@ void main_menu_screen(void) {
     float mouseX = (float)CP_Input_GetMouseX();
     float mouseY = (float)CP_Input_GetMouseY();
 
-    if (mouseX >= start_game_buttonX && mouseX <= (start_game_buttonX + button_width) &&
+    if (mouseX >= start_game_buttonX && mouseX <= (start_game_buttonX + button_width + 100) &&
         mouseY >= start_game_buttonY && mouseY <= start_game_buttonY + button_height) {
         CP_Settings_Fill(COLOR_BLACK);
         CP_Graphics_DrawRect(start_game_buttonX, start_game_buttonY, button_width + 100, button_height);
@@ -1307,7 +1308,7 @@ void main_menu_screen(void) {
         CP_Font_DrawText("Start Game", start_textX, start_textY);
     }
 
-    if (mouseX >= level_selectorX && mouseX <= (level_selectorX + button_width) &&
+    if (mouseX >= level_selectorX && mouseX <= (level_selectorX + button_width + 100) &&
         mouseY >= level_selectorY && mouseY <= level_selectorY + button_height) {
         CP_Settings_Fill(COLOR_BLACK);
         CP_Graphics_DrawRect(level_selectorX, level_selectorY, button_width + 100, button_height);
@@ -1339,7 +1340,7 @@ void main_menu_screen(void) {
 
 /*When Main Menu is clicked on different screens*/
 void main_menu_clicked(float x, float y) {
-    if (x >= start_game_buttonX && x <= (start_game_buttonX + button_width) &&
+    if (x >= start_game_buttonX && x <= (start_game_buttonX + button_width + 100) &&
         y >= start_game_buttonY && y <= start_game_buttonY + button_height) {
 
         if (tutorial_played == FALSE) {
@@ -1353,7 +1354,7 @@ void main_menu_clicked(float x, float y) {
         }
     }
     // Level selector button clicked /
-    else if (x >= level_selectorX && x <= (level_selectorX + button_width) &&
+    else if (x >= level_selectorX && x <= (level_selectorX + button_width + 100) &&
         y >= level_selectorY && y <= level_selectorY + button_height) {
         Current_Gamestate = LEVEL_SELECTOR_SCREEN;
         Previous_Gamestate = MAIN_MENU_SCREEN;
@@ -1506,108 +1507,140 @@ void win_screen_sound() {
     }
 }
 /*Display Win Screen*/
-void win_screen(void) {
 
+void win_screen(void) {
     float width = (float)CP_System_GetWindowWidth();
     float height = (float)CP_System_GetWindowHeight();
     /*Load Image*/
-    Win_Screen = CP_Image_Load("./Assets/Win_Screen.jpg");
-    CP_Image_Draw(Win_Screen, width / 2, height / 2, width, height, 255);
-
-    /*Buttons*/
-    CP_Settings_Fill(COLOR_WHITE);
+    if (current_level != 6) {
+        Win_Screen = CP_Image_Load("./Assets/Win_Screen.jpg");
+        CP_Image_Draw(Win_Screen, width / 2, height / 2, width, height, 255);
+    }
+    else {
+        End_Screen = CP_Image_Load("./Assets/end_background.png");
+        CP_Image_Draw(End_Screen, width / 2, height / 2, width, height, 255);
+    }
     float quarter_blockX = (float)CP_System_GetDisplayWidth() / 4;
     float quarter_blockY = (float)CP_System_GetDisplayHeight() / 4;
-    button_height = 120.f;
-    button_width = 300.f;
-    main_loseX = (quarter_blockX * 3) - button_width;
-    restart_loseX = quarter_blockX;
-    main_loseY = restart_loseY = quarter_blockY * 2.8f;
-    CP_Graphics_DrawRect(main_loseX, main_loseY, button_width, button_height);
-    CP_Graphics_DrawRect(restart_loseX, restart_loseY, button_width, button_height);
-    /*Now Text*/
-    CP_Settings_TextSize(50);
-    CP_Settings_Fill(COLOR_BLACK);
-    restart_textX = restart_loseX + 40;
-    restart_textY = restart_loseY + 80;
-    main_textX = main_loseX + 35;
-    main_textY = main_loseY + 75;
-    CP_Font_DrawText("Return to", restart_textX, restart_textY - 30);
-    CP_Font_DrawText("Main Menu", restart_textX, restart_textY + 20);
-    CP_Settings_TextSize(50);
-    CP_Font_DrawText("Next Level", main_textX, main_textY);
-
-
-    float mouseX = (float)CP_Input_GetMouseX();
-    float mouseY = (float)CP_Input_GetMouseY();
-
-    if (mouseX >= restart_loseX && mouseX <= (restart_loseX + button_width) &&
-        mouseY >= restart_loseY && mouseY <= restart_loseY + button_height) {
-
-        CP_Image_Draw(Win_Screen, width / 2, height / 2, width, height, 255);
-
-        /*Hovering on Main Menu Button*/
-        CP_Settings_Fill(COLOR_WHITE);
-        CP_Graphics_DrawRect(main_loseX, main_loseY, button_width, button_height);
-        CP_Settings_Fill(COLOR_BLACK);
-        CP_Graphics_DrawRect(restart_loseX, restart_loseY, button_width, button_height);
-
-        /*Text*/
-        CP_Settings_TextSize(50);
-        CP_Settings_Fill(COLOR_WHITE);
-        CP_Font_DrawText("Return to", restart_textX, restart_textY - 30);
-        CP_Font_DrawText("Main Menu", restart_textX, restart_textY + 20);
+    /*Buttons*/
+    if (current_level == 6) {
+        float middleX = (float)CP_System_GetWindowWidth() / 2;
+        float middleY = (float)CP_System_GetWindowHeight() / 2;
+        button_height = 120.f;
+        button_width = 300.f;
+        CP_Settings_RectMode(CP_POSITION_CORNER);
+        CP_Settings_Fill(TRANSLUCENT_WHITE);
+        float buttonX = middleX - button_width / 2;
+        float buttonY = middleY - button_height / 2 + quarter_blockY;
+        CP_Graphics_DrawRect(buttonX, buttonY, (float)button_width, (float)button_height);
         CP_Settings_TextSize(50);
         CP_Settings_Fill(COLOR_BLACK);
-        CP_Font_DrawText("Next Level", main_textX, main_textY);
-
-        /*When clicked, return back to main menu screen*/
-        if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
-        {
-            CP_Image_Free(&Win_Screen);
-            CP_Sound_Free(&win_sound);
-            Current_Gamestate = MAIN_MENU_SCREEN;
-
-
+        CP_Font_DrawText("RETURN TO", middleX + 35 - button_width / 2, middleY + quarter_blockY - 10);
+        CP_Font_DrawText("MAIN MENU", middleX + 30 - button_width / 2, middleY + quarter_blockY + 35);
+        float mouseX = (float)CP_Input_GetMouseX();
+        float mouseY = (float)CP_Input_GetMouseY();
+        if ((mouseX > buttonX) && (mouseX <= buttonX + button_width)
+            && (mouseY > buttonY) && (mouseY <= buttonY + button_height)) {
+            CP_Settings_Fill(COLOR_BLACK);
+            CP_Graphics_DrawRect(buttonX, buttonY, (float)button_width, (float)button_height);
+            CP_Settings_TextSize(50);
+            CP_Settings_Fill(COLOR_WHITE);
+            CP_Font_DrawText("RETURN TO", middleX + 35 - button_width / 2, middleY + quarter_blockY - 10);
+            CP_Font_DrawText("MAIN MENU", middleX + 30 - button_width / 2, middleY + quarter_blockY + 35);
+            if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
+                CP_Image_Free(&End_Screen);
+                Current_Gamestate = MAIN_MENU_SCREEN;
+            }
         }
 
     }
-    else if (mouseX >= main_loseX && mouseX <= (main_loseX + button_width) && mouseY >= main_loseY && mouseY <= main_loseY + button_height) {
-
-        /*Hovering on Next Level Button*/
-        CP_Settings_Fill(COLOR_BLACK);
+    else {
+        CP_Settings_RectMode(CP_POSITION_CORNER);
+        CP_Settings_Fill(COLOR_WHITE);
+        button_height = 120.f;
+        button_width = 300.f;
+        main_loseX = (quarter_blockX * 3) - button_width;
+        restart_loseX = quarter_blockX;
+        main_loseY = restart_loseY = quarter_blockY * 2.8f;
         CP_Graphics_DrawRect(main_loseX, main_loseY, button_width, button_height);
-        CP_Settings_Fill(COLOR_WHITE);
         CP_Graphics_DrawRect(restart_loseX, restart_loseY, button_width, button_height);
-
+        /*Now Text*/
         CP_Settings_TextSize(50);
         CP_Settings_Fill(COLOR_BLACK);
-        CP_Font_DrawText("Return to", restart_textX, restart_textY - 30);
-        CP_Font_DrawText("Main Menu", restart_textX, restart_textY + 20);
+        restart_textX = restart_loseX + 40;
+        restart_textY = restart_loseY + 80;
+        main_textX = main_loseX + 35;
+        main_textY = main_loseY + 75;
         CP_Settings_TextSize(50);
-        CP_Settings_Fill(COLOR_WHITE);
-        CP_Font_DrawText("Next Level", main_textX, main_textY);
+        CP_Font_DrawText("MAIN MENU", restart_textX, restart_textY);
+        CP_Font_DrawText("NEXT LEVEL", main_textX, main_textY);
 
 
+        float mouseX = (float)CP_Input_GetMouseX();
+        float mouseY = (float)CP_Input_GetMouseY();
 
-        //When clicked, return back to gameplay screen
-        if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
-        {
-            CP_Image_Free(&Win_Screen);
-            CP_Sound_Free(&win_sound);
-            current_level++; //Go to the next level
+        if (mouseX >= restart_loseX && mouseX <= (restart_loseX + button_width) &&
+            mouseY >= restart_loseY && mouseY <= restart_loseY + button_height) {
 
-            Current_Gamestate = GAMEPLAY_SCREEN;
+            CP_Image_Draw(Win_Screen, width / 2, height / 2, width, height, 255);
 
-            /*initialise for gameplay screen*/
-            minion_count = 0;
-            reset_map_and_minions();
-            initialise_level();
-            gIsPaused = FALSE;
-            restart_level();
+            /*Hovering on Main Menu Button*/
+            CP_Settings_Fill(COLOR_WHITE);
+            CP_Graphics_DrawRect(main_loseX, main_loseY, button_width, button_height);
+            CP_Settings_Fill(COLOR_BLACK);
+            CP_Graphics_DrawRect(restart_loseX, restart_loseY, button_width, button_height);
+
+            /*Text*/
+            CP_Settings_TextSize(50);
+            CP_Settings_Fill(COLOR_WHITE);
+            CP_Font_DrawText("MAIN MENU", restart_textX, restart_textY);
+            CP_Settings_TextSize(50);
+            CP_Settings_Fill(COLOR_BLACK);
+            CP_Font_DrawText("NEXT LEVEL", main_textX, main_textY);
+
+            /*When clicked, return back to main menu screen*/
+            if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
+            {
+                CP_Image_Free(&Win_Screen);
+                Current_Gamestate = MAIN_MENU_SCREEN;
+
+
+            }
+
         }
+        else if (mouseX >= main_loseX && mouseX <= (main_loseX + button_width) && mouseY >= main_loseY && mouseY <= main_loseY + button_height) {
+
+            /*Hovering on Next Level Button*/
+            CP_Settings_Fill(COLOR_BLACK);
+            CP_Graphics_DrawRect(main_loseX, main_loseY, button_width, button_height);
+            CP_Settings_Fill(COLOR_WHITE);
+            CP_Graphics_DrawRect(restart_loseX, restart_loseY, button_width, button_height);
+
+            CP_Settings_TextSize(50);
+            CP_Settings_Fill(COLOR_BLACK);
+            CP_Font_DrawText("MAIN MENU", restart_textX, restart_textY);
+            CP_Settings_TextSize(50);
+            CP_Settings_Fill(COLOR_WHITE);
+            CP_Font_DrawText("NEXT LEVEL", main_textX, main_textY);
 
 
+
+            //When clicked, return back to gameplay screen
+            if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
+            {
+                CP_Image_Free(&Win_Screen);
+                current_level++; //Go to the next level
+
+                Current_Gamestate = GAMEPLAY_SCREEN;
+
+                /*initialise for gameplay screen*/
+                minion_count = 0;
+                reset_map_and_minions();
+                initialise_level();
+                gIsPaused = FALSE;
+                restart_level();
+            }
+        }
     }
 
 
