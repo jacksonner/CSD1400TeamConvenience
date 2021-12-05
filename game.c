@@ -560,7 +560,6 @@ void game_init(void) {
     for (int i = 0; i < 5; i++) {
         play_bgm[i] = 0;
     }
-    main_menu_bgm = CP_Sound_Load("./Assets/music/main_menu_bgm.wav");
 }
 
 void game_update(void) {
@@ -570,12 +569,15 @@ void game_update(void) {
         if (play_bgm[1] == 0)
         {
             printf("Yes\n");
-            //CP_Sound_StopAll();
-            CP_Sound_ResumeGroup(CP_SOUND_GROUP_1);
+            CP_Sound_StopAll();
+            main_menu_bgm = CP_Sound_Load("./Assets/music/main_menu_bgm.wav");
             CP_Sound_PlayAdvanced(main_menu_bgm, 0.3f, 1.f, TRUE, CP_SOUND_GROUP_1);
             play_bgm[1] = 1;
         }
-        
+        if (play_bgm[1] == 1)
+        {
+            CP_Sound_ResumeAll();
+        }
 
         
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
