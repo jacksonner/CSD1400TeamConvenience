@@ -8,7 +8,7 @@
 @section D
 @brief This file contains all the functions required to run Horde.
 
-Copyright © 2020 DigiPen, All rights reserved.
+Copyright ï¿½ 2020 DigiPen, All rights reserved.
 *//*_____________________________________________________________*/
 
 #include <stdio.h>
@@ -276,7 +276,7 @@ void game_update(void) {
                     }
                     CP_Image_Draw(ftutorial_minion, (float)minion_position[0], (float)minion_position[1], 200, 200, 255);
                     if (minion_position[1] <= minion_topY) {
-                        CP_Font_DrawText("You can check you progress on this bar. Every time one more bar turns", 120, window_height - 380);
+                        CP_Font_DrawText("You can check your progress on this bar. Every time one more bar turns", 120, window_height - 380);
                         CP_Font_DrawText("white, you become one step closer to freeing everyone!", 120, window_height - 320);
                         CP_Settings_Fill(TRANSLUCENT_PINK);
                         CP_Graphics_DrawCircle(window_width - 200, (float)origin_map_coordinateY - 20, (float)BLOCK_SIZE);
@@ -437,8 +437,6 @@ void game_update(void) {
                 }
                 if (tutorial_part == 24) {
                     CP_Font_DrawText("With all that said and done, good luck. I hope you manage to bring everyone back.", 120, window_height - 365);
-                    //CP_Font_DrawText("With all that said and done... Good luck. ", 120, window_height - 380);
-                    //CP_Font_DrawText("I hope you manage to bring everyone back.", 120, window_height - 320);
                     CP_Settings_Fill(TRANSLUCENT_PINK);
                     CP_Graphics_DrawCircle(window_width - 260, window_height - 56, (float)BLOCK_SIZE);
                 }
