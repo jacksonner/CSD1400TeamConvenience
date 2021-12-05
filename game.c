@@ -1400,6 +1400,8 @@ void main_menu_clicked(float x, float y) {
         play_bgm[0] = 0;
         if (tutorial_played == FALSE) {
             tutorial_played = TRUE;
+            CP_Sound_StopGroup(CP_SOUND_GROUP_1);
+            CP_Sound_Free(&main_menu_bgm);
             Current_Gamestate = TUTORIAL_SCREEN;
             
         }
