@@ -309,6 +309,7 @@ void game_update(void) {
                     CP_Settings_Fill(COLOR_WHITE);
                     CP_Graphics_DrawRect(100, window_height - 450, window_width - 200, 150);
                     CP_Settings_Fill(COLOR_BLACK);
+                    CP_Settings_TextSize(55);
                     CP_Font_DrawText("These are just dummies so they can't attack. But of course, actual Squares will ", 120, window_height - 380);
                     CP_Font_DrawText("definitely attack. Try summoning a scout or warrior.", 120, window_height - 320);
                     CP_Image_Draw(tutorial_minion, (float)minion_position[0], (float)minion_position[1], 200, 200, 255);
@@ -366,6 +367,7 @@ void game_update(void) {
                     money = 110;
                     if (array_MinionStats[0][MINION_TYPE] == TANK_MINION) {
                         array_MinionStats[0][ENEMY_HP] = find_full_hp(0);
+                        CP_Settings_TextSize(50);
                         CP_Font_DrawText("Tank minion is quite tanky, and will focus all surrounding attacks onto himself! He", 120, window_height - 380);
                         CP_Font_DrawText("also does slight AOE (3x3) damage, and prevents guards from blocking other minions.", 120, window_height - 320);
                         money = 0;
@@ -468,7 +470,7 @@ void game_update(void) {
                 else if (tutorial_part == 14 && array_EnemyStats[1][ENEMY_HP] > 0) {
                     tutorial_part += 1;
                 }
-                else if (tutorial_part == 15 && minions_in_base < 2) {
+                else if (tutorial_part == 15 && minions_in_base == 0) {
                     tutorial_part -= 1;
                 }
                 else if ((tutorial_part == 17 && array_MinionStats[0][MINION_TYPE] != TANK_MINION) || (tutorial_part == 17 && array_EnemyStats[0][ENEMY_HP] == 200)) {
