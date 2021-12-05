@@ -523,7 +523,8 @@ void game_update(void) {
                 }
             }
             if (setting_popup == TRUE) {
-                CP_Sound_PauseAll();
+               CP_Sound_PauseAll();
+               CP_Sound_ResumeGroup(CP_SOUND_GROUP_2);
                 setting_image = CP_Image_Load("./Assets/bg_mainmenu.png"); //temp image
 
                 static float middleX, middleY, width, height;
@@ -737,6 +738,7 @@ void game_update(void) {
     else if (Current_Gamestate == TUTORIAL_SCREEN5) {
         tutorial4();
     }
+
 }
 
 void game_exit(void) {
