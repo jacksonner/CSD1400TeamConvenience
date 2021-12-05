@@ -421,6 +421,9 @@ float button_heightL, button_widthL;
 float restart_loseX, restart_loseY, main_loseX, main_loseY;
 float restart_textX, restart_textY, main_textX, main_textY;
 CP_Image Win_Screen = NULL;
+CP_Sound win_sound = NULL;
+void win_screen_sound(void);
+int win_sound_played;
 
 /*Credit Screen*/
 void credit_screen(void);
@@ -567,6 +570,7 @@ void game_update(void) {
         render_enemy();
         enemy_info();
         minion_info();
+        win_sound_played = FALSE;
         if (current_level == 0) {
             //skip tutorial button
             CP_Settings_Fill(COLOR_WHITE);
@@ -1111,6 +1115,7 @@ void game_update(void) {
     }
     else if (Current_Gamestate == WIN_SCREEN) {
         win_screen();
+        win_screen_sound();
     }
     else if (Current_Gamestate == SETTING_SCREEN) {
         setting_screen();
@@ -1468,6 +1473,13 @@ void lose_screen(void) {
         }
     }
 }
+void win_screen_sound() {
+    win_sound = CP_Sound_Load("./Assets/music/win_sound.wav");
+    if (win_sound_played == FALSE) {
+        CP_Sound_PlayAdvanced(win_sound, (float)0.7, 1, FALSE, CP_SOUND_GROUP_1);
+        win_sound_played = TRUE;
+    }
+}
 /*Display Win Screen*/
 void win_screen(void) {
 
@@ -1526,6 +1538,7 @@ void win_screen(void) {
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
         {
             CP_Image_Free(&Win_Screen);
+            CP_Sound_Free(&win_sound);
             Current_Gamestate = MAIN_MENU_SCREEN;
 
 
@@ -1553,6 +1566,7 @@ void win_screen(void) {
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
         {
             CP_Image_Free(&Win_Screen);
+            CP_Sound_Free(&win_sound);
             current_level++; //Go to the next level
 
             Current_Gamestate = GAMEPLAY_SCREEN;
