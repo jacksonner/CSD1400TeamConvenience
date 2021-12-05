@@ -8,7 +8,7 @@ void game_exit(void);
 /*Window Dimension of Game*/
 int origin_map_coordinateX; //cause I have a border around everything
 int origin_map_coordinateY;
-int BLOCK_SIZE; //in caps, jic people have tiny screens and block_size needs to change :(
+int BLOCK_SIZE; //in caps, jic people have tiny screens and block_size needs to change
 
 /*Dimensions of Gameplay Map
 NOTE THAT FOR X-COORDINATE REFER TO COL, Y-COORDINATE REDER TO ROW
@@ -846,7 +846,7 @@ void game_update(void) {
                     if (array_MinionStats[0][MINION_TYPE] == TANK_MINION) {
                         array_MinionStats[0][ENEMY_HP] = find_full_hp(0);
                         CP_Font_DrawText("Tank minion is quite tanky, and will focus all surrounding attacks onto himself! He", 120, window_height - 380);
-                        CP_Font_DrawText("also does slight AOE damage, and prevents guards from blocking other minions.", 120, window_height - 320);
+                        CP_Font_DrawText("also does slight AOE (3x3) damage, and prevents guards from blocking other minions.", 120, window_height - 320);
                         money = 0;
                         if (array_MinionStats[1][ENEMY_HP] < 20) {
                             array_MinionStats[1][ENEMY_HP] = 100;
@@ -870,7 +870,7 @@ void game_update(void) {
                     money = 130;
                     if (array_MinionStats[0][MINION_TYPE] == WIZARD_MINION) {
                         money = 0;
-                        CP_Font_DrawText("Wizard minion is rather weak but he has a huge 3x3 range with high damage", 120, window_height - 380);
+                        CP_Font_DrawText("Wizard minion is rather weak but he has a huge 5x5 range with high damage", 120, window_height - 380);
                         CP_Font_DrawText("though his special attack does take quite some time to charge up.", 120, window_height - 320);
                     }
                     else if (array_MinionStats[0][MINION_TYPE] != WIZARD_MINION) {
@@ -1439,18 +1439,21 @@ void main_menu_clicked(float x, float y) {
     }
 }
 
+/*the background music for when the game is in progress*/
 void gameplay_sound() {
     gameplay_bgm = CP_Sound_Load("./Assets/music/action_gameplay_bgm.wav");
     CP_Sound_PlayAdvanced(gameplay_bgm, 0.3f, 1.f, TRUE, CP_SOUND_GROUP_0);
     play_bgm[0] = 1;
 }
 
+/*the background music for the main_menu*/
 void main_menu_sound() {
     main_menu_bgm = CP_Sound_Load("./Assets/music/main_menu_bgm.wav");
     CP_Sound_PlayAdvanced(main_menu_bgm, 0.3f, 1.f, TRUE, CP_SOUND_GROUP_1);
     play_bgm[1] = 1;
 }
 
+/*the music for the lose screen*/
 void lose_screen_sound() {
     lose_sound = CP_Sound_Load("./Assets/music/lose_sound.wav");
     if (lose_sound_played == FALSE) {
@@ -4192,6 +4195,7 @@ void enemy_special_attack() {
     }
 }
 
+/*renders the enemy's special effects*/
 void render_special_effect_enemy(int i) {
     int how_long_effect_is_slow = 3;
     float how_long_effect_is_AOE = 0.4f;
@@ -4325,6 +4329,7 @@ void render_special_effect_enemy(int i) {
     }
 }
 
+/*find the minion's original default speed, used after the minion was slowed by slow tower*/
 int find_minion_original_speed(int minion) {
     int minion_speed = (array_MinionStats[minion][MINION_TYPE] == SPAM_MINION)
         ? 6
@@ -4450,6 +4455,7 @@ void minion_dies_array_recycle(int dead_minion_number) {
     minion_count--;
 }
 
+/*checks if the minion can do it's basic attack yet*/
 int check_minion_basic_attack_charge(int i) {
     if (array_MinionCurrentCharge[i][MINION_BASIC_CURRENT_CHARGE] >= array_MinionCurrentCharge[i][MINION_BASIC_ATTACK_SPEED]) {
         array_MinionCurrentCharge[i][MINION_BASIC_CURRENT_CHARGE] = 0;
@@ -4458,6 +4464,7 @@ int check_minion_basic_attack_charge(int i) {
     return 0;
 }
 
+/*checks if the enemy can do it's basic attack yet*/
 int check_enemy_basic_attack_charge(int i) {
     if (array_EnemyCurrentCharge[i][ENEMY_BASIC_CURRENT_CHARGE] >= array_EnemyCurrentCharge[i][ENEMY_BASIC_ATTACK_SPEED]) {
         array_EnemyCurrentCharge[i][ENEMY_BASIC_CURRENT_CHARGE] = 0;
@@ -4466,6 +4473,7 @@ int check_enemy_basic_attack_charge(int i) {
     return 0;
 }
 
+/*counts how many minions have entered the base, setting their hp to 0 so a new minion can be spawned*/
 void minion_enter_base_counter() {
     for (int i = 0; i < minion_count; i++) {
         int current_boxCOL = (array_MinionStats[i][X] - origin_map_coordinateX) / BLOCK_SIZE;
@@ -4478,6 +4486,7 @@ void minion_enter_base_counter() {
     }
 }
 
+/*renders the minion's hp bar*/
 void renderminionhp_bar() {
 
     for (int i = 0; i < minion_count; i++) {
@@ -4514,6 +4523,7 @@ void renderminionhp_bar() {
     }
 }
 
+/*render the enemy's hp bars*/
 void renderguardhp_bar(int i) {
     if (array_EnemyStats[i][ENEMY_TYPE] == GUARD_ENEMY) {
         enemy_max_hp = 150;
@@ -4546,6 +4556,7 @@ void renderguardhp_bar(int i) {
     CP_Graphics_DrawRect((float)array_EnemyStats[i][ENEMY_ROW_COORDINATES] - 40, (float)array_EnemyStats[i][ENEMY_COL_COORDINATES] - 60, enemy_hp_bar, (float)HP_BAR_HEIGHT);
 }
 
+/*Renders the bar showing how much longer it'll take before the minion's special attack is ready*/
 void render_special_current_charge() {
     for (int i = 0; i < MINION_MAX; i++) {
         if (array_MinionStats[i][MINION_TYPE] != SPAM_MINION) {
@@ -4581,6 +4592,7 @@ void render_special_current_charge() {
     }
 }
 
+/*Shows how much money/minions (on the map) that there currently are*/
 void display_money_and_minions_counter() {
     float counter_X, counter_Y, counter_width, counter_height;
     counter_height = 80;
@@ -4616,6 +4628,7 @@ void display_money_and_minions_counter() {
     CP_Font_DrawText("/7", (counter_X + 60.f), counter_Y + counter_height + 42);
 }
 
+/*renders the wn progress bar at the rop right of the screen to show how many more minions needs to enter the base*/
 void render_win_progress() {
     float width = 30;
     float height = 40;
@@ -4635,6 +4648,7 @@ void render_win_progress() {
     }
 }
 
+/*find the minion's max HP*/
 int find_full_hp(int n) {
     int full_hp = (array_MinionStats[n][MINION_TYPE] == SPAM_MINION)
         ? 60
@@ -4650,6 +4664,7 @@ int find_full_hp(int n) {
     return full_hp;
 }
 
+/*The actual rendering of the minion's special attacks*/
 void render_minion_special_attack() {
     float tank_minion_effect_lasts = 0.4f;
     float healer_minion_effect_lasts = 0.4f;
@@ -4740,6 +4755,7 @@ void render_minion_special_attack() {
     }
 }
 
+/*The logic for the minion's special attack*/
 void minion_special_attack(int i, int current_row, int current_col) {
     int tank_range = 2, wizard_range = 3;
     if (array_MinionCurrentCharge[i][MINION_CURRENT_CHARGE] >= array_MinionCurrentCharge[i][MINION_CHARGE_TIME]) {
@@ -4832,6 +4848,7 @@ void minion_special_attack(int i, int current_row, int current_col) {
     }
 }
 
+/*Checks if there are enemies within a set range to attack*/
 void minion_attacking_towers(int i, int current_row, int current_col, int minion_range) { //can work on the minion's normal attack here, aka attacking towers while moving?
     int which_enemy, check_row, check_col;
     for (int t = 0; t < ENEMY_MAX; t++) {
@@ -4934,6 +4951,7 @@ void minion_attacking_towers(int i, int current_row, int current_col, int minion
     }
 }
 
+/*Find out which enemy is at a particular row/col*/
 int check_which_enemy(int row, int col) { //input is the row and col to be checked for enemy presence
     int correct_enemy = 0;
     for (int r = 0; r < ENEMY_MAX; r++) {
@@ -4945,6 +4963,7 @@ int check_which_enemy(int row, int col) { //input is the row and col to be check
     return correct_enemy;
 }
 
+/*After 20 secods, brings the enemy back to life, with their hp halved -> first death: 1/2 HP, second death 1/4 HP and so on*/
 void bring_back_enemy() {
     for (int row = 0; row < MAP_GRID_ROWS; ++row) {
         for (int col = 0; col < MAP_GRID_COLS; ++col) {
@@ -4963,6 +4982,7 @@ void bring_back_enemy() {
     }
 }
 
+/*Shows how long before the enemy comes back*/
 void render_enemy_death_comeback_bar() {
     for (int row = 0; row < MAP_GRID_ROWS; ++row) {
         for (int col = 0; col < MAP_GRID_COLS; ++col) {
@@ -4981,6 +5001,7 @@ void render_enemy_death_comeback_bar() {
     }
 }
 
+/*Assigns minion stats, eg. max hp etc.*/
 void assign_minion_stats() {
     if (array_MinionStats[minion_count][MINION_TYPE] == SPAM_MINION) {
         array_MinionStats[minion_count][MINION_HP] = 60;
@@ -5034,6 +5055,7 @@ void assign_minion_stats() {
     }
 }
 
+/*Assigns enemy stats, eg. max hp etc.*/
 void assign_enemy_stats() {
     for (int i = 0; i < ENEMY_MAX; i++) {
         if (array_EnemyStats[i][ENEMY_TYPE] == GUARD_ENEMY) {
