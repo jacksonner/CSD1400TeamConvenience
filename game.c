@@ -138,6 +138,8 @@ static CP_Image base_block0;
 static CP_Image base_block1;
 static CP_Image base_block2;
 static CP_Image base_block3;
+static CP_Image teleport_block;
+static CP_Image teleport_spawn_block;
 static CP_Image present_block;
 static CP_Image tutorial_minion;
 static CP_Image ftutorial_minion;
@@ -3211,20 +3213,14 @@ void initialise_level() {
     }
 }
 
-/*Render Background for Gameplay Screen*/
+/*Render Background for Gameplay Screen, all the blocks*/
 void render_background() {
     CP_Graphics_ClearBackground(COLOR_BG);
     for (int row = 0; row < MAP_GRID_ROWS; ++row) {
         for (int col = 0; col < MAP_GRID_COLS; ++col) {
             BlockPositionX = origin_map_coordinateX + BLOCK_SIZE * col;
             BlockPositionY = origin_map_coordinateY + BLOCK_SIZE * row;
-            CP_Settings_Fill(array_GameMap[row][col] == BLOCK_EMPTY //ternary operator
-                ? COLOR_GREY
-                : array_GameMap[row][col] == BLOCK_TELEPORT_SPAWN
-                ? COLOR_BRIGHT_BLUE
-                : array_GameMap[row][col] == BLOCK_TELEPORTER
-                ? COLOR_DULLER_BLUE
-                : COLOR_GREY); //BLOCK_ENEMY
+
             if (array_GameMap[row][col] == BLOCK_SPAWN) {
                 CP_Settings_ImageMode(CP_POSITION_CORNER);
                 CP_Image_Draw(spawn_block, (float)BlockPositionX, (float)BlockPositionY, (float)BLOCK_SIZE, (float)BLOCK_SIZE, 255);
@@ -3251,8 +3247,15 @@ void render_background() {
                 CP_Image_Draw(present_block, (float)BlockPositionX, (float)BlockPositionY, (float)BLOCK_SIZE, (float)BLOCK_SIZE, 255);
                 CP_Settings_ImageMode(CP_POSITION_CENTER);
             }
-            else if (array_GameMap[row][col] != BLOCK_EMPTY && array_GameMap[row][col] != BLOCK_ENEMY && array_GameMap[row][col] != BLOCK_ENEMY_DEAD) {
-                CP_Graphics_DrawRect((float)BlockPositionX, (float)BlockPositionY, (float)BLOCK_SIZE, (float)BLOCK_SIZE);
+            else if (array_GameMap[row][col] == BLOCK_TELEPORTER) {
+                CP_Settings_ImageMode(CP_POSITION_CORNER);
+                CP_Image_Draw(teleport_block, (float)BlockPositionX, (float)BlockPositionY, (float)BLOCK_SIZE, (float)BLOCK_SIZE, 255);
+                CP_Settings_ImageMode(CP_POSITION_CENTER);
+            }
+            else if (array_GameMap[row][col] == BLOCK_TELEPORT_SPAWN) {
+                CP_Settings_ImageMode(CP_POSITION_CORNER);
+                CP_Image_Draw(teleport_spawn_block, (float)BlockPositionX, (float)BlockPositionY, (float)BLOCK_SIZE, (float)BLOCK_SIZE, 255);
+                CP_Settings_ImageMode(CP_POSITION_CENTER);
             }
             else {
                 CP_Settings_ImageMode(CP_POSITION_CORNER);
@@ -3762,6 +3765,8 @@ void load_all_sprites(void) {
     base_block2 = CP_Image_Load("./Assets/sprites/base/base_image2.png");
     base_block3 = CP_Image_Load("./Assets/sprites/base/base_image3.png");
     present_block = CP_Image_Load("./Assets/sprites/present_block_image.png");
+    teleport_block = CP_Image_Load("./Assets/sprites/teleport_block_image.png");
+    teleport_spawn_block = CP_Image_Load("./Assets/sprites/teleport_spawn_block_image.png");
 
     tutorial_minion = CP_Image_Load("./Assets/sprites/tutorial_minion_image.png");
     dummy_enemy = CP_Image_Load("./Assets/sprites/dummy_enemy_image.png");
@@ -3794,6 +3799,8 @@ void free_all_sprites(void) {
     CP_Image_Free(&base_block2);
     CP_Image_Free(&base_block3);
     CP_Image_Free(&present_block);
+    CP_Image_Free(&teleport_block);
+    CP_Image_Free(&teleport_spawn_block);
 
     CP_Image_Free(&main_menu_image);
 
