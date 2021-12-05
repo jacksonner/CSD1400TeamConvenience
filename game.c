@@ -1263,15 +1263,15 @@ void main_menu_screen(void) {
     float quarter_blockX = (float)CP_System_GetDisplayWidth() / 4;
     float quarter_blockY = (float)CP_System_GetDisplayHeight() / 4;
     button_height = 120.f;
-    button_width = 300.f + 100;
+    button_width = 300.f;
     level_selectorX = quarter_blockX;
     start_game_buttonX = quarter_blockX;
     start_game_buttonY = 2.f * quarter_blockY + 0.1f * quarter_blockY;
     level_selectorY = start_game_buttonY + quarter_blockY * 0.8f;
     settingX = 1600;
     settingY = 1000.f;
-    CP_Graphics_DrawRect(level_selectorX, level_selectorY, button_width, button_height);
-    CP_Graphics_DrawRect(start_game_buttonX, start_game_buttonY, button_width, button_height);
+    CP_Graphics_DrawRect(level_selectorX, level_selectorY, button_width + 100, button_height);
+    CP_Graphics_DrawRect(start_game_buttonX, start_game_buttonY, button_width + 100, button_height);
     setting_height = 60.f;
     setting_width = 240.f;
     CP_Graphics_DrawRect(settingX, settingY, setting_width, setting_height);
@@ -1412,7 +1412,8 @@ void lose_screen(void) {
     restart_textY = restart_loseY + 80;
     main_textX = main_loseX + 35;
     main_textY = main_loseY + 75;
-    CP_Font_DrawText("RESTART", restart_textX, restart_textY);
+    CP_Font_DrawText("Restart", restart_textX, restart_textY - 30);
+    CP_Font_DrawText("Level", restart_textX, restart_textY + 20);
     CP_Settings_TextSize(50);
     CP_Font_DrawText("Return to", main_textX, main_textY - 30);
     CP_Font_DrawText("Main Menu", main_textX, main_textY + 20);
@@ -1442,7 +1443,8 @@ void lose_screen(void) {
         main_textY = main_loseY + 75;
         CP_Settings_TextSize(60);
         CP_Settings_Fill(COLOR_WHITE);
-        CP_Font_DrawText("RESTART", restart_textX, restart_textY);
+        CP_Font_DrawText("Restart", restart_textX, restart_textY - 30);
+        CP_Font_DrawText("Level", restart_textX, restart_textY + 20);
         CP_Settings_TextSize(50);
         CP_Settings_Fill(COLOR_BLACK);
         CP_Font_DrawText("Return to", main_textX, main_textY - 30);
@@ -1477,7 +1479,8 @@ void lose_screen(void) {
         /*Text for Buttons*/
         CP_Settings_TextSize(60);
         CP_Settings_Fill(COLOR_BLACK);
-        CP_Font_DrawText("RESTART", restart_textX, restart_textY);
+        CP_Font_DrawText("Restart", restart_textX, restart_textY - 30);
+        CP_Font_DrawText("Level", restart_textX, restart_textY + 20);
         CP_Settings_TextSize(50);
         CP_Settings_Fill(COLOR_WHITE);
         CP_Font_DrawText("Return to", main_textX, main_textY - 30);
@@ -1532,7 +1535,7 @@ void win_screen(void) {
     CP_Font_DrawText("Return to", restart_textX, restart_textY - 30);
     CP_Font_DrawText("Main Menu", restart_textX, restart_textY + 20);
     CP_Settings_TextSize(50);
-    CP_Font_DrawText("NEXT LEVEL", main_textX, main_textY);
+    CP_Font_DrawText("Next Level", main_textX, main_textY);
 
 
     float mouseX = (float)CP_Input_GetMouseX();
@@ -1556,7 +1559,7 @@ void win_screen(void) {
         CP_Font_DrawText("Main Menu", restart_textX, restart_textY + 20);
         CP_Settings_TextSize(50);
         CP_Settings_Fill(COLOR_BLACK);
-        CP_Font_DrawText("NEXT LEVEL", main_textX, main_textY);
+        CP_Font_DrawText("Next Level", main_textX, main_textY);
 
         /*When clicked, return back to main menu screen*/
         if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
@@ -1583,7 +1586,7 @@ void win_screen(void) {
         CP_Font_DrawText("Main Menu", restart_textX, restart_textY + 20);
         CP_Settings_TextSize(50);
         CP_Settings_Fill(COLOR_WHITE);
-        CP_Font_DrawText("NEXT LEVEL", main_textX, main_textY);
+        CP_Font_DrawText("Next Level", main_textX, main_textY);
 
 
 
