@@ -1010,7 +1010,7 @@ void lose_screen(void) {
     main_textX = main_loseX + 35;
     main_textY = main_loseY + 75;
     CP_Font_DrawText("Restart", restart_textX, restart_textY - 30);
-    CP_Font_DrawText("Level", restart_textX, restart_textY + 20);
+    CP_Font_DrawText("Game", restart_textX, restart_textY + 20);
     CP_Settings_TextSize(50);
     CP_Font_DrawText("Return to", main_textX, main_textY - 30);
     CP_Font_DrawText("Main Menu", main_textX, main_textY + 20);
@@ -1041,7 +1041,7 @@ void lose_screen(void) {
         CP_Settings_TextSize(60);
         CP_Settings_Fill(COLOR_WHITE);
         CP_Font_DrawText("Restart", restart_textX, restart_textY - 30);
-        CP_Font_DrawText("Level", restart_textX, restart_textY + 20);
+        CP_Font_DrawText("Game", restart_textX, restart_textY + 20);
         CP_Settings_TextSize(50);
         CP_Settings_Fill(COLOR_BLACK);
         CP_Font_DrawText("Return to", main_textX, main_textY - 30);

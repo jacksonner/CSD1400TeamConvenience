@@ -52,7 +52,6 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDI_ICON1               ICON                    "C:\\Users\\J\\Downloads\\warrior_minion_image.ico"
 
 IDI_ICON2               ICON                    "Assets\\sprites\\icon\\warrior_minion_icon.ico"
 
