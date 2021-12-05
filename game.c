@@ -616,7 +616,7 @@ void game_update(void) {
                 CP_Settings_Fill(COLOR_WHITE);
                 CP_Graphics_DrawRect(100, window_height - 200, window_width - 200, 150);
                 CP_Settings_Fill(COLOR_BLACK);
-                CP_Settings_TextSize(60);
+                CP_Settings_TextSize(55);
                 if (tutorial_part == 0) {
                     money = 0;
                     CP_Image_Draw(tutorial_minion, window_width - 500, window_height - 300, 300, 300, 255);
@@ -653,6 +653,7 @@ void game_update(void) {
             }
             if (tutorial_part == 3 || tutorial_part == 4 || tutorial_part == 5 || tutorial_part == 6
                 || tutorial_part == 7) {
+                CP_Settings_TextSize(60);
                 CP_Settings_Fill(COLOR_WHITE);
                 CP_Graphics_DrawRect(100, window_height - 450, window_width - 200, 150);
                 CP_Settings_Fill(COLOR_BLACK);
@@ -801,8 +802,8 @@ void game_update(void) {
                     money = 110;
                     if (array_MinionStats[0][MINION_TYPE] == TANK_MINION) {
                         array_MinionStats[0][ENEMY_HP] = find_full_hp(0);
-                        CP_Font_DrawText("Tank minion is quite tanky, and will focus all guard attacks onto himself! When", 120, window_height - 380);
-                        CP_Font_DrawText("their special attack charges up, they regain health and deal AOE damage.", 120, window_height - 320);
+                        CP_Font_DrawText("Tank minion is quite tanky, and will focus all surrounding attacks onto himself! He", 120, window_height - 380);
+                        CP_Font_DrawText("also does slight AOE damage, and prevents guards from blocking other minions.", 120, window_height - 320);
                         money = 0;
                         if (array_MinionStats[1][ENEMY_HP] < 20) {
                             array_MinionStats[1][ENEMY_HP] = 100;
@@ -1469,9 +1470,9 @@ void lose_screen(void) {
         }
     }
 }
+
 /*Display Win Screen*/
 void win_screen(void) {
-
     float width = (float)CP_System_GetWindowWidth();
     float height = (float)CP_System_GetWindowHeight();
     /*Load Image*/
@@ -1515,7 +1516,6 @@ void win_screen(void) {
                 Current_Gamestate = MAIN_MENU_SCREEN;
             }
         }
-
     }
     else {
         CP_Settings_RectMode(CP_POSITION_CORNER);
@@ -1535,6 +1535,7 @@ void win_screen(void) {
         main_textX = main_loseX + 35;
         main_textY = main_loseY + 75;
         CP_Settings_TextSize(50);
+        CP_Font_DrawText("RETURN TO", restart_textX, restart_textY);
         CP_Font_DrawText("MAIN MENU", restart_textX, restart_textY);
         CP_Font_DrawText("NEXT LEVEL", main_textX, main_textY);
 
