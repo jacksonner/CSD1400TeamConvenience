@@ -16,7 +16,7 @@ Copyright © 2020 DigiPen, All rights reserved.
 #include "game.h"
 
 void splash_init(void) {
-    Digipen_logo = CP_Image_Load("./Assets/Digipen_logo.png");
+    Digipen_logo = CP_Image_Load("./Assets/Digipen_logo.jpg");
     /*Setting the FrameRate to 60fps*/
     CP_System_SetFrameRate(60.0f);
 
