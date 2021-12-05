@@ -1353,7 +1353,7 @@ void main_menu_screen(void) {
     float mouseX = (float)CP_Input_GetMouseX();
     float mouseY = (float)CP_Input_GetMouseY();
 
-    if (mouseX >= start_game_buttonX && mouseX <= (start_game_buttonX + button_width) &&
+    if (mouseX >= start_game_buttonX && mouseX <= (start_game_buttonX + button_width + 100) &&
         mouseY >= start_game_buttonY && mouseY <= start_game_buttonY + button_height) {
         CP_Settings_Fill(COLOR_BLACK);
         CP_Graphics_DrawRect(start_game_buttonX, start_game_buttonY, button_width + 100, button_height);
@@ -1362,7 +1362,7 @@ void main_menu_screen(void) {
         CP_Font_DrawText("Start Game", start_textX, start_textY);
     }
 
-    if (mouseX >= level_selectorX && mouseX <= (level_selectorX + button_width) &&
+    if (mouseX >= level_selectorX && mouseX <= (level_selectorX + button_width + 100) &&
         mouseY >= level_selectorY && mouseY <= level_selectorY + button_height) {
         CP_Settings_Fill(COLOR_BLACK);
         CP_Graphics_DrawRect(level_selectorX, level_selectorY, button_width + 100, button_height);
@@ -1395,7 +1395,7 @@ void main_menu_screen(void) {
 /*When Main Menu is clicked on different screens*/
 void main_menu_clicked(float x, float y) {
     
-    if (x >= start_game_buttonX && x <= (start_game_buttonX + button_width) &&
+    if (x >= start_game_buttonX && x <= (start_game_buttonX + button_width + 100) &&
         y >= start_game_buttonY && y <= start_game_buttonY + button_height) {
         play_bgm[0] = 0;
         if (tutorial_played == FALSE) {
@@ -1411,7 +1411,7 @@ void main_menu_clicked(float x, float y) {
         }
     }
     // Level selector button clicked /
-    else if (x >= level_selectorX && x <= (level_selectorX + button_width) &&
+    else if (x >= level_selectorX && x <= (level_selectorX + button_width + 100) &&
         y >= level_selectorY && y <= level_selectorY + button_height) {
         Current_Gamestate = LEVEL_SELECTOR_SCREEN;
         Previous_Gamestate = MAIN_MENU_SCREEN;
