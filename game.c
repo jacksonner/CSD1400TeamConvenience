@@ -62,8 +62,8 @@ void game_init(void) {
     CP_System_SetFrameRate(60.0f);
 
     /*Initialising variables for Fullscreen etc.*/
-    //CP_System_Fullscreen();
-    CP_System_SetWindowSize(1920, 1080);
+    CP_System_Fullscreen();
+    //CP_System_SetWindowSize(1920, 1080);
     update_variables_and_make_screen_nice();
 
     current_guide = 1;
