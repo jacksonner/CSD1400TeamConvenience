@@ -8,7 +8,7 @@
 @section D
 @brief This file contains all the functions required to run Horde.
 
-Copyright © 2020 DigiPen, All rights reserved.
+Copyright ï¿½ 2020 DigiPen, All rights reserved.
 *//*_____________________________________________________________*/
 
 #include <stdio.h>
@@ -95,6 +95,7 @@ void game_init(void) {
 /*Updates the game, part of the tutorial is also contained here*/
 void game_update(void) {
     printf("%d\n", play_bgm[1]);
+    mouse_click();
     if (Current_Gamestate == MAIN_MENU_SCREEN) {
         main_menu_screen();
         if (play_bgm[1] == 0)
@@ -275,7 +276,7 @@ void game_update(void) {
                     }
                     CP_Image_Draw(ftutorial_minion, (float)minion_position[0], (float)minion_position[1], 200, 200, 255);
                     if (minion_position[1] <= minion_topY) {
-                        CP_Font_DrawText("You can check you progress on this bar. Every time one more bar turns", 120, window_height - 380);
+                        CP_Font_DrawText("You can check your progress on this bar. Every time one more bar turns", 120, window_height - 380);
                         CP_Font_DrawText("white, you become one step closer to freeing everyone!", 120, window_height - 320);
                         CP_Settings_Fill(TRANSLUCENT_PINK);
                         CP_Graphics_DrawCircle(window_width - 200, (float)origin_map_coordinateY - 20, (float)BLOCK_SIZE);
@@ -308,6 +309,7 @@ void game_update(void) {
                     CP_Settings_Fill(COLOR_WHITE);
                     CP_Graphics_DrawRect(100, window_height - 450, window_width - 200, 150);
                     CP_Settings_Fill(COLOR_BLACK);
+                    CP_Settings_TextSize(55);
                     CP_Font_DrawText("These are just dummies so they can't attack. But of course, actual Squares will ", 120, window_height - 380);
                     CP_Font_DrawText("definitely attack. Try summoning a scout or warrior.", 120, window_height - 320);
                     CP_Image_Draw(tutorial_minion, (float)minion_position[0], (float)minion_position[1], 200, 200, 255);
@@ -365,6 +367,7 @@ void game_update(void) {
                     money = 110;
                     if (array_MinionStats[0][MINION_TYPE] == TANK_MINION) {
                         array_MinionStats[0][ENEMY_HP] = find_full_hp(0);
+                        CP_Settings_TextSize(50);
                         CP_Font_DrawText("Tank minion is quite tanky, and will focus all surrounding attacks onto himself! He", 120, window_height - 380);
                         CP_Font_DrawText("also does slight AOE (3x3) damage, and prevents guards from blocking other minions.", 120, window_height - 320);
                         money = 0;
@@ -375,6 +378,9 @@ void game_update(void) {
                     else if (array_MinionStats[0][MINION_TYPE] != TANK_MINION) {
                         CP_Font_DrawText("Um, that isn't tank minion.", 120, window_height - 365);
                         array_MinionStats[0][MINION_HP] = 0;
+                    }
+                    if (minions_in_base > 2) { //if 3
+                        tutorial_part += 1;
                     }
                 }
                 if (tutorial_part == 18) {
@@ -396,6 +402,9 @@ void game_update(void) {
                     else if (array_MinionStats[0][MINION_TYPE] != WIZARD_MINION) {
                         CP_Font_DrawText("Hey uh, wizard minion first.", 120, window_height - 365);
                         array_MinionStats[0][MINION_HP] = 0;
+                    }
+                    if (minions_in_base > 3) {
+                        tutorial_part += 1;
                     }
                 }
                 if (tutorial_part == 20) {
@@ -428,8 +437,6 @@ void game_update(void) {
                 }
                 if (tutorial_part == 24) {
                     CP_Font_DrawText("With all that said and done, good luck. I hope you manage to bring everyone back.", 120, window_height - 365);
-                    //CP_Font_DrawText("With all that said and done... Good luck. ", 120, window_height - 380);
-                    //CP_Font_DrawText("I hope you manage to bring everyone back.", 120, window_height - 320);
                     CP_Settings_Fill(TRANSLUCENT_PINK);
                     CP_Graphics_DrawCircle(window_width - 260, window_height - 56, (float)BLOCK_SIZE);
                 }
@@ -467,7 +474,7 @@ void game_update(void) {
                 else if (tutorial_part == 14 && array_EnemyStats[1][ENEMY_HP] > 0) {
                     tutorial_part += 1;
                 }
-                else if (tutorial_part == 15 && minions_in_base < 2) {
+                else if (tutorial_part == 15 && minions_in_base == 0) {
                     tutorial_part -= 1;
                 }
                 else if ((tutorial_part == 17 && array_MinionStats[0][MINION_TYPE] != TANK_MINION) || (tutorial_part == 17 && array_EnemyStats[0][ENEMY_HP] == 200)) {
@@ -522,7 +529,8 @@ void game_update(void) {
                 }
             }
             if (setting_popup == TRUE) {
-                CP_Sound_PauseAll();
+               CP_Sound_PauseAll();
+               CP_Sound_ResumeGroup(CP_SOUND_GROUP_2);
                 setting_image = CP_Image_Load("./Assets/bg_mainmenu.png"); //temp image
 
                 static float middleX, middleY, width, height;
@@ -736,13 +744,23 @@ void game_update(void) {
     else if (Current_Gamestate == TUTORIAL_SCREEN5) {
         tutorial4();
     }
+
 }
 
 void game_exit(void) {
     free_all_sprites();
+    CP_Sound_Free(&mouse_click_sfx);
 }
 
 /*FUNCTIONS START HERE*/
+
+/*SFX for mouse click*/
+void mouse_click(void) {
+    if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) {
+        mouse_click_sfx = CP_Sound_Load("./Assets/music/mouse_click_sfx.wav");
+        CP_Sound_PlayAdvanced(mouse_click_sfx, (float)5, 2, FALSE, CP_SOUND_GROUP_2);
+    }
+}
 
 /*Display enemy info during gameplay*/
 void enemy_info(void) {
@@ -1643,16 +1661,8 @@ void level_selector_screen(void) {
             else {
                 Current_Gamestate = SETTING_SCREEN;
             }
-
-
         }
-
-
-
     }
-
-
-
 }
 /*
 void setting_screen_sound() {
@@ -1665,7 +1675,7 @@ void setting_screen_sound() {
 
 /*Display Setting Screen*/
 void setting_screen(void) {
-
+    mouse_click();
     setting_image = CP_Image_Load("./Assets/bg_mainmenu.png"); //temp image
     //CP_Graphics_ClearBackground(COLOR_WHITE);
     static float middleX, middleY, width, height;

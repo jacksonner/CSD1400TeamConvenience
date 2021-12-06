@@ -8,7 +8,7 @@
 @section D
 @brief This file contains all the functions required to run Horde.
 
-Copyright © 2020 DigiPen, All rights reserved.
+Copyright ï¿½ 2020 DigiPen, All rights reserved.
 *//*_____________________________________________________________*/
 
 #pragma once
@@ -166,11 +166,15 @@ static CP_Sound minion_voice;
 static CP_Sound knock;
 static CP_Sound gameplay_bgm;
 static CP_Sound main_menu_bgm;
+static CP_Sound mouse_click_sfx;
 
 /*Music arrays*/
 int play_bgm[5];
 void gameplay_sound(void);
 void main_menu_sound(void);
+
+/*SFX*/
+void mouse_click(void);
 
 /*Directions*/
 #define STOP 0
